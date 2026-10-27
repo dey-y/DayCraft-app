@@ -13,7 +13,10 @@ Este documento recoge el proceso evolutivo de creación y diseño de **DayCraft 
 4. [v4: Retorno del Calendario Semanal e Iconos Notion](#v4-retorno-del-calendario-semanal-e-iconos-notion)
 5. [v5: Consistencia Extrema, Cero Emojis y Calendario Dinámico](#v5-consistencia-extrema-cero-emojis-y-calendario-dinámico)
 6. [v6: Time-Blocking Profesional y Mensajes Contextuales](#v6-time-blocking-profesional-y-mensajes-contextuales)
-7. [v7 (Final): Pendientes de Hoy sin Hora Fija y Rollover Antiestrés](#v7-final-pendientes-de-hoy-sin-hora-fija-y-rollover-antiestrés)
+7. [v7: Pendientes de Hoy sin Hora Fija y Rollover Antiestrés (Móvil)](#v7-final-pendientes-de-hoy-sin-hora-fija-y-rollover-antiestrés)
+8. [v8: Adaptación Web / Escritorio (Dashboard Panorámico 3 Columnas)](#v8-adaptación-web--escritorio-dashboard-panorámico-3-columnas)
+9. [v8.3: Vista Semanal 7D, Agenda Rápida Permanente y Cajón Kanban](#v83-propuesta-alternativa--vista-semanal-7-días--agenda-rápida-permanente)
+10. [Cierre de la Fase de Prototipado (Móvil & Web)](#-cierre-de-la-fase-de-prototipado-móvil--web)
 
 ---
 
@@ -93,4 +96,82 @@ Este documento recoge el proceso evolutivo de creación y diseño de **DayCraft 
 
 ---
 
-*Mockup interactivo ejecutable:* [`mockup-mobile.html`](mockup-mobile.html)
+*Mockups interactivos ejecutables:*
+* Móvil: [`mockup-mobile.html`](mockup-mobile.html)
+* Web / Escritorio: [`mockup-web.html`](mockup-web.html)
+
+---
+
+## v8: Adaptación Web / Escritorio (Dashboard Panorámico 3 Columnas)
+
+### Planteamiento y Ergonomía de Pantalla Grande
+Al pasar de la pantalla compacta de un móvil (390px) a un monitor de escritorio (1200px+):
+* **El problema de la pestaña única**: En web, obligar al usuario a alternar entre pestañas inferiores ("Asistente", "Cajón de Ideas", "Calendario") desperdicia el ancho horizontal y rompe el flujo de trabajo continuo.
+* **La solución en 3 Columnas**:
+  1. **Barra Lateral Izquierda (Sidebar)**: Acceso directo a Vistas principales, Proyectos activos del Cajón de Ideas auto-agrupados, y estado del Rollover antiestrés.
+  2. **Lienzo Central (Canvas del Día)**:
+     * Header superior con tira interactiva de 7 días y selector de filtros (`Todo`, `Tareas`, `Recordatorios`).
+     * **Distribución lado a lado**: A la izquierda la **Timeline Horaria (*Time-blocking*)** con su raíl vertical; a la derecha la sección de **Pendientes de hoy (Sin hora fija)** con sus checkboxes, pastilla `[ De ayer ]` y botón `[ Fijar hora ]`.
+  3. **Panel Lateral Derecho (Dock Inteligente)**:
+     * El Asistente conversacional y la barra de captura rápida con micrófono permanecen **siempre visibles** en un lateral.
+     * Permite dictar o teclear tareas e ideas mientras ves en tiempo real cómo se actualiza la timeline del día en el centro.
+
+### 💻 Mockup Web v8.2 (Desktop Final — Timeline 24h & Todo el Mes)
+
+#### Cambios implementados según el feedback de Deimar:
+* **Timeline 24 Horas Reales (00:00 a 24:00)**: En pantalla de escritorio/portátil el raíl abarca las 24 horas del día con scroll fluido continuo, línea viva de "HORA ACTUAL" (`11:45 AHORA`), y click en cualquier hora para agendar bloques.
+* **Navegación de Todo el Mes (Grid 31 Días + Tira Horizontal)**: Se sustituyó la restricción de 7 días por una tira deslizable de los 31 días y un selector de vista: `Timeline 24h` vs `Todo el Mes (Grid)` con cuadrícula mensual completa interactiva.
+* **Eliminación Total de la Tarjeta de "Rollover Activo"**: Se purgó la caja de advertencia del sidebar; el rollover opera silenciosamente con la pastilla `[ De ayer ]` en la propia tarea dentro de la lista de pendientes.
+* **100% Pantalla Completa para PC**: Eliminados los marcos fijos; la app se ajusta elásticamente al monitor (`h-screen w-screen`) con paneles plegables de navegación e IA.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│ ⚡ DayCraft AI  [ Omni Search / Intake... Ctrl+K ]   [2h 00m Foco]  ● Sync  🔔[2]  [D]  │
+├──────────────┬──────────────────────────────────────────┬──────────────────────────────┤
+│ 📅 Octubre   │ M 27 de Octubre (Hoy)   [L][M][X][J][V]  │ 🧠 CEREBRO IA GEMINI         │
+│ L M X J V S D│ Filtros: [ Todo ] [ Tareas ] [ Recordat] │ ┌──────────────────────────┐ │
+│ ..26(27)28.. ├─────────────────────┬────────────────────┤ │ 💡 Briefing de Jornada   │ │
+│              │ Timeline Continua:  │ Pendientes Hoy:    │ │ Tarde libre tras 14:30   │ │
+│ PROYECTOS:   │ 10:00 ───────────── │ [ ] Pilas [De ayer]│ ├──────────────────────────┤ │
+│ • App Móvil  │ 11:30 Bloque gastos │ [ ] Llamar Carlos  │ │ 💤 Reactivar Idea (12d)  │ │
+│ • Nutrición  │ 12:00 [2h Libres ✨]│ ────────────────── │ │ "Automatizador"          │ │
+│              │ 14:00 Record. Pasti │ [+ Añadir rápido ] │ │ [ Agendar 1er paso ]     │ │
+│ ⚠️ Rollover  │ 16:00 ───────────── │                    │ └──────────────────────────┘ │
+│ [1 de 3 días]│ 17:00 ───────────── │ [Regla 3 días ℹ️]   │ [ Háblame o escribe... ]🎙️   │
+└──────────────┴─────────────────────┴────────────────────┴──────────────────────────────┘
+```
+
+*Mockup web ejecutable:* [`mockup-web.html`](mockup-web.html)
+
+---
+
+## v8.3: Propuesta Alternativa — Vista Semanal (7 Días) + Agenda Rápida Permanente
+
+### Planteamiento y Ergonomía
+Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en pantalla ancha de PC, se crea un mockup comparativo independiente:
+* **Agenda Rápida & Pendientes Permanente (Columna dedicada)**:
+  * Siempre visible a la izquierda del lienzo.
+  * Agrupa en una lista compacta sin saltos de horas muertas: las tareas con horario fijado y los recordatorios/pendientes del día.
+  * **Empty State Motivador**: Si no hay pendientes o se completan todos los checkboxes, muestra el mensaje: *"¡Todo despejado por hoy! Has completado todos tus recordatorios y tareas de hoy. Estás 100% al día sin estrés."* (Incluye botón en cabecera `Simular: Todo Hecho` para probarlo de un clic).
+* **Lienzo Principal con Vista Semanal de 7 Columnas**:
+  * Distribuye de Lunes a Domingo aprovechando el 100% del ancho del monitor.
+  * Permite alternar con un clic entre `Semana (7 Días)`, `Día (24h)`, `Mes (Grid)` y `Cajón de Ideas`.
+
+* **Cajón de Ideas Estilo Kanban / Proyectos Vivos**:
+  * Sustitución de cajas estáticas por tarjetas enriquecidas estilo Notion y Linear.
+  * Carpetas por proyectos con iconos vectoriales dedicados, etiquetas `#UX`, `#Tech`, sugerencias contextuales de Gemini y botón directo `[ 📅 Agendar paso ]` para convertir ideas en bloques de tiempo de la agenda.
+  * Barra superior de captura rápida de chispazos con auto-clasificación por IA.
+
+*Mockup comparativo ejecutable:* [`mockup-web-semanal.html`](mockup-web-semanal.html)
+
+---
+
+## 🎯 Cierre de la Fase de Prototipado (Móvil & Web)
+
+Con la validación de Deimar, los mockups quedan consolidados como la especificación visual y funcional definitiva:
+1. 📱 **Móvil ([`mockup-mobile.html`](mockup-mobile.html))**: Experiencia ágil vertical, entrada mixta texto/voz, raíl de Time-blocking y rollover antiestrés.
+2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard panorámico con agenda compacta fija a la izquierda, vista semanal de 7 columnas en el lienzo central, cajón de ideas estilo Kanban y dock de IA.
+
+**Siguiente Hito**: Desarrollo del código base con React Native / Expo, TypeScript y NativeWind.
+
+

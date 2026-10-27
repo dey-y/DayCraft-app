@@ -1,0 +1,1336 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DayCraft AI — Propuesta Vista Semanal + Agenda Fija</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.2); border-radius: 999px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(150, 150, 150, 0.35); }
+    
+    .ni {
+      display: inline-block;
+      vertical-align: middle;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke: currentColor;
+    }
+    .pulse-mic {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(100, 100, 100, 0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(100, 100, 100, 0); }
+    }
+    .live-pulse {
+      animation: liveGlow 2.5s infinite;
+    }
+    @keyframes liveGlow {
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.35; }
+    }
+  </style>
+</head>
+<body class="bg-[#0f1117] text-[#e6e8eb] antialiased font-sans select-none h-screen w-screen overflow-hidden flex flex-col m-0 p-0">
+
+  <!-- TOP GLOBAL HEADER -->
+  <header class="h-13 border-b border-[#262b3a] bg-[#161922] px-5 flex items-center justify-between z-30 flex-shrink-0">
+    <!-- Left: Brand & Comparison Badge -->
+    <div class="flex items-center gap-3">
+      <button onclick="toggleSidebar()" class="p-1.5 rounded-lg hover:bg-[#1f2430] text-[#8b949e] hover:text-white transition-colors" title="Alternar barra lateral">
+        <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+
+      <div class="flex items-center gap-2.5">
+        <div class="w-7 h-7 rounded-lg bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white shadow-sm">
+          <svg class="w-4 h-4 ni text-white" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-sm tracking-tight text-white">DayCraft AI</span>
+          <span class="text-[9px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono font-medium">Propuesta: Semanal + Agenda</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Omni Search & Command Bar -->
+    <div class="flex-1 max-w-lg mx-6 flex items-center gap-2.5 bg-[#1f2430] border border-[#2d3345] rounded-xl px-3.5 py-1.5 text-xs text-[#8b949e] focus-within:border-white transition-all cursor-pointer" onclick="document.getElementById('cockpitInput').focus()">
+      <svg class="w-3.5 h-3.5 ni text-[#8b949e]" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <span class="flex-1 text-[11px] truncate">Escribe o dicta: "Mañana a las 10h reunión con Ana..."</span>
+      <kbd class="text-[9px] px-1.5 py-0.5 rounded bg-[#161922] border border-[#2d3345] text-[#8b949e] font-mono">Ctrl + K</kbd>
+    </div>
+
+    <!-- Right: Status, Bell & AI Hub Toggle -->
+    <div class="flex items-center gap-3">
+      <!-- Empty State Trigger for Testing -->
+      <button onclick="simulateToggleEmptyState()" id="btnEmptyStateTest" class="hidden md:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg bg-[#1f2430] hover:bg-[#262b3a] border border-[#2d3345] text-[#8b949e] hover:text-white transition-all" title="Probar cómo luce cuando completas todo">
+        <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        <span id="txtBtnEmpty">Simular: Todo Hecho</span>
+      </button>
+
+      <!-- Offline Sync Badge -->
+      <div class="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 live-pulse"></span>
+        <span class="hidden sm:inline">Offline Sync</span>
+      </div>
+
+      <!-- Toggle AI Panel Button -->
+      <button onclick="toggleAiPanel()" id="btnToggleAi" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1f2430] border border-[#2d3345] hover:border-white text-xs font-medium text-white transition-all">
+        <svg class="w-3.5 h-3.5 ni text-indigo-400" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <span>IA Hub</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- BODY CONTENT: 4-COLUMN WORKSPACE -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- PANE 1: LEFT SIDEBAR (NAVEGACIÓN + PROYECTOS) -->
+    <aside id="cockpitSidebar" class="w-60 border-r border-[#262b3a] bg-[#161922] flex flex-col justify-between p-3.5 z-20 flex-shrink-0 transition-all duration-200">
+      <div class="space-y-4 overflow-y-auto">
+        
+        <!-- VISTAS DE NAVEGACIÓN -->
+        <div>
+          <div class="text-[10px] uppercase tracking-wider text-[#8b949e] font-bold px-2 mb-1.5">Vistas</div>
+          <nav class="space-y-0.5">
+            <button onclick="setMainView('week')" id="navViewWeek" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 ni text-indigo-400" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>
+                Semana (7 Días)
+              </span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono">Principal</span>
+            </button>
+
+            <button onclick="setMainView('day')" id="navViewDay" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Día (Timeline 24h)
+              </span>
+            </button>
+
+            <button onclick="setMainView('month')" id="navViewMonth" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                Mes Completo (Grid)
+              </span>
+            </button>
+
+            <button onclick="setMainView('ideas')" id="navViewIdeas" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors">
+              <span class="flex items-center gap-2">
+                <svg class="w-4 h-4 ni text-amber-400" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                Cajón de Ideas
+              </span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-[#1f2430] text-[#8b949e] font-mono">4</span>
+            </button>
+          </nav>
+        </div>
+
+        <!-- MINI CALENDARIO MENSUAL -->
+        <div class="p-2.5 rounded-xl bg-[#1f2430]/40 border border-[#262b3a]">
+          <div class="flex items-center justify-between mb-2 px-1">
+            <span class="text-xs font-bold text-white">Octubre 2026</span>
+            <span class="text-[10px] text-[#8b949e] font-mono">Semana 44</span>
+          </div>
+          <div class="grid grid-cols-7 gap-1 text-center text-[10px] text-[#8b949e] mb-1 font-semibold">
+            <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
+          </div>
+          <div class="grid grid-cols-7 gap-1 text-center text-[11px]" id="miniCalendarGrid">
+            <!-- Rellenado por JS -->
+          </div>
+        </div>
+
+        <!-- PROYECTOS ACTIVOS DEL CAJÓN -->
+        <div>
+          <div class="flex items-center justify-between px-2 mb-1.5">
+            <span class="text-[10px] uppercase tracking-wider text-[#8b949e] font-bold">Proyectos</span>
+            <span class="text-[9px] text-emerald-400 font-mono">Auto-IA</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="p-2.5 rounded-xl bg-[#1f2430]/70 border border-[#2d3345] hover:border-white transition-all cursor-pointer" onclick="setMainView('ideas')">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-white flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-indigo-400 flex-shrink-0"></span>
+                  Mi App Móvil
+                </span>
+                <span class="text-[10px] text-[#8b949e] font-mono">3 ideas</span>
+              </div>
+              <p class="text-[10px] text-[#8b949e] mt-1 truncate">App sin fricción, offline, NotionIcons</p>
+            </div>
+
+            <div class="p-2.5 rounded-xl bg-[#1f2430]/70 border border-[#2d3345] hover:border-white transition-all cursor-pointer" onclick="setMainView('ideas')">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-white flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-amber-400 flex-shrink-0"></span>
+                  Cocina & Nutrición
+                </span>
+                <span class="text-[10px] text-[#8b949e] font-mono">1 idea</span>
+              </div>
+              <p class="text-[10px] text-[#8b949e] mt-1 truncate">Recetas nevera + escáner tickets</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Info Sutil -->
+      <div class="pt-3 border-t border-[#262b3a] text-[10px] text-[#8b949e] flex items-center justify-between px-1">
+        <span>Notion Icons</span>
+        <span class="font-mono text-emerald-400">Offline SQLite</span>
+      </div>
+    </aside>
+
+    <!-- PANE 2: AGENDA RÁPIDA & PENDIENTES DE HOY (COLUMNA FIJA PERMANENTE) -->
+    <section class="w-80 md:w-96 border-r border-[#262b3a] bg-[#12151d] flex flex-col justify-between p-4 z-10 flex-shrink-0">
+      
+      <!-- Encabezado de la Agenda Fija -->
+      <div>
+        <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 live-pulse"></span>
+              <h2 class="font-bold text-sm text-white">Agenda de Hoy</h2>
+            </div>
+            <p class="text-[11px] text-[#8b949e]">Martes 27 de Octubre</p>
+          </div>
+          <span class="text-[10px] px-2.5 py-1 rounded-full bg-[#1f2430] border border-[#2d3345] font-mono text-[#8b949e]" id="badgeAgendaCount">1 agendada · 2 pendientes</span>
+        </div>
+
+        <!-- Entrada Rápida de Tarea/Recordatorio -->
+        <div class="my-3">
+          <div class="flex items-center gap-2 bg-[#161922] border border-[#2d3345] rounded-xl px-3 py-1.5 text-xs focus-within:border-white transition-all">
+            <span class="text-[#8b949e] font-bold">+</span>
+            <input type="text" id="agendaQuickInput" placeholder="Añadir a hoy (ej: Llamar gestoría 16h)..." class="bg-transparent border-none text-white text-xs focus:outline-none flex-1 placeholder:text-[#8b949e]" onkeydown="handleAgendaInput(event)">
+            <button onclick="addAgendaItemFromInput()" class="p-1 rounded hover:bg-[#1f2430] text-[#8b949e] hover:text-white" title="Guardar">
+              <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LISTADO SCROLLABLE DE HOY (TAREAS CON HORA + RECORDATORIOS SIN HORA) -->
+      <div class="flex-1 overflow-y-auto pr-1 space-y-4 my-1" id="agendaListContent">
+        
+        <!-- Bloque 1: Tareas Agendadas con Hora Fija -->
+        <div id="sectionScheduledToday">
+          <div class="flex items-center justify-between text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-2 px-1">
+            <span class="flex items-center gap-1.5 text-indigo-400">
+              <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Con Horario Fijado
+            </span>
+            <span class="font-mono text-[10px] text-[#8b949e]" id="scheduledCountLabel">1 bloque</span>
+          </div>
+
+          <div class="space-y-2" id="scheduledTodayList">
+            <!-- Tarea Agendada 1 -->
+            <div class="bg-[#161922] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 text-xs hover:border-white transition-all shadow-sm flex items-start justify-between gap-2">
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-mono text-indigo-400 font-bold text-[11px]">11:30 — 12:00</span>
+                  <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">30 min</span>
+                </div>
+                <h4 class="font-medium text-white truncate text-xs">Revisar informe de gastos mensual</h4>
+                <p class="text-[10px] text-[#8b949e] mt-0.5 truncate">Bloque enfocado con comprobantes</p>
+              </div>
+              <button onclick="jumpToCalendarSlot('11:30')" class="text-[#8b949e] hover:text-white p-1 rounded hover:bg-[#1f2430]" title="Ver en calendario">
+                <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bloque 2: Recordatorios & Pendientes del Día (Sin hora fija) -->
+        <div id="sectionRemindersToday">
+          <div class="flex items-center justify-between text-[11px] font-bold text-[#8b949e] uppercase tracking-wider mb-2 px-1">
+            <span class="flex items-center gap-1.5 text-amber-400">
+              <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              Recordatorios y Pendientes
+            </span>
+            <span class="font-mono text-[10px] text-[#8b949e]" id="remindersCountLabel">2 tareas</span>
+          </div>
+
+          <div class="space-y-2" id="remindersTodayList">
+            <!-- Item 1: Con badge de ayer -->
+            <div class="agenda-item bg-[#161922] border border-[#2d3345] rounded-xl p-3 flex items-center justify-between gap-3 text-xs hover:border-white transition-all shadow-sm" id="item-task-1">
+              <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+                <input type="checkbox" onchange="toggleAgendaCheckbox(this, 'task-1')" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0 cursor-pointer">
+                <div class="min-w-0 flex items-center gap-2">
+                  <span class="font-medium text-white task-title truncate">Comprar pilas para el mando</span>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono whitespace-nowrap flex-shrink-0">De ayer</span>
+                </div>
+              </label>
+              <button onclick="promptAssignTimeToItem('Comprar pilas para el mando')" class="text-[10px] text-[#8b949e] hover:text-white px-2 py-0.5 rounded bg-[#1f2430] hover:bg-[#262b3a] border border-[#2d3345] whitespace-nowrap flex-shrink-0 transition-colors">
+                Fijar hora
+              </button>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="agenda-item bg-[#161922] border border-[#2d3345] rounded-xl p-3 flex items-center justify-between gap-3 text-xs hover:border-white transition-all shadow-sm" id="item-task-2">
+              <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+                <input type="checkbox" onchange="toggleAgendaCheckbox(this, 'task-2')" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0 cursor-pointer">
+                <div class="min-w-0">
+                  <span class="font-medium text-white task-title truncate">Llamar a Carlos por presupuesto</span>
+                </div>
+              </label>
+              <button onclick="promptAssignTimeToItem('Llamar a Carlos por presupuesto')" class="text-[10px] text-[#8b949e] hover:text-white px-2 py-0.5 rounded bg-[#1f2430] hover:bg-[#262b3a] border border-[#2d3345] whitespace-nowrap flex-shrink-0 transition-colors">
+                Fijar hora
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- EMPTY STATE DINÁMICO (CUANDO TODO ESTÁ HECHO O NO HAY NADA) -->
+      <div id="agendaEmptyState" class="hidden flex-1 flex flex-col items-center justify-center text-center p-6 space-y-3">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <svg class="w-6 h-6 ni" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div>
+          <h3 class="font-bold text-sm text-white">¡Todo despejado por hoy!</h3>
+          <p class="text-xs text-[#8b949e] mt-1 max-w-[220px]">Has completado todos tus recordatorios y tareas de hoy. Estás 100% al día sin estrés.</p>
+        </div>
+        <button onclick="restoreAgendaSampleData()" class="text-[11px] px-3 py-1 rounded-lg bg-[#1f2430] hover:bg-[#262b3a] border border-[#2d3345] text-white transition-colors">
+          Restaurar tareas de prueba
+        </button>
+      </div>
+
+      <!-- Footer de la Agenda: Barra de progreso sutil -->
+      <div class="pt-3 border-t border-[#262b3a] flex items-center justify-between text-[11px]">
+        <div class="flex items-center gap-2 flex-1 mr-3">
+          <div class="flex-1 bg-[#1f2430] h-1.5 rounded-full overflow-hidden">
+            <div id="agendaProgressBar" class="bg-indigo-400 h-full w-[33%] transition-all duration-300"></div>
+          </div>
+          <span class="font-mono text-[#8b949e] text-[10px]" id="agendaProgressPercent">33%</span>
+        </div>
+        <span class="text-[10px] text-[#8b949e]">Auto-rollover</span>
+      </div>
+
+    </section>
+
+    <!-- PANE 3: LIENZO PRINCIPAL (VISTA SEMANAL DE 7 COLUMNAS / DÍA / MES) -->
+    <main class="flex-1 min-w-0 flex flex-col overflow-hidden bg-[#0f1117]">
+      
+      <!-- HEADER DEL LIENZO: Barra de navegación semanal -->
+      <div class="px-5 py-2.5 border-b border-[#262b3a] bg-[#161922] flex items-center justify-between flex-shrink-0 gap-4">
+        
+        <!-- Controles de Navegación de Fecha -->
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-1 bg-[#1f2430] rounded-xl border border-[#2d3345] p-1">
+            <button onclick="changeWeek(-1)" class="p-1 rounded-lg hover:bg-[#161922] text-[#8b949e] hover:text-white transition-colors" title="Semana anterior">
+              <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button onclick="goToCurrentWeek()" class="px-2.5 py-0.5 rounded-lg hover:bg-[#161922] text-xs font-bold text-white transition-colors">Hoy</button>
+            <button onclick="changeWeek(1)" class="p-1 rounded-lg hover:bg-[#161922] text-[#8b949e] hover:text-white transition-colors" title="Semana siguiente">
+              <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <h2 class="font-bold text-sm text-white" id="mainCanvasWeekRange">26 Octubre — 1 Noviembre 2026</h2>
+        </div>
+
+        <!-- Selector de Vista del Lienzo -->
+        <div class="flex items-center gap-1 bg-[#1f2430] p-1 rounded-xl border border-[#2d3345]">
+          <button onclick="setMainView('week')" id="tabBtnWeek" class="px-3 py-1 rounded-lg bg-[#161922] font-bold text-xs text-white shadow-sm transition-all flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 ni text-indigo-400" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="10" x2="9" y2="22"/><line x1="15" y1="10" x2="15" y2="22"/></svg>
+            Semana (7 Días)
+          </button>
+          <button onclick="setMainView('day')" id="tabBtnDay" class="px-3 py-1 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white transition-all flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Día (24h)
+          </button>
+          <button onclick="setMainView('month')" id="tabBtnMonth" class="px-3 py-1 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white transition-all flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Mes (Grid)
+          </button>
+        </div>
+
+      </div>
+
+      <!-- VISTA A: SEMANA 7 COLUMNAS (DEFAULT) -->
+      <div id="viewContainerWeek" class="flex-1 min-h-0 flex flex-col overflow-hidden p-4">
+        <div class="flex-1 bg-[#161922] border border-[#262b3a] rounded-2xl flex flex-col overflow-hidden shadow-sm">
+          
+          <!-- Cabecera de los 7 Días de la Semana -->
+          <div class="grid grid-cols-7 border-b border-[#262b3a] bg-[#12151d] text-xs flex-shrink-0">
+            <!-- Lunes 26 -->
+            <div class="p-2.5 text-center border-r border-[#262b3a]">
+              <div class="text-[#8b949e] font-medium text-[11px]">LUN</div>
+              <div class="font-bold text-sm text-white font-mono mt-0.5">26</div>
+            </div>
+            <!-- Martes 27 (HOY - Resaltado) -->
+            <div class="p-2.5 text-center border-r border-[#262b3a] bg-[#1f2430]/70 relative">
+              <div class="text-indigo-400 font-bold text-[11px] flex items-center justify-center gap-1">
+                <span>MAR</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+              </div>
+              <div class="font-bold text-sm text-white font-mono mt-0.5 flex items-center justify-center gap-1">
+                <span class="w-6 h-6 rounded-full bg-white text-black flex items-center justify-center mx-auto text-xs">27</span>
+              </div>
+            </div>
+            <!-- Miércoles 28 -->
+            <div class="p-2.5 text-center border-r border-[#262b3a]">
+              <div class="text-[#8b949e] font-medium text-[11px]">MIÉ</div>
+              <div class="font-bold text-sm text-white font-mono mt-0.5">28</div>
+            </div>
+            <!-- Jueves 29 -->
+            <div class="p-2.5 text-center border-r border-[#262b3a]">
+              <div class="text-[#8b949e] font-medium text-[11px]">JUE</div>
+              <div class="font-bold text-sm text-white font-mono mt-0.5">29</div>
+            </div>
+            <!-- Viernes 30 -->
+            <div class="p-2.5 text-center border-r border-[#262b3a]">
+              <div class="text-[#8b949e] font-medium text-[11px]">VIE</div>
+              <div class="font-bold text-sm text-white font-mono mt-0.5">30</div>
+            </div>
+            <!-- Sábado 31 -->
+            <div class="p-2.5 text-center border-r border-[#262b3a]">
+              <div class="text-[#8b949e] font-medium text-[11px]">SÁB</div>
+              <div class="font-bold text-sm text-[#8b949e] font-mono mt-0.5">31</div>
+            </div>
+            <!-- Domingo 01 -->
+            <div class="p-2.5 text-center">
+              <div class="text-[#8b949e] font-medium text-[11px]">DOM</div>
+              <div class="font-bold text-sm text-[#8b949e] font-mono mt-0.5">01</div>
+            </div>
+          </div>
+
+          <!-- Cuerpo de 7 Columnas Horarias Scrollable -->
+          <div class="flex-1 overflow-y-auto relative">
+            <div class="grid grid-cols-7 min-h-[900px] divide-x divide-[#262b3a]">
+              
+              <!-- Columna Lunes 26 -->
+              <div class="p-2 space-y-2 hover:bg-[#1f2430]/20 transition-colors">
+                <div class="text-[10px] text-[#8b949e] font-mono text-center py-2 opacity-50">Sin eventos</div>
+              </div>
+
+              <!-- Columna Martes 27 (HOY) -->
+              <div class="p-2 space-y-2 bg-[#1f2430]/10 hover:bg-[#1f2430]/20 transition-colors relative">
+                <!-- Evento 11:30 - 12:00 -->
+                <div class="mt-20 bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 shadow-md hover:border-white transition-all cursor-pointer">
+                  <div class="flex items-center justify-between text-[10px]">
+                    <span class="font-mono text-indigo-400 font-bold">11:30 — 12:00</span>
+                    <span class="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">30m</span>
+                  </div>
+                  <h5 class="font-bold text-xs text-white mt-1">Revisar informe gastos</h5>
+                  <p class="text-[10px] text-[#8b949e] mt-0.5 line-clamp-1">Bloque enfocado</p>
+                </div>
+
+                <!-- Hueco para agendar -->
+                <div class="mt-8 border border-dashed border-[#262b3a] hover:border-white rounded-xl p-2 text-center text-[10px] text-[#8b949e] hover:text-white cursor-pointer transition-colors" onclick="promptAssignSlot('15:00')">
+                  + 15:00 Agendar bloque
+                </div>
+              </div>
+
+              <!-- Columna Miércoles 28 -->
+              <div class="p-2 space-y-2 hover:bg-[#1f2430]/20 transition-colors">
+                <div class="text-[10px] text-[#8b949e] font-mono text-center py-2 opacity-50">Día libre</div>
+              </div>
+
+              <!-- Columna Jueves 29 -->
+              <div class="p-2 space-y-2 hover:bg-[#1f2430]/20 transition-colors">
+                <div class="text-[10px] text-[#8b949e] font-mono text-center py-2 opacity-50">Día libre</div>
+              </div>
+
+              <!-- Columna Viernes 30 -->
+              <div class="p-2 space-y-2 hover:bg-[#1f2430]/20 transition-colors">
+                <!-- Evento Viernes 10:00 -->
+                <div class="mt-12 bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 shadow-md hover:border-white transition-all cursor-pointer">
+                  <div class="flex items-center justify-between text-[10px]">
+                    <span class="font-mono text-indigo-400 font-bold">10:00 — 11:30</span>
+                    <span class="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">1h 30m</span>
+                  </div>
+                  <h5 class="font-bold text-xs text-white mt-1">Planificar sprint app</h5>
+                  <p class="text-[10px] text-[#8b949e] mt-0.5 line-clamp-1">Diseño backlog</p>
+                </div>
+              </div>
+
+              <!-- Columna Sábado 31 -->
+              <div class="p-2 space-y-2 bg-[#12151d]/50 hover:bg-[#1f2430]/20 transition-colors">
+                <div class="text-[10px] text-[#8b949e] font-mono text-center py-2 opacity-30">Fin de semana</div>
+              </div>
+
+              <!-- Columna Domingo 01 -->
+              <div class="p-2 space-y-2 bg-[#12151d]/50 hover:bg-[#1f2430]/20 transition-colors">
+                <div class="text-[10px] text-[#8b949e] font-mono text-center py-2 opacity-30">Fin de semana</div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- VISTA B: DÍA CON TIMELINE 24H (OPCIONAL) -->
+      <div id="viewContainerDay" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden p-4">
+        <div class="flex-1 bg-[#161922] border border-[#262b3a] rounded-2xl p-4 overflow-y-auto" id="dayTimeline24Container">
+          <!-- Renderizado dinámico de 24h -->
+        </div>
+      </div>
+
+      <!-- VISTA C: MES COMPLETO EN GRID -->
+      <div id="viewContainerMonth" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden p-4">
+        <div class="flex-1 bg-[#161922] border border-[#262b3a] rounded-2xl p-4 overflow-y-auto">
+          <div class="grid grid-cols-7 gap-2.5 text-center text-xs text-[#8b949e] mb-2 font-bold font-mono">
+            <span>LUN</span><span>MAR</span><span>MIÉ</span><span>JUE</span><span>VIE</span><span>SÁB</span><span>DOM</span>
+          </div>
+          <div class="grid grid-cols-7 gap-2.5" id="fullMonthGridCells">
+            <!-- Rellenado por JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- VISTA D: CAJÓN DE IDEAS (REDISEÑADO PREMIUM / NOTION & LINEAR AESTHETICS) -->
+      <div id="viewContainerIdeas" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden p-4">
+        <div class="flex-1 bg-[#161922] border border-[#262b3a] rounded-2xl flex flex-col overflow-hidden shadow-sm">
+          
+          <!-- Encabezado Superior del Cajón de Ideas -->
+          <div class="px-6 py-4 border-b border-[#262b3a] bg-[#12151d] flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-shrink-0">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                  <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </div>
+                <h3 class="font-bold text-base text-white tracking-tight">Cajón de Ideas & Proyectos Vivos</h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Gemini Auto-Sync</span>
+              </div>
+              <p class="text-xs text-[#8b949e] mt-1">
+                Vuelca chispazos e inspiraciones sin preocuparte por el orden. La IA extrae patrones, añade sugerencias y te ayuda a agendarlas cuando tengas tiempo libre.
+              </p>
+            </div>
+
+            <!-- Filtros de vista e info rápida -->
+            <div class="flex items-center gap-2 flex-wrap">
+              <div class="flex items-center gap-1.5 text-xs bg-[#1f2430] p-1 rounded-xl border border-[#2d3345]">
+                <button onclick="setIdeaSubView('projects', this)" class="idea-subfilter px-2.5 py-1 rounded-lg bg-[#161922] font-bold text-white shadow-sm text-xs">Por Proyectos</button>
+                <button onclick="setIdeaSubView('wall', this)" class="idea-subfilter px-2.5 py-1 rounded-lg text-[#8b949e] hover:text-white text-xs">Muro de Notas</button>
+                <button onclick="setIdeaSubView('inbox', this)" class="idea-subfilter px-2.5 py-1 rounded-lg text-[#8b949e] hover:text-white text-xs">Bandeja Sin Procesar</button>
+              </div>
+
+              <button onclick="focusIdeaSparkInput()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-neutral-200 text-black font-bold text-xs flex items-center gap-1.5 shadow transition-all">
+                <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Nueva Idea</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Barra de Captura Rápida de Chispazos (Quick Capture Bar) -->
+          <div class="px-6 py-3 border-b border-[#262b3a] bg-[#161922]/80 flex items-center gap-3 flex-shrink-0">
+            <div class="flex-1 flex items-center gap-2.5 bg-[#1f2430] border border-[#2d3345] rounded-xl px-3.5 py-2 text-xs focus-within:border-white transition-all">
+              <svg class="w-4 h-4 ni text-amber-400 flex-shrink-0" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <input type="text" id="quickIdeaSparkInput" placeholder="Apunta un chispazo rápido (ej: 'App para catalogar libros escaneando el lomo')..." class="bg-transparent border-none text-white text-xs focus:outline-none flex-1 placeholder:text-[#8b949e]" onkeydown="if(event.key==='Enter') saveQuickSpark()">
+              
+              <div class="flex items-center gap-2 border-l border-[#2d3345] pl-2.5">
+                <select id="ideaTargetProject" class="bg-transparent border-none text-[#8b949e] hover:text-white text-xs focus:outline-none cursor-pointer">
+                  <option value="auto" class="bg-[#1f2430] text-white">✨ Auto-clasificar con IA</option>
+                  <option value="app" class="bg-[#1f2430] text-white">📁 Mi App Móvil</option>
+                  <option value="kitchen" class="bg-[#1f2430] text-white">📁 Cocina & Nutrición</option>
+                </select>
+
+                <button onclick="saveQuickSpark()" class="px-2.5 py-1 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 font-medium text-[11px] border border-indigo-500/30 transition-colors">
+                  Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cuerpo Principal del Tablero de Ideas (Scrollable) -->
+          <div class="flex-1 overflow-y-auto p-6 space-y-6">
+            
+            <!-- SUB-VIEW 1: PROYECTOS EN TABLERO (COLUMNAS / CARPETAS ENRIQUECIDAS) -->
+            <div id="ideasSubViewProjects" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 items-start">
+              
+              <!-- PROYECTO 1: MI APP MÓVIL -->
+              <div class="bg-[#12151d] border border-[#262b3a] hover:border-[#38bdf8]/40 rounded-2xl p-4 space-y-4 shadow-sm transition-all flex flex-col">
+                <!-- Header de Carpeta con Tag y Contador -->
+                <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shadow-inner">
+                      <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-sm text-white flex items-center gap-1.5">
+                        Mi App Móvil
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Proyecto Activo"></span>
+                      </h4>
+                      <p class="text-[10px] text-[#8b949e]">3 notas · Actualizado ayer</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1">
+                    <button onclick="promptAddNewNoteToProject('Mi App Móvil')" class="p-1 rounded-lg hover:bg-[#1f2430] text-[#8b949e] hover:text-white transition-colors" title="Añadir nota">
+                      <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <button class="p-1 rounded-lg hover:bg-[#1f2430] text-[#8b949e] hover:text-white transition-colors" title="Opciones">
+                      <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Lista de Notas del Proyecto 1 -->
+                <div class="space-y-3" id="projectListApp">
+                  
+                  <!-- Nota 1: Rica con tags y acción de agendar -->
+                  <div class="group bg-[#161922] hover:bg-[#1a1e29] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2.5 transition-all shadow-sm">
+                    <div class="flex items-start justify-between gap-2">
+                      <h5 class="font-semibold text-xs text-white leading-snug">App sin fricción para organizar el día</h5>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-mono flex-shrink-0">Core</span>
+                    </div>
+
+                    <p class="text-xs text-[#8b949e] leading-relaxed line-clamp-2">
+                      Eliminar la pereza inicial: dictas por voz y la app separa automáticamente lo que es tarea con hora de las ideas para no saturar el calendario.
+                    </p>
+
+                    <!-- Tags sutiles -->
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="text-[9px] px-2 py-0.5 rounded-md bg-[#1f2430] text-[#8b949e] border border-[#2d3345]">#UX</span>
+                      <span class="text-[9px] px-2 py-0.5 rounded-md bg-[#1f2430] text-[#8b949e] border border-[#2d3345]">#Productividad</span>
+                      <span class="text-[9px] px-2 py-0.5 rounded-md bg-[#1f2430] text-[#8b949e] border border-[#2d3345]">#Audio</span>
+                    </div>
+
+                    <!-- Footer de la tarjeta con acción rápida -->
+                    <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
+                      <span>Hace 2 días · Voz</span>
+                      <button onclick="convertIdeaToScheduleTask('Definir wireframes de entrada por voz')" class="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded-md bg-white hover:bg-neutral-200 text-black font-semibold transition-all flex items-center gap-1 shadow-sm">
+                        <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Agendar paso</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Nota 2: Con sugerencia de IA integrada -->
+                  <div class="group bg-[#161922] hover:bg-[#1a1e29] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2.5 transition-all shadow-sm">
+                    <div class="flex items-start justify-between gap-2">
+                      <h5 class="font-semibold text-xs text-white leading-snug">Iconografía 100% Notion Icons</h5>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono flex-shrink-0">Diseño</span>
+                    </div>
+
+                    <p class="text-xs text-[#8b949e] leading-relaxed">
+                      Cero emojis de colores chillones en la interfaz central. Trazos vectoriales finos (stroke 1.8), fondos grafito y acentos sutiles solo en estados activos.
+                    </p>
+
+                    <!-- Caja de Sugerencia Inteligente Gemini -->
+                    <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-2 text-[11px] text-indigo-300 flex items-start gap-1.5">
+                      <svg class="w-3.5 h-3.5 ni text-indigo-400 flex-shrink-0 mt-0.5" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                      <span>Gemini: Tienes los componentes SVG organizados y listos para migrar a React Native.</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
+                      <span>Ayer</span>
+                      <button onclick="convertIdeaToScheduleTask('Revisar catálogo NotionIcons')" class="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded-md bg-white hover:bg-neutral-200 text-black font-semibold transition-all flex items-center gap-1 shadow-sm">
+                        <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Agendar</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Nota 3: Sincronización Offline -->
+                  <div class="group bg-[#161922] hover:bg-[#1a1e29] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2.5 transition-all shadow-sm">
+                    <div class="flex items-start justify-between gap-2">
+                      <h5 class="font-semibold text-xs text-white leading-snug">Persistencia Offline SQLite</h5>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 font-mono flex-shrink-0">Tech</span>
+                    </div>
+
+                    <p class="text-xs text-[#8b949e] leading-relaxed">
+                      Poder capturar notas en el metro sin cobertura. Local first con reconciliación en la nube cuando vuelva la conexión.
+                    </p>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
+                      <span>Hace 3 días</span>
+                      <button onclick="convertIdeaToScheduleTask('Probar SQLite offline en Expo')" class="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded-md bg-white hover:bg-neutral-200 text-black font-semibold transition-all flex items-center gap-1 shadow-sm">
+                        <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Agendar</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- PROYECTO 2: COCINA & NUTRICIÓN -->
+              <div class="bg-[#12151d] border border-[#262b3a] hover:border-amber-500/40 rounded-2xl p-4 space-y-4 shadow-sm transition-all flex flex-col">
+                <!-- Header de Carpeta -->
+                <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shadow-inner">
+                      <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-sm text-white flex items-center gap-1.5">
+                        Cocina & Nutrición
+                        <span class="text-[9px] px-1.5 py-0.2 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">En incubación</span>
+                      </h4>
+                      <p class="text-[10px] text-[#8b949e]">1 nota · Actualizado hace 4 días</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-1">
+                    <button onclick="promptAddNewNoteToProject('Cocina & Nutrición')" class="p-1 rounded-lg hover:bg-[#1f2430] text-[#8b949e] hover:text-white transition-colors" title="Añadir nota">
+                      <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+                    <button class="p-1 rounded-lg hover:bg-[#1f2430] text-[#8b949e] hover:text-white transition-colors">
+                      <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Lista de Notas del Proyecto 2 -->
+                <div class="space-y-3" id="projectListKitchen">
+                  
+                  <div class="group bg-[#161922] hover:bg-[#1a1e29] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2.5 transition-all shadow-sm">
+                    <div class="flex items-start justify-between gap-2">
+                      <h5 class="font-semibold text-xs text-white leading-snug">Recetas con lo que haya en la nevera</h5>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono flex-shrink-0">Idea</span>
+                    </div>
+
+                    <p class="text-xs text-[#8b949e] leading-relaxed">
+                      Le dices los 4 ingredientes que tienes rondando y te da 2 recetas rápidas de 15 minutos sin complicaciones ni pasos gourmet excesivos.
+                    </p>
+
+                    <!-- Idea Enriquecida por IA -->
+                    <div class="bg-amber-500/10 border border-amber-500/20 rounded-lg p-2.5 text-[11px] text-amber-300 space-y-1">
+                      <div class="font-semibold flex items-center gap-1.5 text-amber-400">
+                        <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <span>Sugerencia enriquecida por Gemini:</span>
+                      </div>
+                      <p class="text-[#8b949e]">Integrar escáner de tickets de supermercado para registrar automáticamente alimentos y alertar antes de que caduquen.</p>
+                    </div>
+
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="text-[9px] px-2 py-0.5 rounded-md bg-[#1f2430] text-[#8b949e] border border-[#2d3345]">#Recetas</span>
+                      <span class="text-[9px] px-2 py-0.5 rounded-md bg-[#1f2430] text-[#8b949e] border border-[#2d3345]">#SmartPantry</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
+                      <span>Hace 4 días</span>
+                      <button onclick="convertIdeaToScheduleTask('Investigar API de escaneo de tickets')" class="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded-md bg-white hover:bg-neutral-200 text-black font-semibold transition-all flex items-center gap-1 shadow-sm">
+                        <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span>Agendar 1er paso</span>
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- BANDEJA 3: CHISPAZOS SUELTOS & IDEAS INACTIVAS (LISTAS PARA RESCATAR) -->
+              <div class="bg-[#12151d] border border-dashed border-[#2d3345] rounded-2xl p-4 space-y-4 shadow-sm flex flex-col">
+                <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-[#8b949e]">
+                      <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-sm text-white">Bandeja de Entrada</h4>
+                      <p class="text-[10px] text-[#8b949e]">Chispazos sin asignar a un proyecto</p>
+                    </div>
+                  </div>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] text-[#8b949e] font-mono">1 idea</span>
+                </div>
+
+                <div class="space-y-3">
+                  <!-- Idea Inactiva -->
+                  <div class="group bg-[#161922] border border-amber-500/20 hover:border-amber-400 rounded-xl p-3.5 space-y-2.5 transition-all">
+                    <div class="flex items-start justify-between gap-2">
+                      <h5 class="font-semibold text-xs text-amber-300 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 ni text-amber-400" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        Automatizador de facturas
+                      </h5>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono">12 días inactiva</span>
+                    </div>
+
+                    <p class="text-xs text-[#8b949e] leading-relaxed">
+                      Conectar Gmail con Google Sheets para descargar PDFs adjuntos de facturas automáticamente y clasificarlos por proveedor.
+                    </p>
+
+                    <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px]">
+                      <span class="text-[#8b949e]">Sugerida para hoy 16:00h</span>
+                      <button onclick="convertIdeaToScheduleTask('Explorar Automatizador de Facturas', '16:00')" class="px-2.5 py-1 rounded-md bg-white hover:bg-neutral-200 text-black font-bold transition-all shadow-sm">
+                        Agendar hoy 16h
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Botón para nuevo chispazo libre -->
+                  <div onclick="focusIdeaSparkInput()" class="border border-dashed border-[#2d3345] hover:border-white rounded-xl p-3 text-center text-xs text-[#8b949e] hover:text-white cursor-pointer transition-colors flex items-center justify-center gap-1.5">
+                    <span class="font-bold">+</span>
+                    <span>Capturar chispazo libre</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- SUB-VIEW 2: MURO DE NOTAS (MASONRY / STICKY NOTES STYLE) -->
+            <div id="ideasSubViewWall" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <!-- Cargado dinámicamente -->
+            </div>
+
+            <!-- SUB-VIEW 3: BANDEJA SIN PROCESAR -->
+            <div id="ideasSubViewInbox" class="hidden max-w-2xl mx-auto space-y-3">
+              <!-- Cargado dinámicamente -->
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+
+    <!-- PANE 4: DOCK LATERAL DERECHO (IA HUB & ASISTENTE) -->
+    <aside id="cockpitAiPanel" class="w-80 border-l border-[#262b3a] bg-[#161922] flex flex-col justify-between p-4 z-20 flex-shrink-0 transition-all duration-200">
+      <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
+        <div class="flex items-center gap-2">
+          <svg class="w-4 h-4 ni text-indigo-400" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span class="font-bold text-xs text-white">Cerebro IA Gemini</span>
+        </div>
+        <button onclick="toggleAiPanel()" class="text-[#8b949e] hover:text-white p-1 rounded hover:bg-[#1f2430]">
+          <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- Feed Conversacional / Contextual -->
+      <div class="flex-1 overflow-y-auto py-3 space-y-3 pr-1">
+        <!-- Briefing de Jornada -->
+        <div class="p-3 rounded-xl bg-[#1f2430] border border-[#2d3345] space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-white flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              Briefing de Hoy
+            </span>
+            <span class="text-[10px] text-[#8b949e]">11:45</span>
+          </div>
+          <p class="text-xs text-[#8b949e] leading-relaxed">
+            Tienes solo <strong class="text-white">1 reunión</strong> (11:30h) y <strong class="text-white">2 pendientes</strong>. La tarde está completamente libre para avanzar a tu ritmo.
+          </p>
+        </div>
+
+        <!-- Reactivación Inteligente de Ideas Inactivas -->
+        <div class="p-3 rounded-xl bg-[#1f2430] border border-amber-500/20 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-amber-400 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5 ni text-amber-400" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Idea Inactiva (12 días)
+            </span>
+          </div>
+          <p class="text-xs text-[#8b949e] leading-relaxed">
+            Guardaste la idea <strong class="text-white">"Automatizador de facturas"</strong> hace casi 2 semanas. Como hoy tienes la tarde libre, ¿te agendo 30 min para explorarla?
+          </p>
+          <div class="flex gap-2 pt-1">
+            <button onclick="scheduleIdeaDirectly()" class="px-2.5 py-1 rounded-lg bg-white text-black font-bold text-[11px] hover:bg-neutral-200 transition-colors">Agendar 16:00</button>
+            <button onclick="this.parentElement.parentElement.remove()" class="px-2 py-1 rounded-lg hover:bg-[#161922] text-[11px] text-[#8b949e]">Más adelante</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Intake Inferior: Escribir o Dictar por voz -->
+      <div class="pt-3 border-t border-[#262b3a] space-y-2">
+        <div class="relative flex items-center">
+          <input type="text" id="cockpitInput" placeholder="Habla o escribe lo que tengas en mente..." class="w-full bg-[#1f2430] border border-[#2d3345] rounded-xl pl-3 pr-10 py-2 text-xs text-white placeholder-[#8b949e] focus:outline-none focus:border-white transition-colors" onkeydown="handleCockpitInput(event)">
+          <button onclick="toggleVoiceDictation()" id="cockpitMicBtn" class="absolute right-1.5 p-1.5 rounded-lg bg-[#262b3a] hover:bg-white hover:text-black text-[#8b949e] transition-all" title="Dictar por voz">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+        </div>
+        <p class="text-[10px] text-[#8b949e] text-center">Gemini clasifica en Tarea Agendada, Recordatorio o Idea.</p>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <!-- JAVASCRIPT: INTERACTIVIDAD COMPLETA -->
+  <script>
+    // ESTADO DE LA AGENDA
+    let agendaState = {
+      isSimulatedEmpty: false,
+      scheduled: [
+        { id: "s-1", time: "11:30 — 12:00", duration: "30 min", title: "Revisar informe de gastos mensual", desc: "Bloque enfocado con comprobantes", done: false }
+      ],
+      reminders: [
+        { id: "r-1", title: "Comprar pilas para el mando", isFromYesterday: true, done: false },
+        { id: "r-2", title: "Llamar a Carlos por presupuesto", isFromYesterday: false, done: false }
+      ]
+    };
+
+    let currentMainView = 'week'; // 'week', 'day', 'month', 'ideas'
+
+    // CAMBIO DE VISTAS
+    function setMainView(view) {
+      currentMainView = view;
+      
+      // Contenedores
+      document.getElementById('viewContainerWeek').classList.toggle('hidden', view !== 'week');
+      document.getElementById('viewContainerDay').classList.toggle('hidden', view !== 'day');
+      document.getElementById('viewContainerMonth').classList.toggle('hidden', view !== 'month');
+      document.getElementById('viewContainerIdeas').classList.toggle('hidden', view !== 'ideas');
+
+      // Tabs Header
+      document.getElementById('tabBtnWeek').className = view === 'week'
+        ? "px-3 py-1 rounded-lg bg-[#161922] font-bold text-xs text-white shadow-sm transition-all flex items-center gap-1.5"
+        : "px-3 py-1 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white transition-all flex items-center gap-1.5";
+      
+      document.getElementById('tabBtnDay').className = view === 'day'
+        ? "px-3 py-1 rounded-lg bg-[#161922] font-bold text-xs text-white shadow-sm transition-all flex items-center gap-1.5"
+        : "px-3 py-1 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white transition-all flex items-center gap-1.5";
+
+      document.getElementById('tabBtnMonth').className = view === 'month'
+        ? "px-3 py-1 rounded-lg bg-[#161922] font-bold text-xs text-white shadow-sm transition-all flex items-center gap-1.5"
+        : "px-3 py-1 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white transition-all flex items-center gap-1.5";
+
+      // Nav Sidebar
+      document.getElementById('navViewWeek').className = view === 'week'
+        ? "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors"
+        : "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors";
+
+      document.getElementById('navViewDay').className = view === 'day'
+        ? "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors"
+        : "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors";
+
+      document.getElementById('navViewMonth').className = view === 'month'
+        ? "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors"
+        : "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors";
+
+      document.getElementById('navViewIdeas').className = view === 'ideas'
+        ? "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors"
+        : "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors";
+
+      if (view === 'day') renderDayTimeline24();
+      if (view === 'month') renderFullMonthGrid();
+    }
+
+    // CHECKBOXES DE LA AGENDA & PROGRESO
+    function toggleAgendaCheckbox(cb, taskId) {
+      const card = cb.closest('.agenda-item');
+      const titleSpan = card.querySelector('.task-title');
+      
+      if (cb.checked) {
+        titleSpan.classList.add('line-through', 'opacity-40');
+      } else {
+        titleSpan.classList.remove('line-through', 'opacity-40');
+      }
+
+      updateAgendaCounters();
+    }
+
+    function updateAgendaCounters() {
+      const allCheckboxes = document.querySelectorAll('#remindersTodayList input[type="checkbox"]');
+      const total = allCheckboxes.length;
+      let completed = 0;
+      allCheckboxes.forEach(c => { if (c.checked) completed++; });
+
+      const pct = total === 0 ? 100 : Math.round((completed / total) * 100);
+      document.getElementById('agendaProgressBar').style.width = `${pct}%`;
+      document.getElementById('agendaProgressPercent').innerText = `${pct}%`;
+
+      // Si todo está completado
+      if (total > 0 && completed === total) {
+        showEmptyState(true);
+      } else {
+        showEmptyState(false);
+      }
+    }
+
+    // SIMULADOR DE EMPTY STATE (PARA QUE DEIMAR LO PRUEBE DE UN CLIC)
+    function simulateToggleEmptyState() {
+      agendaState.isSimulatedEmpty = !agendaState.isSimulatedEmpty;
+      const btnTxt = document.getElementById('txtBtnEmpty');
+      
+      if (agendaState.isSimulatedEmpty) {
+        btnTxt.innerText = "Restaurar Agenda";
+        showEmptyState(true);
+      } else {
+        btnTxt.innerText = "Simular: Todo Hecho";
+        showEmptyState(false);
+        restoreAgendaSampleData();
+      }
+    }
+
+    function showEmptyState(show) {
+      document.getElementById('agendaListContent').classList.toggle('hidden', show);
+      document.getElementById('agendaEmptyState').classList.toggle('hidden', !show);
+      
+      if (show) {
+        document.getElementById('badgeAgendaCount').innerText = "0 pendientes";
+        document.getElementById('agendaProgressBar').style.width = '100%';
+        document.getElementById('agendaProgressPercent').innerText = '100%';
+      } else {
+        document.getElementById('badgeAgendaCount').innerText = "1 agendada · 2 pendientes";
+      }
+    }
+
+    function restoreAgendaSampleData() {
+      agendaState.isSimulatedEmpty = false;
+      document.getElementById('txtBtnEmpty').innerText = "Simular: Todo Hecho";
+      showEmptyState(false);
+      
+      const allCheckboxes = document.querySelectorAll('#remindersTodayList input[type="checkbox"]');
+      allCheckboxes.forEach(c => {
+        c.checked = false;
+        const card = c.closest('.agenda-item');
+        if (card) {
+          const t = card.querySelector('.task-title');
+          if (t) t.classList.remove('line-through', 'opacity-40');
+        }
+      });
+      document.getElementById('agendaProgressBar').style.width = '33%';
+      document.getElementById('agendaProgressPercent').innerText = '33%';
+    }
+
+    // AÑADIR A LA AGENDA DIRECTAMENTE DESDE EL INPUT
+    function handleAgendaInput(e) {
+      if (e.key === 'Enter') addAgendaItemFromInput();
+    }
+
+    function addAgendaItemFromInput() {
+      const input = document.getElementById('agendaQuickInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const list = document.getElementById('remindersTodayList');
+      const newItem = document.createElement('div');
+      newItem.className = "agenda-item bg-[#161922] border border-[#2d3345] rounded-xl p-3 flex items-center justify-between gap-3 text-xs hover:border-white transition-all shadow-sm";
+      newItem.innerHTML = `
+        <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+          <input type="checkbox" onchange="toggleAgendaCheckbox(this, 'new')" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0 cursor-pointer">
+          <div class="min-w-0">
+            <span class="font-medium text-white task-title truncate">${val}</span>
+          </div>
+        </label>
+        <button onclick="promptAssignTimeToItem('${val}')" class="text-[10px] text-[#8b949e] hover:text-white px-2 py-0.5 rounded bg-[#1f2430] hover:bg-[#262b3a] border border-[#2d3345] whitespace-nowrap flex-shrink-0 transition-colors">
+          Fijar hora
+        </button>
+      `;
+      list.appendChild(newItem);
+      input.value = "";
+      updateAgendaCounters();
+    }
+
+    function promptAssignTimeToItem(itemTitle) {
+      const h = prompt(`¿A qué hora quieres agendar "${itemTitle}" en el calendario? (ej: 16:30):`, "16:00");
+      if (h) {
+        alert(`¡Bloque agendado! "${itemTitle}" programado a las ${h}. Se visualiza en tu vista semanal.`);
+      }
+    }
+
+    function promptAssignSlot(slotHour) {
+      const desc = prompt(`Agendar bloque para hoy a las ${slotHour}:`, "");
+      if (desc) {
+        alert(`Guardado: "${desc}" para hoy a las ${slotHour}.`);
+      }
+    }
+
+    function scheduleIdeaDirectly() {
+      alert("¡Idea agendada con éxito para hoy a las 16:00 (30 min)!");
+    }
+
+    // RENDERIZADOR DEL TIMELINE 24H (Para cuando el usuario cambia a vista 'Día')
+    function renderDayTimeline24() {
+      const container = document.getElementById('dayTimeline24Container');
+      container.innerHTML = `
+        <div class="flex items-center justify-between border-b border-[#262b3a] pb-2 mb-3">
+          <span class="font-bold text-xs text-white">Timeline Horario 24h — Martes 27 (Hoy)</span>
+          <span class="text-[10px] text-[#8b949e] font-mono">Haz clic en cualquier hora para agendar</span>
+        </div>
+      `;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = "flex flex-col space-y-1";
+
+      for (let h = 0; h < 24; h++) {
+        const hourStr = h < 10 ? `0${h}:00` : `${h}:00`;
+        const row = document.createElement('div');
+        row.className = "flex items-start gap-4 py-1 group";
+
+        const hasEvent = (h === 11);
+
+        row.innerHTML = `
+          <div class="w-14 text-right font-mono text-xs text-[#4b5563] group-hover:text-white pt-1">${hourStr}</div>
+          <div class="w-3 flex flex-col items-center self-stretch relative">
+            <div class="w-2.5 h-2.5 rounded-full ${hasEvent ? 'bg-indigo-400' : 'bg-[#262b3a]'} mt-2 z-10"></div>
+            <div class="w-0.5 bg-[#262b3a] flex-1 absolute top-3 bottom-0"></div>
+          </div>
+          <div class="flex-1 min-w-0 pr-2">
+            ${hasEvent ? `
+              <div class="w-full bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 shadow-md">
+                <span class="font-mono text-indigo-400 font-bold text-xs">11:30 — 12:00</span>
+                <h4 class="font-bold text-sm text-white mt-0.5">Revisar informe de gastos mensual</h4>
+              </div>
+            ` : `
+              <div onclick="promptAssignSlot('${hourStr}')" class="h-8 border-b border-[#1f2430] group-hover:border-[#2d3345] flex items-center px-2 cursor-pointer rounded hover:bg-[#1f2430]/30 text-xs text-[#8b949e]">
+                <span class="opacity-0 group-hover:opacity-100 transition-opacity">+ Añadir bloque</span>
+              </div>
+            `}
+          </div>
+        `;
+        wrapper.appendChild(row);
+      }
+      container.appendChild(wrapper);
+    }
+
+    // RENDERIZADOR DEL GRID MENSUAL
+    function renderFullMonthGrid() {
+      const grid = document.getElementById('fullMonthGridCells');
+      grid.innerHTML = "";
+      
+      for (let s = 28; s <= 30; s++) {
+        const past = document.createElement('div');
+        past.className = "bg-[#161922]/30 border border-[#262b3a]/40 rounded-xl p-2.5 min-h-[85px] opacity-25 text-xs text-[#8b949e]";
+        past.innerHTML = `<span class="font-mono">${s}</span>`;
+        grid.appendChild(past);
+      }
+
+      for (let d = 1; d <= 31; d++) {
+        const cell = document.createElement('div');
+        const isToday = (d === 27);
+        const hasEvent = (d === 27 || d === 30);
+        
+        cell.className = isToday
+          ? "bg-[#1f2430] border-2 border-white rounded-xl p-2.5 min-h-[85px] text-xs cursor-pointer hover:border-indigo-400 transition-all shadow-md flex flex-col justify-between"
+          : "bg-[#161922] border border-[#262b3a] rounded-xl p-2.5 min-h-[85px] text-xs cursor-pointer hover:border-white transition-all flex flex-col justify-between";
+
+        cell.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="font-bold font-mono ${isToday ? 'text-white' : 'text-[#8b949e]'}">${d}</span>
+              ${isToday ? '<span class="text-[9px] px-1.5 rounded bg-white text-black font-bold">HOY</span>' : ''}
+            </div>
+            ${hasEvent ? `<div class="bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] px-1.5 py-0.5 rounded truncate font-medium mt-1.5">🕒 ${d === 27 ? '11:30 Gastos' : '10:00 Sprint'}</div>` : ''}
+          </div>
+          <div class="text-[9px] text-[#8b949e] text-right pt-1">${hasEvent ? '1 evento' : 'Libre'}</div>
+        `;
+        cell.onclick = () => setMainView('week');
+        grid.appendChild(cell);
+      }
+    }
+
+    // MINI CALENDARIO EN SIDEBAR
+    function initMiniCalendar() {
+      const miniGrid = document.getElementById('miniCalendarGrid');
+      miniGrid.innerHTML = "";
+      
+      for (let i = 28; i <= 30; i++) {
+        const d = document.createElement('span');
+        d.className = "text-[#3b4252] py-0.5";
+        d.innerText = i;
+        miniGrid.appendChild(d);
+      }
+
+      for (let d = 1; d <= 31; d++) {
+        const btn = document.createElement('button');
+        if (d === 27) {
+          btn.className = "py-0.5 rounded bg-white text-black font-bold shadow-sm";
+        } else {
+          btn.className = "py-0.5 rounded hover:bg-[#161922] text-[#e6e8eb] relative transition-colors";
+        }
+        btn.innerHTML = `${d}${d === 30 ? '<span class="w-1 h-1 rounded-full bg-indigo-400 absolute bottom-0 left-1/2 -translate-x-1/2"></span>' : ''}`;
+        btn.onclick = () => setMainView('week');
+        miniGrid.appendChild(btn);
+      }
+    }
+
+    // PANEL IA Y SIDEBAR TOGGLES
+    function toggleSidebar() {
+      const sb = document.getElementById('cockpitSidebar');
+      sb.classList.toggle('-ml-60');
+    }
+
+    function toggleAiPanel() {
+      const ai = document.getElementById('cockpitAiPanel');
+      ai.classList.toggle('hidden');
+    }
+
+    function toggleVoiceDictation() {
+      const mic = document.getElementById('cockpitMicBtn');
+      mic.classList.toggle('pulse-mic');
+      mic.classList.toggle('bg-white');
+      mic.classList.toggle('text-black');
+      
+      if (mic.classList.contains('pulse-mic')) {
+        document.getElementById('cockpitInput').placeholder = "Escuchando... Di: 'Mañana a las 5 reunión con Pedro'";
+      } else {
+        document.getElementById('cockpitInput').placeholder = "Habla o escribe lo que tengas en mente...";
+      }
+    }
+
+    function handleCockpitInput(e) {
+      if (e.key === 'Enter') {
+        const input = document.getElementById('cockpitInput');
+        const txt = input.value.trim();
+        if (!txt) return;
+        alert(`Gemini clasificó tu mensaje: "${txt}". Se ha añadido a tu agenda.`);
+        input.value = "";
+      }
+    }
+
+    function changeWeek(direction) {
+      alert(direction > 0 ? "Navegando a la semana siguiente" : "Navegando a la semana anterior");
+    }
+
+    function goToCurrentWeek() {
+      setMainView('week');
+    }
+
+    // CAJÓN DE IDEAS INTERACTIVO (NOTION & LINEAR STYLE)
+    function setIdeaSubView(subview, btn) {
+      document.querySelectorAll('.idea-subfilter').forEach(b => {
+        b.className = "idea-subfilter px-2.5 py-1 rounded-lg text-[#8b949e] hover:text-white text-xs";
+      });
+      btn.className = "idea-subfilter px-2.5 py-1 rounded-lg bg-[#161922] font-bold text-white shadow-sm text-xs";
+
+      const pView = document.getElementById('ideasSubViewProjects');
+      const wView = document.getElementById('ideasSubViewWall');
+      const iView = document.getElementById('ideasSubViewInbox');
+
+      pView.classList.toggle('hidden', subview !== 'projects');
+      wView.classList.toggle('hidden', subview !== 'wall');
+      iView.classList.toggle('hidden', subview !== 'inbox');
+
+      if (subview === 'wall') {
+        renderWallView();
+      } else if (subview === 'inbox') {
+        renderInboxView();
+      }
+    }
+
+    function renderWallView() {
+      const wall = document.getElementById('ideasSubViewWall');
+      wall.innerHTML = `
+        <div class="bg-[#1f2430] border border-[#2d3345] rounded-xl p-4 space-y-2 shadow-sm">
+          <span class="text-[9px] px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-mono">Mi App Móvil</span>
+          <h4 class="font-bold text-sm text-white">App sin fricción para organizar el día</h4>
+          <p class="text-xs text-[#8b949e]">Dictar por voz y que la IA separe horario de ideas.</p>
+        </div>
+        <div class="bg-[#1f2430] border border-[#2d3345] rounded-xl p-4 space-y-2 shadow-sm">
+          <span class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono">Diseño</span>
+          <h4 class="font-bold text-sm text-white">Iconografía 100% Notion Icons</h4>
+          <p class="text-xs text-[#8b949e]">Trazos monocromáticos finos, cero emojis chillones.</p>
+        </div>
+        <div class="bg-[#1f2430] border border-[#2d3345] rounded-xl p-4 space-y-2 shadow-sm">
+          <span class="text-[9px] px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono">Cocina</span>
+          <h4 class="font-bold text-sm text-white">Recetas con lo que haya en la nevera</h4>
+          <p class="text-xs text-[#8b949e]">Escaneo de tickets y alertas de caducidad con Gemini.</p>
+        </div>
+      `;
+    }
+
+    function renderInboxView() {
+      const inbox = document.getElementById('ideasSubViewInbox');
+      inbox.innerHTML = `
+        <div class="bg-[#1f2430] border border-amber-500/30 rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+              <h4 class="font-bold text-sm text-white">Automatizador de facturas</h4>
+              <span class="text-[10px] text-amber-400 font-mono">12 días inactiva</span>
+            </div>
+            <p class="text-xs text-[#8b949e] mt-1">Conectar Gmail con Google Sheets para descargar PDFs y clasificar por proveedor.</p>
+          </div>
+          <button onclick="convertIdeaToScheduleTask('Explorar Automatizador de Facturas', '16:00')" class="px-3 py-1.5 rounded-lg bg-white text-black font-bold text-xs whitespace-nowrap shadow-sm hover:bg-neutral-200 transition-colors">
+            Agendar Hoy 16h
+          </button>
+        </div>
+      `;
+    }
+
+    function focusIdeaSparkInput() {
+      setMainView('ideas');
+      const inp = document.getElementById('quickIdeaSparkInput');
+      if (inp) {
+        inp.focus();
+        inp.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    function saveQuickSpark() {
+      const input = document.getElementById('quickIdeaSparkInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const project = document.getElementById('ideaTargetProject').value;
+      const targetList = (project === 'kitchen') 
+        ? document.getElementById('projectListKitchen')
+        : document.getElementById('projectListApp');
+
+      const card = document.createElement('div');
+      card.className = "group bg-[#161922] hover:bg-[#1a1e29] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2.5 transition-all shadow-sm";
+      card.innerHTML = `
+        <div class="flex items-start justify-between gap-2">
+          <h5 class="font-semibold text-xs text-white leading-snug">${val}</h5>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-mono flex-shrink-0">Nuevo</span>
+        </div>
+        <p class="text-xs text-[#8b949e]">Capturado recientemente. Gemini lo indexará con sugerencias de acción.</p>
+        <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
+          <span>Ahora mismo</span>
+          <button onclick="convertIdeaToScheduleTask('${val}')" class="px-2 py-0.5 rounded-md bg-white hover:bg-neutral-200 text-black font-semibold transition-all flex items-center gap-1 shadow-sm">
+            <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Agendar</span>
+          </button>
+        </div>
+      `;
+      targetList.prepend(card);
+      input.value = "";
+      alert(`¡Chispazo guardado y clasificado por Gemini en "${project === 'kitchen' ? 'Cocina & Nutrición' : 'Mi App Móvil'}"!`);
+    }
+
+    function promptAddNewNoteToProject(projectName) {
+      const note = prompt(`Añadir nueva nota a "${projectName}":`, "");
+      if (note) {
+        const targetList = (projectName === 'Cocina & Nutrición') 
+          ? document.getElementById('projectListKitchen')
+          : document.getElementById('projectListApp');
+
+        const card = document.createElement('div');
+        card.className = "group bg-[#161922] hover:bg-[#1a1e29] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2.5 transition-all shadow-sm";
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <h5 class="font-semibold text-xs text-white leading-snug">${note}</h5>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-mono flex-shrink-0">Nota</span>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
+            <span>Ahora</span>
+            <button onclick="convertIdeaToScheduleTask('${note}')" class="px-2 py-0.5 rounded-md bg-white hover:bg-neutral-200 text-black font-semibold transition-all">
+              Agendar
+            </button>
+          </div>
+        `;
+        targetList.prepend(card);
+      }
+    }
+
+    function convertIdeaToScheduleTask(taskTitle, defaultTime = "16:00") {
+      const chosenTime = prompt(`¿A qué hora quieres agendar "${taskTitle}" para hoy?`, defaultTime);
+      if (chosenTime) {
+        // Añadir a la lista de agenda fija a la izquierda
+        const agendaScheduled = document.getElementById('scheduledTodayList');
+        const newSchedCard = document.createElement('div');
+        newSchedCard.className = "bg-[#161922] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 text-xs hover:border-white transition-all shadow-sm flex items-start justify-between gap-2";
+        newSchedCard.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono text-indigo-400 font-bold text-[11px]">${chosenTime}</span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">Idea convertida</span>
+            </div>
+            <h4 class="font-medium text-white truncate text-xs">${taskTitle}</h4>
+            <p class="text-[10px] text-[#8b949e] mt-0.5 truncate">Bloque de avance creado desde el Cajón</p>
+          </div>
+        `;
+        agendaScheduled.appendChild(newSchedCard);
+
+        document.getElementById('scheduledCountLabel').innerText = "2 bloques";
+        document.getElementById('badgeAgendaCount').innerText = "2 agendadas · 2 pendientes";
+
+        alert(`✨ ¡Idea convertida en tarea agendada! Se ha añadido a tu agenda de hoy a las ${chosenTime}.`);
+      }
+    }
+
+    // INICIALIZACIÓN
+    document.addEventListener('DOMContentLoaded', () => {
+      initMiniCalendar();
+    });
+  </script>
+</body>
+</html>

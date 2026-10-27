@@ -68,10 +68,12 @@ En lugar de interactuar con botones complejos, en DayCraft **simplemente hablas 
 
 ---
 
-## 📱 Vista Previa del Mockup Móvil
+## 📱💻 Vistas Previas Interactivas (Mockups)
 
-Puedes probar el diseño interactivo abriendo directamente el archivo:
-* [`mockup-mobile.html`](mockup-mobile.html)
+Puedes probar los prototipos interactivos ejecutables directamente en tu navegador:
+* 📱 **Móvil**: [`mockup-mobile.html`](mockup-mobile.html) *(Experiencia compacta vertical, time-blocking con raíl horario y pendientes en scroll)*.
+* 💻 **Web / Escritorio (Timeline Diario)**: [`mockup-web.html`](mockup-web.html) *(Dashboard panorámico en 3 columnas con Timeline 24h diaria y pendientes del día)*.
+* 💻 **Web / Escritorio (Propuesta Semanal + Agenda Fija)**: [`mockup-web-semanal.html`](mockup-web-semanal.html) *(Vista semanal de 7 columnas que aprovecha todo el monitor + columna dedicada fija con lista compacta de hoy y empty state)*.
 
 *(Compatible con cualquier navegador en PC o móvil. Puedes cambiar entre días del calendario, probar los checkboxes, desplegar la campana y simular dictado por voz).*
 
@@ -80,11 +82,12 @@ Puedes probar el diseño interactivo abriendo directamente el archivo:
 ## 🚀 Hoja de Ruta (Roadmap)
 
 - [x] Concepción y diseño de la experiencia móvil (Mockups interactivos v1 a v7).
-- [x] Definición de reglas de negocio (clasificación, rollover de tareas, Notion Icons).
+- [x] Adaptación y diseño del Dashboard Web / Escritorio ([`mockup-web.html`](mockup-web.html) y [`mockup-web-semanal.html`](mockup-web-semanal.html)).
+- [x] Definición de reglas de negocio (clasificación, rollover de tareas, Notion Icons, Cajón Kanban).
 - [ ] Inicialización del proyecto base con Expo y TypeScript.
 - [ ] Configuración de la base de datos local / Supabase.
 - [ ] Integración del motor de extracción con Gemini API (Function Calling).
-- [ ] Adaptación de la versión de escritorio / Web.
+- [ ] Persistencia local offline con SQLite y sincronización reactiva.
 - [ ] Creación del servidor MCP para Claude y ChatGPT.
 
 ---
