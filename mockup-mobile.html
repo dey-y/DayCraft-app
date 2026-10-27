@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DayCraft AI - Mobile App Mockup</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.2); border-radius: 999px; }
+    
+    .ni {
+      display: inline-block;
+      vertical-align: middle;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke: currentColor;
+    }
+    .pulse-mic {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(100, 100, 100, 0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(100, 100, 100, 0); }
+    }
+  </style>
+</head>
+<body class="bg-[#0f1117] text-[#e6e8eb] antialiased min-h-screen p-4 flex flex-col items-center justify-center font-sans">
+
+  <!-- Mobile Frame Simulator -->
+  <div class="w-full max-w-[390px] h-[820px] bg-[#161922] border-[6px] border-[#262b3a] rounded-[46px] shadow-2xl flex flex-col overflow-hidden relative">
+    
+    <!-- Notch / Dynamic Island -->
+    <div class="w-full pt-3 pb-2 px-6 flex justify-between items-center text-xs text-[#8b949e] font-semibold select-none">
+      <span>09:41</span>
+      <div class="w-24 h-4 bg-[#262b3a] rounded-full"></div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px]">5G</span>
+        <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+      </div>
+    </div>
+
+    <!-- Mobile Top App Bar -->
+    <div class="px-5 py-2.5 border-b border-[#262b3a] flex items-center justify-between relative bg-[#161922] z-20">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white">
+          <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h2 id="mobileViewTitle" class="font-bold text-sm text-white">Calendario</h2>
+      </div>
+
+      <!-- Campana no intrusiva con contador -->
+      <button onclick="toggleMobileNotifications()" class="relative p-1.5 rounded-full hover:bg-[#1f2430] transition-colors" title="Ver avisos">
+        <svg class="w-5 h-5 ni text-[#e6e8eb]" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span id="notifBadge" class="absolute top-0 right-0 w-4 h-4 rounded-full bg-white text-black text-[9px] font-bold flex items-center justify-center">2</span>
+      </button>
+
+      <!-- Panel desplegable de avisos -->
+      <div id="mobileNotifDropdown" class="hidden absolute top-12 right-4 w-72 bg-[#1f2430] border border-[#2d3345] rounded-2xl shadow-2xl p-3 z-30 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-[#2d3345] pb-2">
+          <span class="font-bold text-xs text-white flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Avisos de DayCraft
+          </span>
+          <button onclick="toggleMobileNotifications()" class="text-[10px] text-[#8b949e] hover:text-white">✕</button>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-[#161922] border border-[#2d3345] text-xs space-y-1">
+          <div class="flex items-center justify-between text-[#8b949e] font-bold text-[10px]">
+            <span class="flex items-center gap-1 text-amber-400">
+              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              PENDIENTE NO COMPLETADO
+            </span>
+            <span>Ayer</span>
+          </div>
+          <p class="font-semibold text-[11px] text-white">"Comprar pilas para el mando"</p>
+          <p class="text-[10px] text-[#8b949e]">Se movió automáticamente a tus pendientes de hoy.</p>
+          <div class="flex gap-2 pt-1 text-[10px]">
+            <button onclick="dismissNotification(this)" class="px-2 py-0.5 rounded bg-white text-black font-medium">Mantener hoy</button>
+            <button onclick="dismissNotification(this)" class="text-[#8b949e] hover:underline">Descartar</button>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-[#161922] border border-[#2d3345] text-xs space-y-1">
+          <div class="flex items-center justify-between text-[#8b949e] font-bold text-[10px]">
+            <span class="flex items-center gap-1 text-indigo-400">
+              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/></svg>
+              IDEA EN EL CAJÓN
+            </span>
+            <span>12 días</span>
+          </div>
+          <p class="font-semibold text-[11px] text-white">"Automatizador de presupuestos"</p>
+          <p class="text-[10px] text-[#8b949e]">¿La retomamos o la archivamos?</p>
+          <div class="flex gap-2 pt-1 text-[10px]">
+            <button onclick="retomarIdea(); toggleMobileNotifications();" class="px-2 py-0.5 rounded bg-white text-black font-medium">Retomar ✨</button>
+            <button onclick="dismissNotification(this)" class="text-[#8b949e] hover:underline">Archivar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable Screen Content Body -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-3.5 relative" id="mobileScreenBody">
+      
+      <!-- SCREEN 1: ASISTENTE -->
+      <div id="tabChat" class="space-y-3.5 hidden">
+        <div class="flex gap-2.5 items-start">
+          <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs leading-relaxed max-w-[85%] shadow-sm">
+            <p class="font-semibold text-white mb-1">¡Hola!</p>
+            Dime lo que tienes en mente: tareas con horario, recordatorios puntuales o cosas para hoy sin hora fija.
+          </div>
+        </div>
+
+        <div class="flex gap-2.5 items-start justify-end">
+          <div class="bg-white text-black p-3 rounded-2xl rounded-tr-sm text-xs leading-relaxed max-w-[85%] shadow-sm font-medium">
+            "Recuérdame el miércoles a las 17:00 llamar al dentista, y hoy tengo que comprar pilas para el mando"
+          </div>
+        </div>
+
+        <div class="flex gap-2.5 items-start">
+          <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="space-y-2 max-w-[90%] w-full">
+            <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs shadow-sm space-y-2">
+              <p class="text-white font-medium">Clasificado exactamente:</p>
+              
+              <div class="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-[11px] font-bold text-sky-400 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Recordatorio
+                  </span>
+                  <span class="text-[11px] font-mono text-sky-400">Miércoles 17:00</span>
+                </div>
+                <p class="font-semibold text-xs text-white">Llamar al dentista</p>
+              </div>
+
+              <div class="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-[11px] font-bold text-[#8b949e] flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                    Pendiente de hoy (Sin hora)
+                  </span>
+                  <span class="text-[10px] text-[#8b949e]">Para hoy</span>
+                </div>
+                <p class="font-semibold text-xs text-white">Comprar pilas para el mando</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="simulatedChatLog"></div>
+      </div>
+
+      <!-- SCREEN 2: CAJÓN DE IDEAS -->
+      <div id="tabIdeas" class="space-y-3.5 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              Cajón de Ideas
+            </h3>
+            <p class="text-[10px] text-[#8b949e]">Ideas agrupadas por proyectos relacionados</p>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] border border-[#2d3345] text-[#8b949e] font-mono">2 Grupos</span>
+        </div>
+
+        <!-- Grupo 1 -->
+        <div class="bg-[#1f2430] border border-[#2d3345] rounded-2xl p-3.5 space-y-3 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 ni text-indigo-400" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-white">Proyecto: Mi App Móvil</h4>
+                <p class="text-[10px] text-[#8b949e]">3 ideas vinculadas</p>
+              </div>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#161922] border border-[#2d3345] text-[#8b949e] font-medium">Auto-agrupado</span>
+          </div>
+
+          <div class="space-y-2 pl-3 border-l-2 border-[#2d3345] ml-2">
+            <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+              <p class="font-semibold text-xs text-white">Idea central: App sin fricción para organizar el día</p>
+              <p class="text-[10px] text-[#8b949e] mt-0.5">Captura por voz y separación con IA.</p>
+            </div>
+            <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-xs text-white">Sincronización Offline</p>
+                <span class="text-[9px] text-[#8b949e]">Hoy</span>
+              </div>
+              <p class="text-[10px] text-[#8b949e] mt-0.5">Poder registrar notas en el metro sin cobertura.</p>
+            </div>
+            <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-xs text-white">Iconografía NotionIcons</p>
+                <span class="text-[9px] text-[#8b949e]">Hace 10m</span>
+              </div>
+              <p class="text-[10px] text-[#8b949e] mt-0.5">Línea de trazo minimalista.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grupo 2 -->
+        <div class="bg-[#1f2430] border border-[#2d3345] rounded-2xl p-3.5 space-y-2 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 ni text-amber-500" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-white">Cocina & Nutrición</h4>
+                <p class="text-[10px] text-[#8b949e]">1 idea</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+            <p class="font-semibold text-xs text-white">App recetas con la nevera</p>
+            <p class="text-[10px] text-[#8b949e] mt-0.5">Sugerencia IA: escaneo de tickets para avisos de caducidad.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: CALENDARIO -->
+      <div id="tabTasks" class="space-y-3.5">
+        
+        <!-- Tira Semanal de 7 días -->
+        <div class="bg-[#1f2430] border border-[#2d3345] p-3.5 rounded-2xl shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 ni text-white" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <span class="font-bold text-xs text-white">Semana 44 • Octubre 2026</span>
+            </div>
+            <div class="flex gap-1">
+              <button class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] flex items-center justify-center text-xs text-white">‹</button>
+              <button class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] flex items-center justify-center text-xs text-white">›</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-7 gap-1 text-center text-xs">
+            <button onclick="renderCalendarDay('26', this)" class="cal-day-btn py-1.5 rounded-xl text-[#8b949e] hover:bg-[#161922] flex flex-col items-center">
+              <span class="text-[10px]">L</span>
+              <span class="font-bold text-xs">26</span>
+              <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+            </button>
+            <button onclick="renderCalendarDay('27', this)" class="cal-day-btn py-1.5 rounded-xl bg-white text-black font-bold flex flex-col items-center shadow-sm">
+              <span class="text-[10px]">M</span>
+              <span class="font-bold text-xs">27</span>
+              <span class="w-1 h-1 rounded-full bg-indigo-500 mt-0.5"></span>
+            </button>
+            <button onclick="renderCalendarDay('28', this)" class="cal-day-btn py-1.5 rounded-xl hover:bg-[#161922] flex flex-col items-center text-[#e6e8eb]">
+              <span class="text-[10px]">X</span>
+              <span class="font-bold text-xs">28</span>
+              <span class="w-1 h-1 rounded-full bg-sky-400 mt-0.5"></span>
+            </button>
+            <button onclick="renderCalendarDay('29', this)" class="cal-day-btn py-1.5 rounded-xl hover:bg-[#161922] flex flex-col items-center text-[#e6e8eb]">
+              <span class="text-[10px]">J</span>
+              <span class="font-bold text-xs">29</span>
+              <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+            </button>
+            <button onclick="renderCalendarDay('30', this)" class="cal-day-btn py-1.5 rounded-xl hover:bg-[#161922] flex flex-col items-center text-[#e6e8eb]">
+              <span class="text-[10px]">V</span>
+              <span class="font-bold text-xs">30</span>
+              <span class="w-1 h-1 rounded-full bg-indigo-500 mt-0.5"></span>
+            </button>
+            <button onclick="renderCalendarDay('31', this)" class="cal-day-btn py-1.5 rounded-xl text-[#8b949e] hover:bg-[#161922] flex flex-col items-center">
+              <span class="text-[10px]">S</span>
+              <span class="font-bold text-xs">31</span>
+              <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+            </button>
+            <button onclick="renderCalendarDay('01', this)" class="cal-day-btn py-1.5 rounded-xl text-[#8b949e] hover:bg-[#161922] flex flex-col items-center">
+              <span class="text-[10px]">D</span>
+              <span class="font-bold text-xs">01</span>
+              <span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Header del Día y Filtros -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-white flex items-center gap-1.5" id="selectedDayTitle">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Martes 27 (Hoy)
+          </span>
+          <div class="flex gap-1 text-[10px]">
+            <button onclick="applyFilter('all', this)" class="cal-filter-btn px-2 py-0.5 rounded-md bg-[#1f2430] border border-[#2d3345] font-bold text-white">Todo</button>
+            <button onclick="applyFilter('tasks', this)" class="cal-filter-btn px-2 py-0.5 rounded-md text-[#8b949e]">Tareas</button>
+            <button onclick="applyFilter('reminders', this)" class="cal-filter-btn px-2 py-0.5 rounded-md text-[#8b949e]">Recordatorios</button>
+          </div>
+        </div>
+
+        <!-- 1. TIMELINE HORARIA -->
+        <div id="dayItemsContainer" class="bg-[#1f2430] border border-[#2d3345] rounded-2xl p-3 shadow-sm">
+          <!-- Se llena dinámicamente -->
+        </div>
+
+        <!-- 2. PENDIENTES DE HOY (Fluye abajo al hacer scroll) -->
+        <div id="floatingTasksSection" class="bg-[#1f2430] border border-[#2d3345] rounded-2xl p-3.5 shadow-sm space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white flex items-center gap-1.5">
+              <svg class="w-4 h-4 ni text-white" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              Pendientes de hoy <span class="text-[10px] font-normal text-[#8b949e]">(Sin hora fija)</span>
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#161922] border border-[#2d3345] font-mono text-[#8b949e]">2 cosas</span>
+          </div>
+          <p class="text-[10px] text-[#8b949e]">Cosas que mencionaste para hoy sin definir una hora concreta.</p>
+
+          <div class="space-y-1.5 pt-1">
+            <!-- Item 1 con pastilla 'De ayer' que NUNCA se rompe -->
+            <div class="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5 flex items-center justify-between text-xs hover:border-white transition-colors gap-2">
+              <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+                <input type="checkbox" onchange="toggleCheckFloatingTask(this)" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="font-medium text-xs text-white task-text truncate">Comprar pilas para el mando</span>
+                  <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono whitespace-nowrap flex-shrink-0">De ayer</span>
+                </div>
+              </label>
+              <button onclick="promptAssignTime(this)" title="Fijar hora" class="text-[10px] text-[#8b949e] hover:text-white flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#1f2430] border border-[#2d3345] flex-shrink-0 whitespace-nowrap">
+                <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Fijar hora
+              </button>
+            </div>
+
+            <!-- Item 2 -->
+            <div class="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5 flex items-center justify-between text-xs hover:border-white transition-colors gap-2">
+              <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+                <input type="checkbox" onchange="toggleCheckFloatingTask(this)" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0">
+                <span class="font-medium text-xs text-white task-text truncate">Llamar a Carlos cuando pueda</span>
+              </label>
+              <button onclick="promptAssignTime(this)" title="Fijar hora" class="text-[10px] text-[#8b949e] hover:text-white flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#1f2430] border border-[#2d3345] flex-shrink-0 whitespace-nowrap">
+                <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Fijar hora
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Mobile Quick Input Bar -->
+    <div class="p-3 border-t border-[#262b3a] bg-[#161922]">
+      <div class="flex items-center gap-2">
+        <div class="flex-1 bg-[#1f2430] border border-[#2d3345] rounded-full px-4 py-2.5 flex items-center gap-2">
+          <input id="mobileTextInput" type="text" placeholder="Háblame o escribe una idea, tarea o recordatorio..." class="bg-transparent border-none outline-none flex-1 text-xs text-white placeholder-[#8b949e]" onkeydown="if(event.key==='Enter') sendManualMessage()">
+          <button onclick="sendManualMessage()" class="text-white font-bold hover:scale-110 transition-transform">
+            <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <button onclick="simulateVoiceInput()" title="Dictar por voz" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-lg pulse-mic flex-shrink-0 active:scale-95 transition-transform">
+          <svg class="w-4 h-4 ni" viewBox="0 0 24 24">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (100% Notion Icons) -->
+    <nav class="h-14 border-t border-[#262b3a] bg-[#161922] grid grid-cols-3 items-center px-4">
+      <button onclick="switchMobileTab('chat')" id="navChat" class="flex flex-col items-center justify-center gap-1 text-[#8b949e] hover:text-white transition-colors">
+        <svg class="w-5 h-5 ni" viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="text-[10px]">Asistente</span>
+      </button>
+
+      <button onclick="switchMobileTab('ideas')" id="navIdeas" class="flex flex-col items-center justify-center gap-1 text-[#8b949e] hover:text-white transition-colors">
+        <svg class="w-5 h-5 ni" viewBox="0 0 24 24">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="text-[10px]">Cajón de Ideas</span>
+      </button>
+
+      <button onclick="switchMobileTab('tasks')" id="navTasks" class="flex flex-col items-center justify-center gap-1 text-white font-semibold transition-colors">
+        <svg class="w-5 h-5 ni" viewBox="0 0 24 24">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span class="text-[10px]">Calendario</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    const calendarEvents = {
+      "26": {
+        dateType: "past",
+        title: "Lunes 26 de Octubre",
+        items: []
+      },
+      "27": {
+        dateType: "today",
+        title: "Martes 27 de Octubre (Hoy)",
+        items: [
+          {
+            type: "task",
+            startTime: "11:30",
+            endTime: "12:00",
+            duration: "30 min",
+            title: "Revisar informe de gastos",
+            desc: "Bloque de trabajo agendado"
+          },
+          {
+            type: "reminder",
+            time: "14:00",
+            title: "Tomar la pastilla",
+            desc: "Recordatorio sonoro puntual"
+          }
+        ]
+      },
+      "28": {
+        dateType: "future",
+        title: "Miércoles 28 de Octubre",
+        items: [
+          {
+            type: "reminder",
+            time: "17:00",
+            title: "Llamar al dentista",
+            desc: "Recordatorio puntual agendado por voz"
+          }
+        ]
+      },
+      "29": {
+        dateType: "future",
+        title: "Jueves 29 de Octubre",
+        items: []
+      },
+      "30": {
+        dateType: "future",
+        title: "Viernes 30 de Octubre",
+        items: [
+          {
+            type: "task",
+            startTime: "10:00",
+            endTime: "11:30",
+            duration: "1h 30m",
+            title: "Planificar sprint de la app",
+            desc: "Bloque de trabajo enfocado"
+          },
+          {
+            type: "reminder",
+            time: "18:00",
+            title: "Comprar regalo de cumpleaños",
+            desc: "Recordatorio puntual en tienda"
+          }
+        ]
+      },
+      "31": {
+        dateType: "future",
+        title: "Sábado 31 de Octubre",
+        items: []
+      },
+      "01": {
+        dateType: "future",
+        title: "Domingo 1 de Noviembre",
+        items: []
+      }
+    };
+
+    let currentSelectedDay = "27";
+    let currentFilter = "all";
+
+    function renderCalendarDay(dayKey, btnElement) {
+      currentSelectedDay = dayKey;
+
+      document.querySelectorAll('.cal-day-btn').forEach(btn => {
+        btn.className = 'cal-day-btn py-1.5 rounded-xl text-[#8b949e] hover:bg-[#161922] flex flex-col items-center';
+      });
+      if (btnElement) {
+        btnElement.className = 'cal-day-btn py-1.5 rounded-xl bg-white text-black font-bold flex flex-col items-center shadow-sm';
+      }
+
+      const dayData = calendarEvents[dayKey] || { title: `Día ${dayKey}`, items: [], dateType: "future" };
+      document.getElementById('selectedDayTitle').innerHTML = `
+        <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        ${dayData.title}
+      `;
+
+      const floatingSec = document.getElementById('floatingTasksSection');
+      if (floatingSec) {
+        if (dayKey === "27") {
+          floatingSec.classList.remove('hidden');
+        } else {
+          floatingSec.classList.add('hidden');
+        }
+      }
+
+      updateTimelineView();
+    }
+
+    function updateTimelineView() {
+      const container = document.getElementById('dayItemsContainer');
+      container.innerHTML = "";
+
+      const dayData = calendarEvents[currentSelectedDay] || { items: [], dateType: "future" };
+      let filteredItems = dayData.items;
+
+      if (currentFilter === "tasks") {
+        filteredItems = filteredItems.filter(i => i.type === "task");
+      } else if (currentFilter === "reminders") {
+        filteredItems = filteredItems.filter(i => i.type === "reminder");
+      }
+
+      if (filteredItems.length === 0) {
+        let emptyMessage = "";
+        let emptySubtitle = "";
+        let emptyIcon = "";
+
+        if (dayData.dateType === "today") {
+          emptyIcon = `<svg class="w-8 h-8 ni text-emerald-400 mx-auto mb-2" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>`;
+          emptyMessage = "Parece que hoy no tienes nada con horario, ¡tómate un descanso!";
+          emptySubtitle = "O desliza hacia abajo para revisar tus pendientes sin hora fija.";
+        } else if (dayData.dateType === "future") {
+          emptyIcon = `<svg class="w-8 h-8 ni text-[#8b949e] mx-auto mb-2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`;
+          emptyMessage = "Día despejado";
+          emptySubtitle = "No tienes tareas ni recordatorios para esta fecha.";
+        } else {
+          emptyIcon = `<svg class="w-8 h-8 ni text-[#8b949e] mx-auto mb-2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+          emptyMessage = "Día concluido";
+          emptySubtitle = "Jornada pasada sin pendientes.";
+        }
+
+        container.innerHTML = `
+          <div class="py-6 px-4 text-center text-xs space-y-1">
+            ${emptyIcon}
+            <p class="font-bold text-sm text-white">${emptyMessage}</p>
+            <p class="text-[11px] text-[#8b949e] max-w-xs mx-auto">${emptySubtitle}</p>
+          </div>
+        `;
+        return;
+      }
+
+      const timelineWrapper = document.createElement('div');
+      timelineWrapper.className = "relative pl-12 pr-1 py-1 space-y-3";
+
+      const railLine = document.createElement('div');
+      railLine.className = "absolute left-8 top-3 bottom-3 w-0.5 bg-[#2d3345]";
+      timelineWrapper.appendChild(railLine);
+
+      filteredItems.forEach(item => {
+        const itemRow = document.createElement('div');
+        itemRow.className = "relative";
+
+        if (item.type === "task") {
+          itemRow.innerHTML = `
+            <div class="absolute -left-12 top-1 text-[11px] font-mono font-bold text-white text-right w-7">
+              ${item.startTime}
+            </div>
+            <div class="absolute -left-4 top-2.5 w-2.5 h-2.5 rounded-full bg-indigo-500 ring-4 ring-[#1f2430]"></div>
+            
+            <div class="bg-[#161922] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 shadow-sm hover:border-white transition-all">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-mono text-indigo-400 font-bold flex items-center gap-1">
+                  <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  ${item.startTime} — ${item.endTime}
+                </span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 font-bold">${item.duration}</span>
+              </div>
+              <h4 class="font-bold text-xs text-white mt-1">${item.title}</h4>
+              <p class="text-[10px] text-[#8b949e] mt-0.5">${item.desc}</p>
+            </div>
+          `;
+        } else {
+          itemRow.innerHTML = `
+            <div class="absolute -left-12 top-2 text-[11px] font-mono font-bold text-sky-400 text-right w-7">
+              ${item.time}
+            </div>
+            <div class="absolute -left-4 top-3.5 w-2.5 h-2.5 rounded-full bg-sky-400 ring-4 ring-[#1f2430]"></div>
+            
+            <div class="bg-[#161922] border border-[#2d3345] border-l-4 border-l-sky-400 rounded-xl px-3 py-2 shadow-sm flex items-center justify-between hover:border-white transition-all">
+              <div class="flex items-center gap-2">
+                <svg class="w-3.5 h-3.5 ni text-sky-400" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div>
+                  <p class="font-bold text-xs text-white">${item.title}</p>
+                  <p class="text-[10px] text-[#8b949e]">${item.desc}</p>
+                </div>
+              </div>
+              <span class="text-[9px] px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 font-semibold font-mono">${item.time}</span>
+            </div>
+          `;
+        }
+
+        timelineWrapper.appendChild(itemRow);
+      });
+
+      container.appendChild(timelineWrapper);
+    }
+
+    function applyFilter(filterType, btn) {
+      currentFilter = filterType;
+      document.querySelectorAll('.cal-filter-btn').forEach(b => {
+        b.className = 'cal-filter-btn px-2 py-0.5 rounded-md text-[#8b949e]';
+      });
+      btn.className = 'cal-filter-btn px-2 py-0.5 rounded-md bg-[#1f2430] border border-[#2d3345] font-bold text-white';
+      updateTimelineView();
+    }
+
+    function toggleCheckFloatingTask(checkbox) {
+      const textSpan = checkbox.parentElement.querySelector('.task-text');
+      if (checkbox.checked) {
+        textSpan.classList.add('line-through', 'opacity-50');
+      } else {
+        textSpan.classList.remove('line-through', 'opacity-50');
+      }
+    }
+
+    function promptAssignTime(btn) {
+      const taskTitle = btn.parentElement.querySelector('.task-text').innerText;
+      const newTime = prompt(`¿A qué hora quieres fijar "${taskTitle}"? (Ej: 16:30):`, "16:30");
+      if (newTime) {
+        calendarEvents["27"].items.push({
+          type: "task",
+          startTime: newTime,
+          endTime: "17:00",
+          duration: "30 min",
+          title: taskTitle,
+          desc: "Fijada desde pendientes"
+        });
+        btn.closest('.p-2\\.5').remove();
+        updateTimelineView();
+      }
+    }
+
+    renderCalendarDay("27", null);
+
+    function toggleMobileNotifications() {
+      const dropdown = document.getElementById('mobileNotifDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function dismissNotification(btn) {
+      const card = btn.closest('.p-2\\.5');
+      card.remove();
+      const badge = document.getElementById('notifBadge');
+      if (badge) {
+        let count = parseInt(badge.innerText);
+        if (count > 1) {
+          badge.innerText = count - 1;
+        } else {
+          badge.remove();
+        }
+      }
+    }
+
+    function switchMobileTab(tab) {
+      document.getElementById('tabChat').classList.add('hidden');
+      document.getElementById('tabIdeas').classList.add('hidden');
+      document.getElementById('tabTasks').classList.add('hidden');
+
+      const title = document.getElementById('mobileViewTitle');
+      const navChat = document.getElementById('navChat');
+      const navIdeas = document.getElementById('navIdeas');
+      const navTasks = document.getElementById('navTasks');
+
+      const activeClasses = 'flex flex-col items-center justify-center gap-1 text-white font-semibold transition-colors';
+      const inactiveClasses = 'flex flex-col items-center justify-center gap-1 text-[#8b949e] hover:text-white transition-colors';
+
+      navChat.className = inactiveClasses;
+      navIdeas.className = inactiveClasses;
+      navTasks.className = inactiveClasses;
+
+      if (tab === 'chat') {
+        document.getElementById('tabChat').classList.remove('hidden');
+        navChat.className = activeClasses;
+        title.innerText = 'Asistente';
+      } else if (tab === 'ideas') {
+        document.getElementById('tabIdeas').classList.remove('hidden');
+        navIdeas.className = activeClasses;
+        title.innerText = 'Cajón de Ideas';
+      } else if (tab === 'tasks') {
+        document.getElementById('tabTasks').classList.remove('hidden');
+        navTasks.className = activeClasses;
+        title.innerText = 'Calendario';
+      }
+    }
+
+    function simulateVoiceInput() {
+      const input = document.getElementById('mobileTextInput');
+      input.value = "Grabando audio...";
+      setTimeout(() => {
+        input.value = "Apunta comprar pan y pagar recibo de la luz cuando pueda hoy";
+        sendManualMessage();
+      }, 1200);
+    }
+
+    function sendManualMessage() {
+      const input = document.getElementById('mobileTextInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const log = document.getElementById('simulatedChatLog');
+      
+      const userBubble = document.createElement('div');
+      userBubble.className = "flex gap-2.5 items-start justify-end mt-3";
+      userBubble.innerHTML = `
+        <div class="bg-white text-black p-3 rounded-2xl rounded-tr-sm text-xs leading-relaxed max-w-[85%] shadow-sm font-medium">
+          ${val}
+        </div>
+      `;
+      log.appendChild(userBubble);
+      input.value = "";
+
+      setTimeout(() => {
+        const aiBubble = document.createElement('div');
+        aiBubble.className = "flex gap-2.5 items-start mt-3";
+        aiBubble.innerHTML = `
+          <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="space-y-2 max-w-[90%] w-full">
+            <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs shadow-sm space-y-2">
+              <p class="text-white font-medium">Como no especificaste hora, lo añadí a tus pendientes:</p>
+              <div class="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5">
+                <span class="text-[10px] font-bold text-[#8b949e]">Añadido a Pendientes de hoy</span>
+                <p class="font-semibold text-xs mt-0.5 text-white">• Comprar pan</p>
+                <p class="font-semibold text-xs mt-0.5 text-white">• Pagar recibo de la luz</p>
+              </div>
+            </div>
+          </div>
+        `;
+        log.appendChild(aiBubble);
+        const container = document.getElementById('mobileScreenBody');
+        container.scrollTop = container.scrollHeight;
+      }, 600);
+    }
+
+    function retomarIdea() {
+      switchMobileTab('chat');
+      const log = document.getElementById('simulatedChatLog');
+      const aiBubble = document.createElement('div');
+      aiBubble.className = "flex gap-2.5 items-start mt-3";
+      aiBubble.innerHTML = `
+        <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+          <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs shadow-sm space-y-1.5 max-w-[90%]">
+          <p class="font-bold text-white">Retomando: "Automatizador de presupuestos"</p>
+          <p class="text-[#e6e8eb]">Para reactivar esta idea, he pensado en 3 pasos rápidos:</p>
+          <p class="text-[#8b949e]">1. Definir qué campos mínimos necesita un presupuesto.<br>2. Plantilla en PDF simple.<br>3. ¿Quieres que prepare un borrador?</p>
+        </div>
+      `;
+      log.appendChild(aiBubble);
+      const container = document.getElementById('mobileScreenBody');
+      container.scrollTop = container.scrollHeight;
+    }
+  </script>
+</body>
+</html>
