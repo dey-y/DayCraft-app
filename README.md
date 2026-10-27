@@ -70,10 +70,6 @@ En lugar de interactuar con botones complejos, en DayCraft **simplemente hablas 
 
 ## 📱 Vista Previa del Mockup Móvil
 
-<div align="center">
-  <img src="docs/images/mockup-v7.svg" alt="DayCraft AI Mobile Preview" width="360" />
-</div>
-
 Puedes probar el diseño interactivo abriendo directamente el archivo:
 * [`mockup-mobile.html`](mockup-mobile.html)
 
