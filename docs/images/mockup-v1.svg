@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 780" width="380" height="780">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#161922"/>
+      <stop offset="100%" stop-color="#0f1117"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Phone Body -->
+  <rect x="5" y="5" width="370" height="770" rx="42" fill="url(#bg)" stroke="#262b3a" stroke-width="6"/>
+
+  <!-- Status Bar -->
+  <text x="35" y="32" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="11" font-weight="600">09:41</text>
+  <rect x="135" y="16" width="110" height="20" rx="10" fill="#262b3a"/>
+  <text x="325" y="32" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10" font-weight="600">5G</text>
+
+  <!-- Header -->
+  <g transform="translate(25, 52)">
+    <rect width="28" height="28" rx="8" fill="#6366f1"/>
+    <text x="8" y="19" font-size="14" fill="#fff">⚡</text>
+    <text x="38" y="19" fill="#fff" font-family="-apple-system, sans-serif" font-size="14" font-weight="bold">DayCraft AI</text>
+    <rect x="125" y="5" width="32" height="16" rx="4" fill="rgba(99,102,241,0.2)"/>
+    <text x="130" y="17" fill="#818cf8" font-family="monospace" font-size="10" font-weight="bold">v1</text>
+    <line x1="-5" y1="36" x2="335" y2="36" stroke="#262b3a" stroke-width="1"/>
+  </g>
+
+  <!-- Screen Content -->
+  
+  <g transform="translate(25, 105)">
+    <rect width="330" height="50" rx="14" fill="#6366f1"/>
+    <text x="14" y="22" fill="#fff" font-size="10.5">"Mañana a las 17h dentista y app recetas"</text>
+  </g>
+  <g transform="translate(25, 165)">
+    <rect width="330" height="70" rx="14" fill="#1f2430" stroke="#10b981" stroke-width="1.5"/>
+    <text x="14" y="22" fill="#34d399" font-size="10" font-weight="bold">✅ TAREA AGENDADA: Mañana 17:00</text>
+    <text x="14" y="44" fill="#fff" font-size="12" font-weight="bold">Llamar al dentista</text>
+  </g>
+  <g transform="translate(25, 245)">
+    <rect width="330" height="80" rx="14" fill="#1f2430" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="14" y="22" fill="#fbbf24" font-size="10" font-weight="bold">💡 IDEA GUARDADA: App recetas con la nevera</text>
+    <text x="14" y="46" fill="#818cf8" font-size="10">✨ Sugerencia IA: Escáner de tickets de súper</text>
+  </g>
+  <!-- Problem chips -->
+  <g transform="translate(25, 635)">
+    <rect width="330" height="65" rx="18" fill="#1f2430" stroke="#2d3345"/>
+    <text x="20" y="25" fill="#8b949e" font-size="10">Escribe o habla...</text>
+    <rect x="10" y="38" width="120" height="20" rx="10" fill="#ef4444" fill-opacity="0.2" stroke="#ef4444"/>
+    <text x="16" y="52" fill="#f87171" font-size="8.5">🎁 Chips estáticos (✕ Inútiles)</text>
+  </g>
+
+
+  <!-- Bottom Nav Bar -->
+  <g transform="translate(25, 715)">
+    <rect width="330" height="48" rx="20" fill="#161922" stroke="#262b3a"/>
+    <text x="35" y="28" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10">Asistente</text>
+    <text x="135" y="28" fill="#8b949e" font-family="-apple-system, sans-serif" font-size="10">Cajón Ideas</text>
+    <text x="240" y="28" fill="#fff" font-family="-apple-system, sans-serif" font-size="10" font-weight="bold">Calendario</text>
+  </g>
+</svg>
