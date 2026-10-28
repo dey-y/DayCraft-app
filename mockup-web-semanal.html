@@ -1357,20 +1357,17 @@
 
         // EVENTOS EN MARTES 27 (HOY):
         if (day.id === 'tue') {
-          // Evento: Revisar informe de gastos (11:30 - 12:00 -> top: 690px, height: 30px)
+          // Evento: Revisar informe de gastos (11:30 - 12:00 -> top: 690px, height: 46px)
           const showExpenseTask = (currentWeekFilter !== 'reminders');
           if (showExpenseTask) {
             html += `
-              <!-- Nodo Circular Centrado en el Raíl -->
-              <div class="absolute left-[8.5px] top-[698px] w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-white ring-4 ring-indigo-500/30 z-20 pointer-events-none shadow-sm"></div>
-
-              <!-- Tarjeta Conectada al Raíl -->
-              <div onclick="event.stopPropagation(); promptAssignSlotModal('11:30 Revisar informe de gastos')" class="absolute left-6 right-1.5 top-[690px] h-[32px] bg-[#161922] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-lg px-2 flex items-center justify-between text-xs hover:border-white transition-all shadow-md z-20 cursor-pointer overflow-hidden group" title="11:30 — 12:00: Revisar informe de gastos mensual">
-                <div class="flex items-center gap-1.5 min-w-0">
-                  <span class="font-mono text-indigo-400 font-bold text-[10px] whitespace-nowrap">11:30</span>
-                  <span class="font-bold text-xs text-white truncate">Revisar informe gastos</span>
+              <!-- Tarjeta de Tarea Proporcional y Nítida -->
+              <div onclick="event.stopPropagation(); promptAssignSlotModal('11:30 Revisar informe de gastos')" class="absolute left-1.5 right-1.5 top-[690px] h-[46px] bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2 flex flex-col justify-center text-xs hover:border-white hover:bg-[#252b3a] transition-all shadow-md z-20 cursor-pointer overflow-hidden group" title="11:30 — 12:00: Revisar informe de gastos mensual (30 min)">
+                <div class="flex items-center justify-between text-[10px] font-mono leading-none mb-1">
+                  <span class="text-indigo-400 font-bold">11:30 — 12:00</span>
+                  <span class="text-[#8b949e] text-[9px]">30m</span>
                 </div>
-                <span class="text-[9px] px-1 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono flex-shrink-0">30m</span>
+                <h4 class="font-bold text-xs text-white leading-tight truncate">Revisar informe gastos</h4>
               </div>
             `;
           }
@@ -1389,22 +1386,18 @@
           const showSprintTask = (currentWeekFilter !== 'reminders');
           if (showSprintTask) {
             html += `
-              <!-- Nodo Circular Centrado en el Raíl -->
-              <div class="absolute left-[8.5px] top-[608px] w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-white ring-4 ring-indigo-500/30 z-20 pointer-events-none shadow-sm"></div>
-
-              <!-- Tarjeta Conectada al Raíl -->
-              <div onclick="event.stopPropagation(); promptAssignSlotModal('Viernes 10:00 Planificar sprint app')" class="absolute left-6 right-1.5 top-[600px] h-[90px] bg-[#161922] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 flex flex-col justify-between text-xs hover:border-white transition-all shadow-md z-20 cursor-pointer group" title="10:00 — 11:30: Planificar sprint app">
+              <!-- Tarjeta de Tarea Proporcional y Nítida -->
+              <div onclick="event.stopPropagation(); promptAssignSlotModal('Viernes 10:00 Planificar sprint app')" class="absolute left-1.5 right-1.5 top-[600px] h-[90px] bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 flex flex-col justify-between text-xs hover:border-white hover:bg-[#252b3a] transition-all shadow-md z-20 cursor-pointer group" title="10:00 — 11:30: Planificar sprint app (1h 30m)">
                 <div>
-                  <div class="flex items-center justify-between text-[10px] mb-1">
-                    <span class="font-mono text-indigo-400 font-bold">10:00 — 11:30</span>
-                    <span class="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">1h 30m</span>
+                  <div class="flex items-center justify-between text-[10px] font-mono leading-none mb-1.5">
+                    <span class="text-indigo-400 font-bold">10:00 — 11:30</span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">1h 30m</span>
                   </div>
-                  <h5 class="font-bold text-xs text-white leading-tight">Planificar sprint de la app</h5>
-                  <p class="text-[10px] text-[#8b949e] mt-1 line-clamp-2">Diseño backlog en Expo y NativeWind</p>
+                  <h4 class="font-bold text-xs text-white leading-snug line-clamp-2">Planificar sprint de la app</h4>
                 </div>
-                <div class="flex items-center gap-1.5 text-[9px] text-[#8b949e]">
-                  <svg class="w-3 h-3 ni text-indigo-400" viewBox="0 0 24 24"><use href="#icon-smartphone"/></svg>
-                  <span>Mi App Móvil</span>
+                <div class="flex items-center gap-1.5 text-[9px] text-[#8b949e] font-medium pt-1 border-t border-[#262b3a]/60">
+                  <svg class="w-3 h-3 ni text-indigo-400 flex-shrink-0" viewBox="0 0 24 24"><use href="#icon-smartphone"/></svg>
+                  <span class="truncate">Mi App Móvil</span>
                 </div>
               </div>
             `;
