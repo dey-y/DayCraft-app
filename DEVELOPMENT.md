@@ -189,7 +189,8 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
    * **Clases Semánticas**: Extracción de estilos recurrentes (`.card-base`, `.segmented-tab`) para limpiar la sobrecarga de clases inline de Tailwind.
    * **JavaScript por Capas**: Estado (`AppState`), controladores de pestañas, navegación y acciones limpiamente separados.
 
-5. **Restauración del Raíl Horario Vertical 24h y Cuadrícula Mensual**:
+5. **Restauración del Eje Horario 24h Semanal, Raíl de Día y Cuadrícula Mensual**:
+   * **Calendario Semanal 7D (`Semana`)**: Incorporación de columna lateral con horas reales (00:00 a 23:00), rejilla de 60px por hora (1 min = 1 px), franja superior "Sin hora" para pendientes diarios, bloques de trabajo proporcionales (11:30–12:00 de 30m, 10:00–11:30 de 90m), indicador de hora actual (11:45) con punto rojo discreto sin cubrir tarjetas y auto-scroll a las 09:00.
    * **Timeline 24h (`Día`)**: Raíl vertical físico continuo con columna de horas (00:00 a 24:00), línea conectora (`w-0.5`), nodos circulares en cada hora (con resaltado de eventos en color índigo) y huecos interactivos `+ Agendar bloque`.
    * **Indicador en Tiempo Real Discreto**: Punto rojo parpadeante (`live-pulse`) montado directamente sobre el raíl vertical (a las 11:45) sin barras horizontales invasivas, evitando cualquier superposición con las tarjetas de actividades.
    * **Grid Mensual (`Mes`)**: Cuadrícula de 7 columnas completa con días de transición atenuados de septiembre (28, 29, 30), altura mínima de 90px por celda y tarjetas de eventos en los días activos.
