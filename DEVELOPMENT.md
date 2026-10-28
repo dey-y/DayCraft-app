@@ -219,6 +219,9 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
 * **Solución Definitiva del Punto Rojo de Hora Actual**:
   * Ubicado con precisión milimétrica exclusivamente en el raíl vertical de la vista de **Hoy** (11:45).
   * En días pasados o futuros, el punto rojo no se dibuja, erradicando cualquier aparición flotante o solapada.
+* **Simplificación Radical del Cajón de Ideas (Cero Sobrecarga)**:
+  * Eliminadas las sub-vistas artificiales (`Carpetas`, `Muro de Notas`, `Bandeja de Entrada`), eliminando ruido visual y botones redundantes.
+  * Vista única y directa donde las notas aparecen auto-agrupadas por contexto con botón directo `[ Agendar paso ]` y captura rápida limpia en la cabecera.
 
 *Mockup de referencia:* [`mockup-web-semanal.html`](mockup-web-semanal.html)
 
