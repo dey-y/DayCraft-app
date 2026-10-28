@@ -337,19 +337,12 @@
         <div>
           <div class="text-[10px] uppercase tracking-wider text-[#8b949e] font-bold px-2 mb-1.5">Vistas</div>
           <nav class="space-y-1">
-            <button onclick="setMainView('week')" id="navViewWeek" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors">
+            <button onclick="setMainView('day')" id="navViewDay" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors">
               <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 ni text-indigo-400" viewBox="0 0 24 24"><use href="#icon-calendar-week"/></svg>
-                Semana (7 Días)
-              </span>
-              <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono">Principal</span>
-            </button>
-
-            <button onclick="setMainView('day')" id="navViewDay" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors">
-              <span class="flex items-center gap-2">
-                <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
+                <svg class="w-4 h-4 ni text-indigo-400" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
                 Día (Timeline 24h)
               </span>
+              <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-mono">Principal</span>
             </button>
 
             <button onclick="setMainView('month')" id="navViewMonth" class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#8b949e] hover:text-white hover:bg-[#1f2430] transition-colors">
@@ -654,170 +647,44 @@
       <!-- CABECERA SUPERIOR DEL LIENZO -->
       <div class="h-12 border-b border-[#262b3a] bg-[#12151d] px-4 flex items-center justify-between flex-shrink-0">
         
-        <!-- Selector de Semanas / Días -->
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-1 text-xs">
-            <button class="p-1 rounded hover:bg-[#1f2430] text-[#8b949e] hover:text-white" title="Semana anterior">
-              <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><use href="#icon-chevron-left"/></svg>
-            </button>
-            <span class="font-bold text-white text-xs px-1" id="currentViewRangeLabel">26 Oct — 01 Nov 2026</span>
-            <button class="p-1 rounded hover:bg-[#1f2430] text-[#8b949e] hover:text-white" title="Semana siguiente">
-              <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><use href="#icon-chevron-right"/></svg>
-            </button>
-          </div>
+        <!-- Título del Día Activo -->
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 live-pulse flex-shrink-0"></div>
+          <h2 id="currentDayTitle" class="font-bold text-sm text-white tracking-tight truncate">Martes 27 de Octubre 2026 (Hoy)</h2>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 font-mono border border-indigo-500/20 flex-shrink-0 hidden sm:inline">Semana 44</span>
+        </div>
 
-          <button class="px-2 py-0.5 rounded-md bg-[#1f2430] text-white text-[11px] font-medium border border-[#2d3345] hover:border-white transition-colors">
+        <!-- Filtros Rápidos de visualización y Botón Hoy -->
+        <div class="flex items-center gap-2">
+          <button onclick="selectDayKey('27')" class="px-2.5 py-1 rounded-lg bg-[#1f2430] hover:bg-white hover:text-black text-white text-[11px] font-semibold border border-[#2d3345] transition-all">
             Hoy
           </button>
-        </div>
-
-        <!-- Filtros Rápidos de visualización -->
-        <div class="flex items-center gap-1 bg-[#161922] p-1 rounded-xl border border-[#262b3a] text-xs">
-          <button onclick="setCalendarFilter('all')" id="btnFilterAll" class="px-2.5 py-0.5 rounded-lg bg-[#1f2430] text-white font-medium">Todo</button>
-          <button onclick="setCalendarFilter('tasks')" id="btnFilterTasks" class="px-2.5 py-0.5 rounded-lg text-[#8b949e] hover:text-white">Tareas</button>
-          <button onclick="setCalendarFilter('reminders')" id="btnFilterReminders" class="px-2.5 py-0.5 rounded-lg text-[#8b949e] hover:text-white">Pendientes</button>
-        </div>
-      </div>
-
-      <!-- ==================== VISTA A: SEMANA (7 DÍAS EN COLUMNAS) ==================== -->
-      <div id="viewContainerWeek" class="flex-1 flex flex-col min-h-0 overflow-hidden">
-        
-        <!-- Cabecera de los 7 Días -->
-        <div class="grid grid-cols-7 border-b border-[#262b3a] bg-[#161922] text-center py-2 flex-shrink-0 divide-x divide-[#262b3a]">
           
-          <div class="px-2">
-            <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Lunes</span>
-            <div class="text-xs font-bold text-[#8b949e]">26</div>
-          </div>
-
-          <!-- MARTES 27 (HOY DESTACADO) -->
-          <div class="px-2 bg-indigo-500/10">
-            <span class="text-[10px] text-indigo-400 font-bold uppercase flex items-center justify-center gap-1">
-              Hoy <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
-            </span>
-            <div class="text-xs font-bold text-white">27</div>
-          </div>
-
-          <div class="px-2">
-            <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Miércoles</span>
-            <div class="text-xs font-bold text-[#8b949e]">28</div>
-          </div>
-
-          <div class="px-2">
-            <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Jueves</span>
-            <div class="text-xs font-bold text-[#8b949e]">29</div>
-          </div>
-
-          <div class="px-2">
-            <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Viernes</span>
-            <div class="text-xs font-bold text-[#8b949e]">30</div>
-          </div>
-
-          <div class="px-2 opacity-60">
-            <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Sábado</span>
-            <div class="text-xs font-bold text-[#8b949e]">31</div>
-          </div>
-
-          <div class="px-2 opacity-60">
-            <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Domingo</span>
-            <div class="text-xs font-bold text-[#8b949e]">01</div>
-          </div>
-
-        </div>
-
-        <!-- CUERPO DE LAS 7 COLUMNAS (AMPLIAS, SIN APRETUROS) -->
-        <div class="flex-1 overflow-y-auto overflow-x-auto relative bg-[#0d1117]">
-          <div class="grid grid-cols-7 min-h-full divide-x divide-[#262b3a]">
-            
-            <!-- Columna Lunes 26 -->
-            <div class="p-2.5 space-y-2 hover:bg-[#161922]/40 transition-colors flex flex-col justify-between">
-              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-40">Sin eventos</div>
-              <button onclick="promptAssignSlotModal('Lunes 26')" class="opacity-0 hover:opacity-100 text-[10px] text-[#8b949e] hover:text-white border border-dashed border-[#262b3a] rounded-lg py-1.5 text-center transition-all">
-                + Agendar bloque
-              </button>
-            </div>
-
-            <!-- Columna Martes 27 (HOY) -->
-            <div class="p-2.5 space-y-2.5 bg-[#161922]/20 hover:bg-[#161922]/40 transition-colors relative flex flex-col justify-start">
-              <!-- Evento de 11:30 a 12:00 -->
-              <div class="bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 shadow-md hover:border-white transition-all cursor-pointer">
-                <div class="flex items-center justify-between text-[10px] mb-1">
-                  <span class="font-mono text-indigo-400 font-bold flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
-                    11:30 — 12:00
-                  </span>
-                  <span class="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono text-[9px]">30m</span>
-                </div>
-                <h5 class="font-bold text-xs text-white leading-snug">Revisar informe de gastos</h5>
-                <p class="text-[10px] text-[#8b949e] mt-1 line-clamp-2">Bloque enfocado con comprobantes</p>
-              </div>
-
-              <!-- Espacio para agendar nuevo bloque -->
-              <div onclick="promptAssignSlotModal('Martes 27')" class="border border-dashed border-[#262b3a] hover:border-white rounded-xl p-2 text-center text-[10px] text-[#8b949e] hover:text-white cursor-pointer transition-colors">
-                + Agendar bloque
-              </div>
-            </div>
-
-            <!-- Columna Miércoles 28 -->
-            <div class="p-2.5 space-y-2 hover:bg-[#161922]/40 transition-colors flex flex-col justify-between">
-              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-40">Día libre</div>
-              <button onclick="promptAssignSlotModal('Miércoles 28')" class="opacity-0 hover:opacity-100 text-[10px] text-[#8b949e] hover:text-white border border-dashed border-[#262b3a] rounded-lg py-1.5 text-center transition-all">
-                + Agendar bloque
-              </button>
-            </div>
-
-            <!-- Columna Jueves 29 -->
-            <div class="p-2.5 space-y-2 hover:bg-[#161922]/40 transition-colors flex flex-col justify-between">
-              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-40">Día libre</div>
-              <button onclick="promptAssignSlotModal('Jueves 29')" class="opacity-0 hover:opacity-100 text-[10px] text-[#8b949e] hover:text-white border border-dashed border-[#262b3a] rounded-lg py-1.5 text-center transition-all">
-                + Agendar bloque
-              </button>
-            </div>
-
-            <!-- Columna Viernes 30 -->
-            <div class="p-2.5 space-y-2.5 hover:bg-[#161922]/40 transition-colors flex flex-col justify-start">
-              <!-- Evento Viernes 10:00 -->
-              <div class="bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 shadow-md hover:border-white transition-all cursor-pointer">
-                <div class="flex items-center justify-between text-[10px] mb-1">
-                  <span class="font-mono text-indigo-400 font-bold flex items-center gap-1">
-                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
-                    10:00 — 11:30
-                  </span>
-                  <span class="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono text-[9px]">1h 30m</span>
-                </div>
-                <h5 class="font-bold text-xs text-white leading-snug">Planificar sprint de la app</h5>
-                <p class="text-[10px] text-[#8b949e] mt-1 line-clamp-2">Diseño backlog en Expo y NativeWind</p>
-                <div class="flex items-center gap-1.5 text-[9px] text-[#8b949e] mt-2 pt-1.5 border-t border-[#262b3a]">
-                  <svg class="w-3 h-3 ni text-indigo-400" viewBox="0 0 24 24"><use href="#icon-smartphone"/></svg>
-                  <span>Mi App Móvil</span>
-                </div>
-              </div>
-
-              <!-- Espacio para agendar nuevo bloque -->
-              <div onclick="promptAssignSlotModal('Viernes 30')" class="border border-dashed border-[#262b3a] hover:border-white rounded-xl p-2 text-center text-[10px] text-[#8b949e] hover:text-white cursor-pointer transition-colors">
-                + Agendar bloque
-              </div>
-            </div>
-
-            <!-- Columna Sábado 31 -->
-            <div class="p-2.5 space-y-2 bg-[#12151d]/40 hover:bg-[#161922]/40 transition-colors flex flex-col justify-center">
-              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-30">Fin de semana</div>
-            </div>
-
-            <!-- Columna Domingo 01 -->
-            <div class="p-2.5 space-y-2 bg-[#12151d]/40 hover:bg-[#161922]/40 transition-colors flex flex-col justify-center">
-              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-30">Fin de semana</div>
-            </div>
-
+          <div class="flex items-center gap-1 bg-[#161922] p-1 rounded-xl border border-[#262b3a] text-xs">
+            <button onclick="setCalendarFilter('all')" id="btnFilterAll" class="px-2.5 py-0.5 rounded-lg bg-[#1f2430] text-white font-medium">Todo</button>
+            <button onclick="setCalendarFilter('tasks')" id="btnFilterTasks" class="px-2.5 py-0.5 rounded-lg text-[#8b949e] hover:text-white">Tareas</button>
+            <button onclick="setCalendarFilter('reminders')" id="btnFilterReminders" class="px-2.5 py-0.5 rounded-lg text-[#8b949e] hover:text-white">Pendientes</button>
           </div>
         </div>
-
       </div>
 
-      <!-- ==================== VISTA B: DÍA CON TIMELINE 24H ==================== -->
-      <div id="viewContainerDay" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden p-4">
+      <!-- TIRA HORIZONTAL DE DÍAS (SCROLL DE DÍAS) -->
+      <div class="border-b border-[#262b3a] bg-[#161922] px-3 py-2 flex items-center gap-2 flex-shrink-0 select-none">
+        <button onclick="shiftDayStrip(-1)" class="w-7 h-7 rounded-lg bg-[#12151d] border border-[#262b3a] hover:border-white text-[#8b949e] hover:text-white flex items-center justify-center text-xs transition-colors flex-shrink-0" title="Día anterior">
+          ‹
+        </button>
+        <div class="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none flex-1" id="dayStripContainer">
+          <!-- Rellenado dinámicamente con los días -->
+        </div>
+        <button onclick="shiftDayStrip(1)" class="w-7 h-7 rounded-lg bg-[#12151d] border border-[#262b3a] hover:border-white text-[#8b949e] hover:text-white flex items-center justify-center text-xs transition-colors flex-shrink-0" title="Día siguiente">
+          ›
+        </button>
+      </div>
+
+      <!-- ==================== VISTA PRINCIPAL: DÍA CON TIMELINE 24H ==================== -->
+      <div id="viewContainerDay" class="flex-1 min-h-0 flex flex-col overflow-hidden p-4">
         <div class="flex-1 bg-[#161922] border border-[#262b3a] rounded-2xl p-4 overflow-y-auto" id="dayTimeline24Container">
-          <!-- Renderizado dinámico de 24h -->
+          <!-- Renderizado dinámico de 24h con raíl continuo -->
         </div>
       </div>
 
@@ -993,7 +860,8 @@
        ========================================================================== */
     const AppState = {
       activeSideTab: 'agenda', // 'agenda' | 'ai'
-      currentMainView: 'week', // 'week' | 'day' | 'month' | 'ideas'
+      currentMainView: 'day', // 'day' | 'month' | 'ideas'
+      selectedDayKey: '27',
       isSimulatedEmpty: false,
       scheduledItems: [
         { id: 'sched-1', title: 'Revisar informe de gastos mensual', time: '11:30 — 12:00', duration: '30 min', desc: 'Bloque enfocado con comprobantes' }
@@ -1003,6 +871,43 @@
         { id: 'task-2', title: 'Llamar a Carlos por presupuesto', isFromYesterday: false, completed: false }
       ]
     };
+
+    const calendarDaysData = [
+      { key: '25', dayName: 'DOM', dayNum: '25', fullTitle: 'Domingo 25 de Octubre 2026', isPast: true, events: [] },
+      { key: '26', dayName: 'LUN', dayNum: '26', fullTitle: 'Lunes 26 de Octubre 2026', isPast: true, events: [] },
+      { 
+        key: '27', 
+        dayName: 'MAR', 
+        dayNum: '27', 
+        fullTitle: 'Martes 27 de Octubre 2026 (Hoy)', 
+        isToday: true, 
+        events: [
+          { hour: 11, time: '11:30 — 12:00', duration: '30 min', title: 'Revisar informe de gastos mensual', desc: 'Bloque enfocado con comprobantes', tag: 'Finanzas' }
+        ] 
+      },
+      { 
+        key: '28', 
+        dayName: 'MIÉ', 
+        dayNum: '28', 
+        fullTitle: 'Miércoles 28 de Octubre 2026', 
+        events: [
+          { hour: 17, time: '17:00 — 18:00', duration: '1h', title: 'Cita con el dentista', desc: 'Revisión y limpieza anual', tag: 'Salud' }
+        ] 
+      },
+      { key: '29', dayName: 'JUE', dayNum: '29', fullTitle: 'Jueves 29 de Octubre 2026', events: [] },
+      { 
+        key: '30', 
+        dayName: 'VIE', 
+        dayNum: '30', 
+        fullTitle: 'Viernes 30 de Octubre 2026', 
+        events: [
+          { hour: 10, time: '10:00 — 11:30', duration: '1h 30m', title: 'Planificar sprint de la app', desc: 'Diseño backlog en Expo y NativeWind', tag: 'Mi App Móvil' }
+        ] 
+      },
+      { key: '31', dayName: 'SÁB', dayNum: '31', fullTitle: 'Sábado 31 de Octubre 2026', events: [] },
+      { key: '01', dayName: 'DOM', dayNum: '01', fullTitle: 'Domingo 01 de Noviembre 2026', events: [] },
+      { key: '02', dayName: 'LUN', dayNum: '02', fullTitle: 'Lunes 02 de Noviembre 2026', events: [] }
+    ];
 
     /* ==========================================================================
        2. CONTROLADOR DE PESTAÑAS (AGENDA HOY VS ASISTENTE IA)
@@ -1041,19 +946,21 @@
     }
 
     /* ==========================================================================
-       3. NAVEGACIÓN DE VISTAS PRINCIPALES
+       3. NAVEGACIÓN DE VISTAS PRINCIPALES Y TIRA HORIZONTAL DE DÍAS
        ========================================================================== */
     function setMainView(view) {
       AppState.currentMainView = view;
       
-      // Ocultar todos los contenedores
-      document.getElementById('viewContainerWeek').classList.add('hidden');
-      document.getElementById('viewContainerDay').classList.add('hidden');
-      document.getElementById('viewContainerMonth').classList.add('hidden');
-      document.getElementById('viewContainerIdeas').classList.add('hidden');
+      const dayView = document.getElementById('viewContainerDay');
+      const monthView = document.getElementById('viewContainerMonth');
+      const ideasView = document.getElementById('viewContainerIdeas');
+
+      if (dayView) dayView.classList.add('hidden');
+      if (monthView) monthView.classList.add('hidden');
+      if (ideasView) ideasView.classList.add('hidden');
 
       // Resetear clases de navegación
-      const navButtons = ['navViewWeek', 'navViewDay', 'navViewMonth', 'navViewIdeas'];
+      const navButtons = ['navViewDay', 'navViewMonth', 'navViewIdeas'];
       navButtons.forEach(id => {
         const btn = document.getElementById(id);
         if (btn) {
@@ -1062,25 +969,80 @@
       });
 
       // Activar la vista correspondiente
-      if (view === 'week') {
-        document.getElementById('viewContainerWeek').classList.remove('hidden');
-        document.getElementById('navViewWeek').className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
-        document.getElementById('currentViewRangeLabel').textContent = "26 Oct — 01 Nov 2026";
-      } else if (view === 'day') {
-        document.getElementById('viewContainerDay').classList.remove('hidden');
-        document.getElementById('navViewDay').className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
-        document.getElementById('currentViewRangeLabel').textContent = "Martes 27 de Octubre 2026";
+      if (view === 'day') {
+        if (dayView) dayView.classList.remove('hidden');
+        const nav = document.getElementById('navViewDay');
+        if (nav) nav.className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
         renderDayTimeline24();
       } else if (view === 'month') {
-        document.getElementById('viewContainerMonth').classList.remove('hidden');
-        document.getElementById('navViewMonth').className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
-        document.getElementById('currentViewRangeLabel').textContent = "Octubre 2026";
+        if (monthView) monthView.classList.remove('hidden');
+        const nav = document.getElementById('navViewMonth');
+        if (nav) nav.className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
         renderFullMonthGrid();
       } else if (view === 'ideas') {
-        document.getElementById('viewContainerIdeas').classList.remove('hidden');
-        document.getElementById('navViewIdeas').className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
-        document.getElementById('currentViewRangeLabel').textContent = "Cajón de Proyectos & Ideas Vivas";
+        if (ideasView) ideasView.classList.remove('hidden');
+        const nav = document.getElementById('navViewIdeas');
+        if (nav) nav.className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
       }
+    }
+
+    function renderDayStrip() {
+      const container = document.getElementById('dayStripContainer');
+      if (!container) return;
+
+      container.innerHTML = calendarDaysData.map(day => {
+        const isSelected = day.key === AppState.selectedDayKey;
+        const hasEvents = day.events && day.events.length > 0;
+        
+        let stateClasses = "bg-[#12151d] text-[#8b949e] border-[#262b3a] hover:border-[#3b4256] hover:text-white";
+        if (isSelected) {
+          stateClasses = "bg-indigo-600 text-white border-indigo-400 shadow-sm ring-1 ring-indigo-400/30";
+        } else if (day.isToday) {
+          stateClasses = "bg-[#1f2430] text-white border-indigo-500/50 hover:border-indigo-400";
+        }
+
+        return `
+          <button onclick="selectDayKey('${day.key}')" id="day-pill-${day.key}" class="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${stateClasses}">
+            <span class="text-[10px] uppercase font-bold tracking-wider ${isSelected ? 'text-indigo-200' : (day.isToday ? 'text-indigo-400' : 'text-[#8b949e]')}">${day.dayName}</span>
+            <span class="font-mono font-bold text-sm leading-none">${day.dayNum}</span>
+            ${day.isToday ? `<span class="text-[9px] px-1 py-0.2 rounded ${isSelected ? 'bg-indigo-700 text-white' : 'bg-indigo-500/20 text-indigo-300'} font-semibold">Hoy</span>` : ''}
+            ${hasEvents && !day.isToday ? `<span class="w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-indigo-400'}"></span>` : ''}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectDayKey(key) {
+      AppState.selectedDayKey = key;
+      const dayData = calendarDaysData.find(d => d.key === key);
+      
+      const titleElem = document.getElementById('currentDayTitle');
+      if (titleElem && dayData) {
+        titleElem.textContent = dayData.fullTitle;
+      }
+
+      renderDayStrip();
+
+      // Asegurar que la vista activa sea el día
+      if (AppState.currentMainView !== 'day') {
+        setMainView('day');
+      } else {
+        renderDayTimeline24();
+      }
+
+      // Scroll suave a la píldora activa dentro del contenedor si queda fuera
+      const activePill = document.getElementById(`day-pill-${key}`);
+      const strip = document.getElementById('dayStripContainer');
+      if (activePill && strip) {
+        activePill.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+
+    function shiftDayStrip(delta) {
+      const currentIndex = calendarDaysData.findIndex(d => d.key === AppState.selectedDayKey);
+      if (currentIndex === -1) return;
+      const nextIndex = Math.max(0, Math.min(calendarDaysData.length - 1, currentIndex + delta));
+      selectDayKey(calendarDaysData[nextIndex].key);
     }
 
     function setCalendarFilter(filter) {
@@ -1319,20 +1281,22 @@
     }
 
     function jumpToCalendarSlot(time) {
-      setMainView('week');
+      selectDayKey('27');
+      setMainView('day');
     }
 
     /* ==========================================================================
-       6. RENDERIZADO DINÁMICO DE CALENDARIOS AUXILIARES
+       6. RENDERIZADO DINÁMICO DE CALENDARIOS AUXILIARES Y TIMELINE
        ========================================================================== */
     function renderMiniCalendar() {
       const container = document.getElementById('miniCalendarGrid');
       let html = '';
       for (let i = 1; i <= 31; i++) {
         if (i === 27) {
-          html += `<span class="py-0.5 rounded-md bg-indigo-500 font-bold text-white shadow-sm cursor-pointer">${i}</span>`;
+          html += `<span onclick="selectDayKey('27')" class="py-0.5 rounded-md bg-indigo-500 font-bold text-white shadow-sm cursor-pointer">${i}</span>`;
         } else if (i === 26 || i === 28 || i === 29 || i === 30) {
-          html += `<span class="py-0.5 rounded hover:bg-[#1f2430] text-white cursor-pointer font-medium">${i}</span>`;
+          const keyStr = i < 10 ? `0${i}` : `${i}`;
+          html += `<span onclick="selectDayKey('${keyStr}')" class="py-0.5 rounded hover:bg-[#1f2430] text-white cursor-pointer font-medium">${i}</span>`;
         } else {
           html += `<span class="py-0.5 rounded hover:bg-[#1f2430] text-[#8b949e] cursor-pointer">${i}</span>`;
         }
@@ -1342,11 +1306,20 @@
 
     function renderDayTimeline24() {
       const container = document.getElementById('dayTimeline24Container');
+      if (!container) return;
+
+      const dayData = calendarDaysData.find(d => d.key === AppState.selectedDayKey) || calendarDaysData[2];
+      const eventsCount = dayData.events ? dayData.events.length : 0;
+      const countText = eventsCount === 0 
+        ? 'Día libre sin bloques' 
+        : `${eventsCount} ${eventsCount === 1 ? 'bloque agendado' : 'bloques agendados'}`;
+
       container.innerHTML = `
-        <div class="flex items-center justify-between border-b border-[#262b3a] pb-3 mb-4">
+        <div class="flex items-center justify-between border-b border-[#262b3a] pb-3 mb-4 flex-wrap gap-2">
           <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-indigo-400 live-pulse"></span>
-            <span class="font-bold text-sm text-white">Timeline Horario 24h — Martes 27 de Octubre (Hoy)</span>
+            <span class="w-2 h-2 rounded-full ${dayData.isToday ? 'bg-emerald-400 live-pulse' : 'bg-indigo-400'}"></span>
+            <span class="font-bold text-sm text-white">Timeline Horario 24h — ${dayData.fullTitle}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] text-[#8b949e] font-mono border border-[#262b3a]">${countText}</span>
           </div>
           <span class="text-[11px] text-[#8b949e] font-mono">Haz clic en cualquier hora para agendar un bloque</span>
         </div>
@@ -1355,15 +1328,16 @@
       const wrapper = document.createElement('div');
       wrapper.className = "flex flex-col relative pr-2";
 
-      // Raíl vertical físico continuo e ininterrumpido que conecta todos los nodos de arriba a abajo
+      // Raíl vertical físico continuo e ininterrumpido
       const continuousRail = document.createElement('div');
       continuousRail.className = "absolute left-[79px] top-4 bottom-6 w-0.5 bg-[#3b4256] z-0 pointer-events-none";
       wrapper.appendChild(continuousRail);
 
       for (let h = 0; h < 24; h++) {
         const hourStr = h < 10 ? `0${h}:00` : `${h}:00`;
-        const hasEvent = (h === 11);
-        const isCurrentHour = (h === 11);
+        const event = dayData.events ? dayData.events.find(e => e.hour === h) : null;
+        const hasEvent = !!event;
+        const isCurrentHourOnToday = (dayData.isToday && h === 11);
 
         const row = document.createElement('div');
         row.className = "flex items-start gap-4 py-2 group relative z-10";
@@ -1383,19 +1357,22 @@
           <!-- Espacio de Bloque de Tiempo -->
           <div class="flex-1 min-w-0">
             ${hasEvent ? `
-              <div class="w-full bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 shadow-md hover:border-white transition-all flex items-start justify-between">
-                <div>
-                  <div class="flex items-center gap-2 mb-1">
+              <div class="w-full bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3.5 shadow-md hover:border-white transition-all flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 mb-1.5 flex-wrap">
                     <span class="font-mono text-indigo-400 font-bold text-xs flex items-center gap-1.5">
                       <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      11:30 — 12:00
+                      ${event.time}
                     </span>
-                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">30 min</span>
+                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">${event.duration}</span>
+                    ${event.tag ? `<span class="text-[9px] px-2 py-0.2 rounded-full bg-[#161922] text-[#8b949e] border border-[#262b3a] font-medium">${event.tag}</span>` : ''}
                   </div>
-                  <h4 class="font-bold text-sm text-white">Revisar informe de gastos mensual</h4>
-                  <p class="text-xs text-[#8b949e] mt-0.5">Bloque enfocado con comprobantes</p>
+                  <h4 class="font-bold text-sm text-white leading-snug">${event.title}</h4>
+                  ${event.desc ? `<p class="text-xs text-[#8b949e] mt-1 line-clamp-2">${event.desc}</p>` : ''}
                 </div>
-                <span class="text-[10px] text-indigo-300 font-mono bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">Agendada</span>
+                <div class="flex items-center gap-2 flex-shrink-0 self-end sm:self-start">
+                  <span class="text-[10px] text-indigo-300 font-mono bg-indigo-500/20 px-2 py-0.5 rounded border border-indigo-500/30">Agendada</span>
+                </div>
               </div>
             ` : `
               <div onclick="promptAssignSlotModal('${hourStr}')" class="h-9 border-b border-[#1f2430] group-hover:border-[#2d3345] flex items-center px-3 cursor-pointer rounded hover:bg-[#1f2430]/30 text-xs text-[#8b949e] transition-all">
@@ -1407,8 +1384,8 @@
             `}
           </div>
 
-          ${isCurrentHour ? `
-            <!-- Indicador Vivo de Hora Actual en el Raíl (Cero Superposición) -->
+          ${isCurrentHourOnToday ? `
+            <!-- Indicador Vivo de Hora Actual en el Raíl (Cero Superposición, solo en Hoy) -->
             <div class="absolute left-[75px] top-8 z-30 pointer-events-none" title="Hora actual: 11:45">
               <div class="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/40 animate-pulse shadow-md"></div>
             </div>
@@ -1420,13 +1397,15 @@
 
       container.appendChild(wrapper);
 
-      // Auto-scroll a las 09:00 para arrancar el día cómodamente
+      // Auto-scroll a la hora más conveniente (primer evento o 09:00)
       setTimeout(() => {
-        const target = document.getElementById('timeline-hour-9');
+        const firstEvent = dayData.events && dayData.events.length > 0 ? dayData.events[0].hour : 9;
+        const scrollTargetHour = Math.max(0, firstEvent - 1);
+        const target = document.getElementById(`timeline-hour-${scrollTargetHour}`);
         if (target) {
-          container.scrollTop = target.offsetTop - 30;
+          container.scrollTop = target.offsetTop - 20;
         }
-      }, 50);
+      }, 60);
     }
 
     function renderFullMonthGrid() {
@@ -1550,6 +1529,8 @@
     // Inicialización al cargar la página
     window.addEventListener('DOMContentLoaded', () => {
       renderMiniCalendar();
+      renderDayStrip();
+      selectDayKey('27');
       initPanelResizer();
     });
   </script>

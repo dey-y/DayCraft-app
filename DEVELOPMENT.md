@@ -200,11 +200,35 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
 
 ---
 
+## v8.5: Enfoque "Día Heroico" con Tira Deslizable de Días y Splitter Redimensionable
+
+### Planteamiento y Feedback Crítico de Deimar
+* **Rechazo a la Vista Semanal de 7 Columnas en Escritorio**:
+  * En configuraciones de mosaico de ventanas (*tiling window manager* como Hyprland en NixOS), dividir la pantalla en 7 columnas paralelas genera columnas de apenas ~55-80 px.
+  * Esto comprime los textos, deforma las tarjetas horarias y traslada el estrés de hojas de cálculo tipo Google Calendar, traicionando el principio fundacional de DayCraft: *cero estrés, foco total y respiración visual*.
+* **El "Día Heroico" como Vista Principal**:
+  * Sustitución total de la vista semanal por el **Timeline 24h del Día** como héroe visual indiscutible del lienzo principal.
+  * Tarjetas de tiempo con amplitud completa, tipografía generosa, etiquetas limpias y bloques de fácil lectura.
+* **Tira Horizontal Deslizable de Días (Day Strip)**:
+  * Barra de navegación horizontal (`[‹] [DOM 25] [LUN 26] [MAR 27 Hoy] [MIÉ 28] [JUE 29] [VIE 30] [›]`).
+  * Permite alternar de día al instante o navegar con flechas, manteniendo el timeline enfocado en el día seleccionado.
+  * Puntos indicadores en los días que tienen bloques agendados.
+* **Separador Arrastrable (*Splitter Handle*)**:
+  * El panel lateral izquierdo de Agenda / IA ahora cuenta con un tirador físico `#panelResizer` arrastrable entre 240px y 540px.
+  * Incluye atajo por doble clic para alternar entre modo compacto (245px, ideal para splits de Hyprland) y modo estándar (330px).
+* **Solución Definitiva del Punto Rojo de Hora Actual**:
+  * Ubicado con precisión milimétrica exclusivamente en el raíl vertical de la vista de **Hoy** (11:45).
+  * En días pasados o futuros, el punto rojo no se dibuja, erradicando cualquier aparición flotante o solapada.
+
+*Mockup de referencia:* [`mockup-web-semanal.html`](mockup-web-semanal.html)
+
+---
+
 ## 🎯 Cierre de la Fase de Prototipado (Móvil & Web)
 
 Con la validación de Deimar, los mockups quedan consolidados como la especificación visual y funcional definitiva:
 1. 📱 **Móvil ([`mockup-mobile.html`](mockup-mobile.html))**: Experiencia ágil vertical, entrada mixta texto/voz, raíl de Time-blocking y rollover antiestrés.
-2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard panorámico de 3 paneles con selector segmentado Agenda/IA, vista semanal de 7 columnas amplia, cajón de ideas Kanban y código saneado.
+2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard de 3 paneles con panel redimensionable Agenda/IA, Timeline 24h heroico como vista principal, tira horizontal deslizable de días, Cajón de ideas Kanban y cero estrés.
 
 **Siguiente Hito**: Desarrollo del código base con React Native / Expo, TypeScript y NativeWind.
 
