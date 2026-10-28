@@ -1298,8 +1298,8 @@
     }
 
     /* --------------------------------------------------------------------------
-       CALENDARIO SEMANAL: EJE HORARIO 24H Y CUADRÍCULA PROPORCIONAL EXACTA
-       (1 hora = 60px -> 1 minuto = 1px de forma limpia y milimétrica)
+       CALENDARIO SEMANAL: MULTI-RAÍL HORARIO PROPORCIONAL (ADN DAYCRAFT)
+       Línea de tiempo continua por columna, nodos circulares y tarjetas conectadas
        -------------------------------------------------------------------------- */
     function renderWeekCalendar() {
       const container = document.getElementById('weekGridContainer');
@@ -1325,25 +1325,30 @@
       for (let h = 0; h < hours; h++) {
         const timeStr = (h < 10 ? '0' : '') + h + ':00';
         html += `
-          <div class="h-[60px] border-b border-[#1f2430] pr-2 text-right text-[11px] font-mono text-[#8b949e] flex items-start justify-end pt-1">
+          <div class="h-[60px] border-b border-[#1f2430]/40 pr-2 text-right text-[11px] font-mono text-[#8b949e] flex items-start justify-end pt-1">
             ${timeStr}
           </div>
         `;
       }
       html += `</div>`;
 
-      // 2. Las 7 Columnas de días
+      // 2. Las 7 Columnas de días (Cada una con su RAÍL VERTICAL FÍSICO CONTINUO)
       days.forEach(day => {
         html += `
-          <div class="border-r border-[#262b3a]/50 relative ${day.isToday ? 'bg-indigo-500/[0.02]' : ''}" data-day="${day.id}">
+          <div class="border-r border-[#262b3a]/50 relative ${day.isToday ? 'bg-indigo-500/[0.03]' : ''} group/col" data-day="${day.id}">
+            
+            <!-- Raíl Vertical Físico Continuo que recorre todo el día -->
+            <div class="absolute left-3 top-0 bottom-0 w-0.5 ${day.isToday ? 'bg-[#3b4256]' : 'bg-[#262b3a]'} group-hover/col:bg-[#4b5563] transition-colors pointer-events-none z-0"></div>
         `;
 
-        // 24 celdas horarias de fondo con interacción directa para agendar
+        // 24 franjas horarias sobre el raíl
         for (let h = 0; h < hours; h++) {
           const timeStr = (h < 10 ? '0' : '') + h + ':00';
           html += `
-            <div onclick="promptAssignSlotModal('${day.name} a las ${timeStr}')" class="h-[60px] border-b border-[#1f2430] hover:bg-[#1f2430]/30 transition-colors cursor-pointer group relative">
-              <span class="opacity-0 group-hover:opacity-100 text-[10px] text-[#8b949e] font-mono pl-1.5 pt-1 transition-opacity">
+            <div onclick="promptAssignSlotModal('${day.name} a las ${timeStr}')" class="h-[60px] border-b border-[#1f2430]/20 hover:bg-[#1f2430]/25 transition-colors cursor-pointer group/slot relative">
+              <!-- Nodo sutil en el raíl al pasar el ratón -->
+              <div class="absolute left-[9.5px] top-2 w-1.5 h-1.5 rounded-full bg-[#3b4256] opacity-0 group-hover/slot:opacity-100 group-hover/slot:scale-125 group-hover/slot:bg-indigo-400 transition-all z-10"></div>
+              <span class="opacity-0 group-hover/slot:opacity-100 text-[10px] text-[#8b949e] font-mono pl-6 pt-1 block transition-opacity">
                 + ${timeStr}
               </span>
             </div>
@@ -1356,7 +1361,11 @@
           const showExpenseTask = (currentWeekFilter !== 'reminders');
           if (showExpenseTask) {
             html += `
-              <div onclick="event.stopPropagation(); promptAssignSlotModal('11:30 Revisar informe de gastos')" class="absolute left-1 right-1 top-[690px] h-[30px] bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-lg px-2 flex items-center justify-between text-xs hover:border-white transition-all shadow-md z-20 cursor-pointer overflow-hidden group" title="11:30 — 12:00: Revisar informe de gastos mensual">
+              <!-- Nodo Circular Centrado en el Raíl -->
+              <div class="absolute left-[8.5px] top-[698px] w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-white ring-4 ring-indigo-500/30 z-20 pointer-events-none shadow-sm"></div>
+
+              <!-- Tarjeta Conectada al Raíl -->
+              <div onclick="event.stopPropagation(); promptAssignSlotModal('11:30 Revisar informe de gastos')" class="absolute left-6 right-1.5 top-[690px] h-[32px] bg-[#161922] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-lg px-2 flex items-center justify-between text-xs hover:border-white transition-all shadow-md z-20 cursor-pointer overflow-hidden group" title="11:30 — 12:00: Revisar informe de gastos mensual">
                 <div class="flex items-center gap-1.5 min-w-0">
                   <span class="font-mono text-indigo-400 font-bold text-[10px] whitespace-nowrap">11:30</span>
                   <span class="font-bold text-xs text-white truncate">Revisar informe gastos</span>
@@ -1366,10 +1375,10 @@
             `;
           }
 
-          // Indicador vivo de hora actual (11:45 -> top: 705px): Solo punto rojo parpadeante en el borde, sin tapar actividades
+          // Indicador vivo de hora actual (11:45 -> top: 705px): Punto rojo anclado sobre el raíl vertical
           html += `
-            <div class="absolute left-[-5px] top-[700px] z-30 pointer-events-none" title="Hora actual: 11:45">
-              <div class="w-2.5 h-2.5 rounded-full bg-rose-500 ring-4 ring-rose-500/40 animate-pulse shadow-md"></div>
+            <div class="absolute left-[7.5px] top-[705px] z-30 pointer-events-none" title="Hora actual: 11:45 (en el raíl)">
+              <div class="w-3 h-3 rounded-full bg-rose-500 ring-4 ring-rose-500/40 animate-pulse shadow-md"></div>
             </div>
           `;
         }
@@ -1380,7 +1389,11 @@
           const showSprintTask = (currentWeekFilter !== 'reminders');
           if (showSprintTask) {
             html += `
-              <div onclick="event.stopPropagation(); promptAssignSlotModal('Viernes 10:00 Planificar sprint app')" class="absolute left-1 right-1 top-[600px] h-[90px] bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 flex flex-col justify-between text-xs hover:border-white transition-all shadow-md z-20 cursor-pointer group" title="10:00 — 11:30: Planificar sprint app">
+              <!-- Nodo Circular Centrado en el Raíl -->
+              <div class="absolute left-[8.5px] top-[608px] w-2.5 h-2.5 rounded-full bg-indigo-500 border-2 border-white ring-4 ring-indigo-500/30 z-20 pointer-events-none shadow-sm"></div>
+
+              <!-- Tarjeta Conectada al Raíl -->
+              <div onclick="event.stopPropagation(); promptAssignSlotModal('Viernes 10:00 Planificar sprint app')" class="absolute left-6 right-1.5 top-[600px] h-[90px] bg-[#161922] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 flex flex-col justify-between text-xs hover:border-white transition-all shadow-md z-20 cursor-pointer group" title="10:00 — 11:30: Planificar sprint app">
                 <div>
                   <div class="flex items-center justify-between text-[10px] mb-1">
                     <span class="font-mono text-indigo-400 font-bold">10:00 — 11:30</span>
