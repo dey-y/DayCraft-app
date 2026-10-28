@@ -232,7 +232,7 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
 
 Con la validación de Deimar, los mockups quedan consolidados como la especificación visual y funcional definitiva:
 1. 📱 **Móvil ([`mockup-mobile.html`](mockup-mobile.html))**: Experiencia ágil vertical, entrada mixta texto/voz, raíl de Time-blocking y rollover antiestrés.
-2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard de 3 paneles con panel redimensionable Agenda/IA, Timeline 24h heroico como vista principal, tira horizontal deslizable de días, Cajón de ideas Kanban y cero estrés.
+2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard ergonómico con panel redimensionable Agenda/IA (splitter arrastrable), Timeline 24h heroico como vista principal, tira horizontal deslizable de días (scroll de días), Cajón de ideas directo auto-agrupado y cero estrés.
 
 **Siguiente Hito**: Desarrollo del código base con React Native / Expo, TypeScript y NativeWind.
 
