@@ -700,38 +700,40 @@
         </div>
       </div>
 
-      <!-- ==================== VISTA D: CAJÓN DE IDEAS & PROYECTOS ==================== -->
+      <!-- ==================== VISTA D: CAJÓN DE IDEAS ==================== -->
       <div id="viewContainerIdeas" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden p-4">
         <div class="flex-1 bg-[#161922] border border-[#262b3a] rounded-2xl flex flex-col overflow-hidden shadow-sm">
           
-          <!-- Encabezado del Cajón de Ideas -->
-          <div class="px-6 py-4 border-b border-[#262b3a] bg-[#12151d] flex flex-col lg:flex-row lg:items-center justify-between gap-4 flex-shrink-0">
+          <!-- Encabezado del Cajón de Ideas (Limpio y directo) -->
+          <div class="px-6 py-4 border-b border-[#262b3a] bg-[#12151d] flex flex-col sm:flex-row sm:items-center justify-between gap-4 flex-shrink-0">
             <div>
               <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                   <svg class="w-4 h-4 ni text-amber-400" viewBox="0 0 24 24"><use href="#icon-lightbulb"/></svg>
                 </div>
-                <h3 class="font-bold text-base text-white tracking-tight">Cajón de Ideas & Proyectos Vivos</h3>
-                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Gemini Auto-Sync</span>
+                <h3 class="font-bold text-base text-white tracking-tight">Cajón de Ideas</h3>
+                <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">Auto-agrupado por IA</span>
               </div>
               <p class="text-xs text-[#8b949e] mt-1">
-                Tus ocurrencias nunca mueren: la IA las agrupa por proyecto y te ayuda a agendarlas en tu calendario.
+                Tus ocurrencias nunca mueren: cuando tengas un hueco en tu día, conviértelas en un bloque de acción.
               </p>
             </div>
 
-            <!-- Selector de Sub-vistas de Ideas -->
-            <div class="flex items-center gap-1.5 bg-[#161922] border border-[#262b3a] p-1 rounded-xl">
-              <button onclick="setIdeasSubView('kanban')" id="subViewBtnKanban" class="px-3 py-1 rounded-lg text-xs font-semibold bg-[#1f2430] text-white transition-colors">Carpetas</button>
-              <button onclick="setIdeasSubView('wall')" id="subViewBtnWall" class="px-3 py-1 rounded-lg text-xs text-[#8b949e] hover:text-white transition-colors">Muro de Notas</button>
-              <button onclick="setIdeasSubView('inbox')" id="subViewBtnInbox" class="px-3 py-1 rounded-lg text-xs text-[#8b949e] hover:text-white transition-colors">Bandeja Entrada</button>
+            <!-- Captura Rápida de Ideas -->
+            <div class="flex items-center gap-2">
+              <input type="text" id="quickIdeaInput" onkeydown="handleQuickIdeaInput(event)" placeholder="Apunta un chispazo..." class="bg-[#161922] border border-[#2d3345] focus:border-white rounded-xl px-3 py-1.5 text-xs text-white placeholder-[#8b949e] outline-none w-56 sm:w-64 transition-all">
+              <button onclick="addQuickIdeaFromInput()" class="px-3 py-1.5 rounded-xl bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors flex items-center gap-1.5 flex-shrink-0">
+                <svg class="w-3.5 h-3.5 ni text-black" viewBox="0 0 24 24"><use href="#icon-plus"/></svg>
+                <span>Añadir</span>
+              </button>
             </div>
           </div>
 
-          <!-- Lienzo Kanban de Proyectos e Ideas -->
+          <!-- Lienzo Directo de Ideas -->
           <div class="flex-1 overflow-y-auto p-6">
-            <div id="ideasSubViewKanban" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div id="ideasContainerGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               
-              <!-- BANDEJA 1: PROYECTO APP MÓVIL (NOTION SMARTPHONE ICON) -->
+              <!-- GRUPO: PROYECTO APP MÓVIL -->
               <div class="card-base p-4 space-y-4 shadow-sm flex flex-col">
                 <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
                   <div class="flex items-center gap-2.5">
@@ -743,19 +745,19 @@
                         Mi App Móvil
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-400" title="Proyecto Activo"></span>
                       </h4>
-                      <p class="text-[10px] text-[#8b949e]">3 notas · Actualizado ayer</p>
+                      <p class="text-[10px] text-[#8b949e]">3 notas vinculadas</p>
                     </div>
                   </div>
                 </div>
 
-                <div class="space-y-3">
+                <div class="space-y-3" id="ideasGroupApp">
                   <!-- Nota 1 -->
                   <div class="group bg-[#12151d] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2 transition-all">
                     <h5 class="font-semibold text-xs text-white">App sin fricción para organizar el día</h5>
                     <p class="text-xs text-[#8b949e] line-clamp-2">Eliminar la pereza inicial: dictas por voz y la app separa automáticamente tareas agendadas, pendientes e ideas.</p>
                     <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
                       <span>Hace 2 días</span>
-                      <button onclick="convertIdeaToScheduleTask('Definir wireframes entrada por voz')" class="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1">
+                      <button onclick="convertIdeaToScheduleTask('Definir wireframes entrada por voz')" class="px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1 hover:bg-neutral-200">
                         <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
                         <span>Agendar paso</span>
                       </button>
@@ -768,7 +770,7 @@
                     <p class="text-xs text-[#8b949e]">Cero emojis estridentes. Trazos vectoriales limpios y minimalistas en toda la interfaz.</p>
                     <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
                       <span>Ayer</span>
-                      <button onclick="convertIdeaToScheduleTask('Revisar catálogo NotionIcons')" class="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1">
+                      <button onclick="convertIdeaToScheduleTask('Revisar catálogo NotionIcons')" class="px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1 hover:bg-neutral-200">
                         <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
                         <span>Agendar</span>
                       </button>
@@ -777,7 +779,7 @@
                 </div>
               </div>
 
-              <!-- BANDEJA 2: PROYECTO NUTRICIÓN (NOTION CUP ICON) -->
+              <!-- GRUPO: PROYECTO NUTRICIÓN -->
               <div class="card-base p-4 space-y-4 shadow-sm flex flex-col">
                 <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
                   <div class="flex items-center gap-2.5">
@@ -797,44 +799,43 @@
                     <p class="text-xs text-[#8b949e] line-clamp-2">Sugerir recetas rápidas basadas únicamente en los ingredientes que ya están por caducar.</p>
                     <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
                       <span>Hace 4 días</span>
-                      <button onclick="convertIdeaToScheduleTask('Investigar API de escaneo de despensa')" class="opacity-0 group-hover:opacity-100 px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1">
+                      <button onclick="convertIdeaToScheduleTask('Investigar API de escaneo de despensa')" class="px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1 hover:bg-neutral-200">
                         <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
-                        <span>Agendar 1er paso</span>
+                        <span>Agendar paso</span>
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- BANDEJA 3: IDEAS INACTIVAS PARA RESCATAR -->
-              <div class="bg-[#12151d] border border-dashed border-[#2d3345] rounded-2xl p-4 space-y-4 shadow-sm flex flex-col">
+              <!-- GRUPO: OTRAS IDEAS Y CHISPAZOS -->
+              <div class="card-base p-4 space-y-4 shadow-sm flex flex-col">
                 <div class="flex items-center justify-between pb-3 border-b border-[#262b3a]">
                   <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-xl bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-[#8b949e]">
-                      <svg class="w-4 h-4 ni text-[#8b949e]" viewBox="0 0 24 24"><use href="#icon-folder"/></svg>
+                    <div class="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                      <svg class="w-4 h-4 ni text-amber-400" viewBox="0 0 24 24"><use href="#icon-sparkles"/></svg>
                     </div>
                     <div>
-                      <h4 class="font-bold text-sm text-white">Bandeja de Entrada</h4>
-                      <p class="text-[10px] text-[#8b949e]">Chispazos listos para reactivar</p>
+                      <h4 class="font-bold text-sm text-white">Chispazos Libres</h4>
+                      <p class="text-[10px] text-[#8b949e]">Pendientes de convertir en hábito</p>
                     </div>
                   </div>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] text-[#8b949e] font-mono">1 idea</span>
                 </div>
 
                 <div class="space-y-3">
-                  <div class="group bg-[#161922] border border-amber-500/20 hover:border-amber-400 rounded-xl p-3.5 space-y-2 transition-all">
+                  <div class="group bg-[#12151d] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2 transition-all">
                     <div class="flex items-start justify-between gap-2">
-                      <h5 class="font-semibold text-xs text-amber-300 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 ni text-amber-400" viewBox="0 0 24 24"><use href="#icon-bell"/></svg>
+                      <h5 class="font-semibold text-xs text-white flex items-center gap-1.5">
                         Automatizador de facturas
                       </h5>
-                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono">12d inactiva</span>
+                      <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 font-mono">Idea</span>
                     </div>
                     <p class="text-xs text-[#8b949e]">Descargar PDFs de facturas desde Gmail a Sheets de forma desatendida.</p>
                     <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px]">
-                      <span class="text-[#8b949e]">Sugerida hoy 16:00</span>
-                      <button onclick="convertIdeaToScheduleTask('Explorar Automatizador', '16:00')" class="px-2.5 py-1 rounded bg-white hover:bg-neutral-200 text-black font-bold transition-all">
-                        Agendar hoy 16h
+                      <span class="text-[#8b949e]">Hace 12 días</span>
+                      <button onclick="convertIdeaToScheduleTask('Explorar Automatizador', '16:00')" class="px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1 hover:bg-neutral-200">
+                        <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
+                        <span>Agendar paso</span>
                       </button>
                     </div>
                   </div>
@@ -1059,18 +1060,35 @@
       });
     }
 
-    function setIdeasSubView(subview) {
-      const subviews = ['kanban', 'wall', 'inbox'];
-      subviews.forEach(s => {
-        const btn = document.getElementById('subViewBtn' + s.charAt(0).toUpperCase() + s.slice(1));
-        if (btn) {
-          if (s === subview) {
-            btn.className = "px-3 py-1 rounded-lg text-xs font-semibold bg-[#1f2430] text-white transition-colors";
-          } else {
-            btn.className = "px-3 py-1 rounded-lg text-xs text-[#8b949e] hover:text-white transition-colors";
-          }
-        }
-      });
+    function handleQuickIdeaInput(event) {
+      if (event.key === 'Enter') {
+        addQuickIdeaFromInput();
+      }
+    }
+
+    function addQuickIdeaFromInput() {
+      const input = document.getElementById('quickIdeaInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      const group = document.getElementById('ideasGroupApp');
+      if (group) {
+        const card = document.createElement('div');
+        card.className = "group bg-[#12151d] border border-[#2d3345] hover:border-white rounded-xl p-3.5 space-y-2 transition-all";
+        card.innerHTML = `
+          <h5 class="font-semibold text-xs text-white">${val}</h5>
+          <p class="text-xs text-[#8b949e]">Chispazo añadido recién capturado</p>
+          <div class="flex items-center justify-between pt-2 border-t border-[#262b3a] text-[10px] text-[#8b949e]">
+            <span>Ahora mismo</span>
+            <button onclick="convertIdeaToScheduleTask('${val}')" class="px-2 py-0.5 rounded bg-white text-black font-semibold transition-all flex items-center gap-1 hover:bg-neutral-200">
+              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
+              <span>Agendar</span>
+            </button>
+          </div>
+        `;
+        group.prepend(card);
+      }
+      input.value = '';
     }
 
     /* ==========================================================================
