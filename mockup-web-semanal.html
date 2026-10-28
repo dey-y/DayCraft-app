@@ -679,56 +679,45 @@
         </div>
       </div>
 
-      <!-- ==================== VISTA A: SEMANA (7 DÍAS EN COLUMNAS CON EJE HORARIO 24H) ==================== -->
+      <!-- ==================== VISTA A: SEMANA (7 DÍAS EN COLUMNAS) ==================== -->
       <div id="viewContainerWeek" class="flex-1 flex flex-col min-h-0 overflow-hidden">
         
-        <!-- Cabecera de los 7 Días (con columna de horas de 60px alineada) -->
-        <div class="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#262b3a] bg-[#161922] text-center py-2 flex-shrink-0 min-w-[560px]">
+        <!-- Cabecera de los 7 Días -->
+        <div class="grid grid-cols-7 border-b border-[#262b3a] bg-[#161922] text-center py-2 flex-shrink-0 divide-x divide-[#262b3a]">
           
-          <!-- Espaciador de horas con icono reloj -->
-          <div class="flex items-center justify-center border-r border-[#262b3a] text-[#8b949e]">
-            <svg class="w-3.5 h-3.5 ni text-[#8b949e]" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
-          </div>
-
-          <!-- Lunes 26 -->
-          <div class="px-2 border-r border-[#262b3a]">
+          <div class="px-2">
             <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Lunes</span>
             <div class="text-xs font-bold text-[#8b949e]">26</div>
           </div>
 
-          <!-- Martes 27 (HOY DESTACADO) -->
-          <div class="px-2 border-r border-[#262b3a] bg-indigo-500/10">
+          <!-- MARTES 27 (HOY DESTACADO) -->
+          <div class="px-2 bg-indigo-500/10">
             <span class="text-[10px] text-indigo-400 font-bold uppercase flex items-center justify-center gap-1">
               Hoy <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
             </span>
             <div class="text-xs font-bold text-white">27</div>
           </div>
 
-          <!-- Miércoles 28 -->
-          <div class="px-2 border-r border-[#262b3a]">
+          <div class="px-2">
             <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Miércoles</span>
             <div class="text-xs font-bold text-[#8b949e]">28</div>
           </div>
 
-          <!-- Jueves 29 -->
-          <div class="px-2 border-r border-[#262b3a]">
+          <div class="px-2">
             <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Jueves</span>
             <div class="text-xs font-bold text-[#8b949e]">29</div>
           </div>
 
-          <!-- Viernes 30 -->
-          <div class="px-2 border-r border-[#262b3a]">
+          <div class="px-2">
             <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Viernes</span>
             <div class="text-xs font-bold text-[#8b949e]">30</div>
           </div>
 
-          <!-- Sábado 31 -->
-          <div class="px-2 border-r border-[#262b3a] opacity-60">
+          <div class="px-2 opacity-60">
             <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Sábado</span>
             <div class="text-xs font-bold text-[#8b949e]">31</div>
           </div>
 
-          <!-- Domingo 01 -->
           <div class="px-2 opacity-60">
             <span class="text-[10px] text-[#8b949e] uppercase font-semibold">Domingo</span>
             <div class="text-xs font-bold text-[#8b949e]">01</div>
@@ -736,32 +725,90 @@
 
         </div>
 
-        <!-- Franja "Todo el Día / Pendientes sin hora fija" -->
-        <div class="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#262b3a] bg-[#12151d] text-xs py-1.5 flex-shrink-0 min-w-[560px]">
-          <div class="text-[9px] uppercase tracking-wider text-[#8b949e] font-bold flex items-center justify-center border-r border-[#262b3a]">
-            Sin hora
-          </div>
-          <div class="border-r border-[#262b3a]/40 px-1"></div>
-          <!-- Martes 27: 2 pendientes -->
-          <div class="border-r border-[#262b3a]/40 px-1 bg-indigo-500/5 flex items-center">
-            <div class="w-full flex items-center justify-between gap-1 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] cursor-pointer hover:bg-amber-500/20 transition-colors" title="2 pendientes de hoy" onclick="switchSideTab('agenda')">
-              <span class="flex items-center gap-1 font-medium truncate">
-                <svg class="w-3 h-3 ni text-amber-400" viewBox="0 0 24 24"><use href="#icon-reminder"/></svg>
-                <span class="truncate">2 pendientes</span>
-              </span>
+        <!-- CUERPO DE LAS 7 COLUMNAS (AMPLIAS, SIN APRETUROS) -->
+        <div class="flex-1 overflow-y-auto overflow-x-auto relative bg-[#0d1117]">
+          <div class="grid grid-cols-7 min-h-full divide-x divide-[#262b3a]">
+            
+            <!-- Columna Lunes 26 -->
+            <div class="p-2.5 space-y-2 hover:bg-[#161922]/40 transition-colors flex flex-col justify-between">
+              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-40">Sin eventos</div>
+              <button onclick="promptAssignSlotModal('Lunes 26')" class="opacity-0 hover:opacity-100 text-[10px] text-[#8b949e] hover:text-white border border-dashed border-[#262b3a] rounded-lg py-1.5 text-center transition-all">
+                + Agendar bloque
+              </button>
             </div>
-          </div>
-          <div class="border-r border-[#262b3a]/40 px-1"></div>
-          <div class="border-r border-[#262b3a]/40 px-1"></div>
-          <div class="border-r border-[#262b3a]/40 px-1"></div>
-          <div class="border-r border-[#262b3a]/40 px-1"></div>
-          <div class="px-1"></div>
-        </div>
 
-        <!-- CUERPO DE LA SEMANA CON EJE HORARIO 24H Y CUADRÍCULA PROPORCIONAL -->
-        <div id="weekCalendarScroll" class="flex-1 overflow-y-auto overflow-x-auto relative bg-[#0d1117]">
-          <div id="weekGridContainer" class="relative min-w-[560px]">
-            <!-- Renderizado dinámicamente con horas y bloques milimétricos -->
+            <!-- Columna Martes 27 (HOY) -->
+            <div class="p-2.5 space-y-2.5 bg-[#161922]/20 hover:bg-[#161922]/40 transition-colors relative flex flex-col justify-start">
+              <!-- Evento de 11:30 a 12:00 -->
+              <div class="bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 shadow-md hover:border-white transition-all cursor-pointer">
+                <div class="flex items-center justify-between text-[10px] mb-1">
+                  <span class="font-mono text-indigo-400 font-bold flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
+                    11:30 — 12:00
+                  </span>
+                  <span class="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono text-[9px]">30m</span>
+                </div>
+                <h5 class="font-bold text-xs text-white leading-snug">Revisar informe de gastos</h5>
+                <p class="text-[10px] text-[#8b949e] mt-1 line-clamp-2">Bloque enfocado con comprobantes</p>
+              </div>
+
+              <!-- Espacio para agendar nuevo bloque -->
+              <div onclick="promptAssignSlotModal('Martes 27')" class="border border-dashed border-[#262b3a] hover:border-white rounded-xl p-2 text-center text-[10px] text-[#8b949e] hover:text-white cursor-pointer transition-colors">
+                + Agendar bloque
+              </div>
+            </div>
+
+            <!-- Columna Miércoles 28 -->
+            <div class="p-2.5 space-y-2 hover:bg-[#161922]/40 transition-colors flex flex-col justify-between">
+              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-40">Día libre</div>
+              <button onclick="promptAssignSlotModal('Miércoles 28')" class="opacity-0 hover:opacity-100 text-[10px] text-[#8b949e] hover:text-white border border-dashed border-[#262b3a] rounded-lg py-1.5 text-center transition-all">
+                + Agendar bloque
+              </button>
+            </div>
+
+            <!-- Columna Jueves 29 -->
+            <div class="p-2.5 space-y-2 hover:bg-[#161922]/40 transition-colors flex flex-col justify-between">
+              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-40">Día libre</div>
+              <button onclick="promptAssignSlotModal('Jueves 29')" class="opacity-0 hover:opacity-100 text-[10px] text-[#8b949e] hover:text-white border border-dashed border-[#262b3a] rounded-lg py-1.5 text-center transition-all">
+                + Agendar bloque
+              </button>
+            </div>
+
+            <!-- Columna Viernes 30 -->
+            <div class="p-2.5 space-y-2.5 hover:bg-[#161922]/40 transition-colors flex flex-col justify-start">
+              <!-- Evento Viernes 10:00 -->
+              <div class="bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-3 shadow-md hover:border-white transition-all cursor-pointer">
+                <div class="flex items-center justify-between text-[10px] mb-1">
+                  <span class="font-mono text-indigo-400 font-bold flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
+                    10:00 — 11:30
+                  </span>
+                  <span class="px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono text-[9px]">1h 30m</span>
+                </div>
+                <h5 class="font-bold text-xs text-white leading-snug">Planificar sprint de la app</h5>
+                <p class="text-[10px] text-[#8b949e] mt-1 line-clamp-2">Diseño backlog en Expo y NativeWind</p>
+                <div class="flex items-center gap-1.5 text-[9px] text-[#8b949e] mt-2 pt-1.5 border-t border-[#262b3a]">
+                  <svg class="w-3 h-3 ni text-indigo-400" viewBox="0 0 24 24"><use href="#icon-smartphone"/></svg>
+                  <span>Mi App Móvil</span>
+                </div>
+              </div>
+
+              <!-- Espacio para agendar nuevo bloque -->
+              <div onclick="promptAssignSlotModal('Viernes 30')" class="border border-dashed border-[#262b3a] hover:border-white rounded-xl p-2 text-center text-[10px] text-[#8b949e] hover:text-white cursor-pointer transition-colors">
+                + Agendar bloque
+              </div>
+            </div>
+
+            <!-- Columna Sábado 31 -->
+            <div class="p-2.5 space-y-2 bg-[#12151d]/40 hover:bg-[#161922]/40 transition-colors flex flex-col justify-center">
+              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-30">Fin de semana</div>
+            </div>
+
+            <!-- Columna Domingo 01 -->
+            <div class="p-2.5 space-y-2 bg-[#12151d]/40 hover:bg-[#161922]/40 transition-colors flex flex-col justify-center">
+              <div class="text-[10px] text-[#8b949e] font-mono text-center py-6 opacity-30">Fin de semana</div>
+            </div>
+
           </div>
         </div>
 
@@ -1019,7 +1066,6 @@
         document.getElementById('viewContainerWeek').classList.remove('hidden');
         document.getElementById('navViewWeek').className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
         document.getElementById('currentViewRangeLabel').textContent = "26 Oct — 01 Nov 2026";
-        renderWeekCalendar();
       } else if (view === 'day') {
         document.getElementById('viewContainerDay').classList.remove('hidden');
         document.getElementById('navViewDay').className = "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium bg-[#1f2430] text-white transition-colors";
@@ -1037,9 +1083,7 @@
       }
     }
 
-    let currentWeekFilter = 'all';
     function setCalendarFilter(filter) {
-      currentWeekFilter = filter;
       const filters = ['all', 'tasks', 'reminders'];
       filters.forEach(f => {
         const btn = document.getElementById('btnFilter' + f.charAt(0).toUpperCase() + f.slice(1));
@@ -1051,7 +1095,6 @@
           }
         }
       });
-      renderWeekCalendar();
     }
 
     function setIdeasSubView(subview) {
@@ -1297,128 +1340,6 @@
       container.innerHTML = html;
     }
 
-    /* --------------------------------------------------------------------------
-       CALENDARIO SEMANAL: MULTI-RAÍL HORARIO PROPORCIONAL (ADN DAYCRAFT)
-       Línea de tiempo continua por columna, nodos circulares y tarjetas conectadas
-       -------------------------------------------------------------------------- */
-    function renderWeekCalendar() {
-      const container = document.getElementById('weekGridContainer');
-      if (!container) return;
-
-      const hours = 24;
-      const hourHeight = 60; // 60px por hora = 1px por minuto exacto
-
-      const days = [
-        { id: 'mon', name: 'Lunes 26', isToday: false },
-        { id: 'tue', name: 'Martes 27', isToday: true },
-        { id: 'wed', name: 'Miércoles 28', isToday: false },
-        { id: 'thu', name: 'Jueves 29', isToday: false },
-        { id: 'fri', name: 'Viernes 30', isToday: false },
-        { id: 'sat', name: 'Sábado 31', isToday: false },
-        { id: 'sun', name: 'Domingo 01', isToday: false }
-      ];
-
-      let html = `<div class="grid grid-cols-[60px_repeat(7,1fr)] relative min-w-[560px]" style="height: ${hours * hourHeight}px;">`;
-
-      // 1. Columna de horas a la izquierda (00:00 a 23:00)
-      html += `<div class="border-r border-[#262b3a] bg-[#12151d]/60 select-none relative">`;
-      for (let h = 0; h < hours; h++) {
-        const timeStr = (h < 10 ? '0' : '') + h + ':00';
-        html += `
-          <div class="h-[60px] border-b border-[#1f2430]/40 pr-2 text-right text-[11px] font-mono text-[#8b949e] flex items-start justify-end pt-1">
-            ${timeStr}
-          </div>
-        `;
-      }
-      html += `</div>`;
-
-      // 2. Las 7 Columnas de días (Cada una con su RAÍL VERTICAL FÍSICO CONTINUO)
-      days.forEach(day => {
-        html += `
-          <div class="border-r border-[#262b3a]/50 relative ${day.isToday ? 'bg-indigo-500/[0.03]' : ''} group/col" data-day="${day.id}">
-            
-            <!-- Raíl Vertical Físico Continuo que recorre todo el día -->
-            <div class="absolute left-3 top-0 bottom-0 w-0.5 ${day.isToday ? 'bg-[#3b4256]' : 'bg-[#262b3a]'} group-hover/col:bg-[#4b5563] transition-colors pointer-events-none z-0"></div>
-        `;
-
-        // 24 franjas horarias sobre el raíl
-        for (let h = 0; h < hours; h++) {
-          const timeStr = (h < 10 ? '0' : '') + h + ':00';
-          html += `
-            <div onclick="promptAssignSlotModal('${day.name} a las ${timeStr}')" class="h-[60px] border-b border-[#1f2430]/20 hover:bg-[#1f2430]/25 transition-colors cursor-pointer group/slot relative">
-              <!-- Nodo sutil en el raíl al pasar el ratón -->
-              <div class="absolute left-[9.5px] top-2 w-1.5 h-1.5 rounded-full bg-[#3b4256] opacity-0 group-hover/slot:opacity-100 group-hover/slot:scale-125 group-hover/slot:bg-indigo-400 transition-all z-10"></div>
-              <span class="opacity-0 group-hover/slot:opacity-100 text-[10px] text-[#8b949e] font-mono pl-6 pt-1 block transition-opacity">
-                + ${timeStr}
-              </span>
-            </div>
-          `;
-        }
-
-        // EVENTOS EN MARTES 27 (HOY):
-        if (day.id === 'tue') {
-          // Evento: Revisar informe de gastos (11:30 - 12:00 -> top: 690px, height: 46px)
-          const showExpenseTask = (currentWeekFilter !== 'reminders');
-          if (showExpenseTask) {
-            html += `
-              <!-- Tarjeta de Tarea Proporcional y Nítida -->
-              <div onclick="event.stopPropagation(); promptAssignSlotModal('11:30 Revisar informe de gastos')" class="absolute left-1.5 right-1.5 top-[690px] h-[46px] bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2 flex flex-col justify-center text-xs hover:border-white hover:bg-[#252b3a] transition-all shadow-md z-20 cursor-pointer overflow-hidden group" title="11:30 — 12:00: Revisar informe de gastos mensual (30 min)">
-                <div class="flex items-center justify-between text-[10px] font-mono leading-none mb-1">
-                  <span class="text-indigo-400 font-bold">11:30 — 12:00</span>
-                  <span class="text-[#8b949e] text-[9px]">30m</span>
-                </div>
-                <h4 class="font-bold text-xs text-white leading-tight truncate">Revisar informe gastos</h4>
-              </div>
-            `;
-          }
-
-          // Indicador vivo de hora actual (11:45 -> top: 705px): Punto rojo anclado sobre el raíl vertical
-          html += `
-            <div class="absolute left-[7.5px] top-[705px] z-30 pointer-events-none" title="Hora actual: 11:45 (en el raíl)">
-              <div class="w-3 h-3 rounded-full bg-rose-500 ring-4 ring-rose-500/40 animate-pulse shadow-md"></div>
-            </div>
-          `;
-        }
-
-        // EVENTOS EN VIERNES 30:
-        if (day.id === 'fri') {
-          // Evento: Planificar sprint de la app (10:00 - 11:30 -> top: 600px, height: 90px)
-          const showSprintTask = (currentWeekFilter !== 'reminders');
-          if (showSprintTask) {
-            html += `
-              <!-- Tarjeta de Tarea Proporcional y Nítida -->
-              <div onclick="event.stopPropagation(); promptAssignSlotModal('Viernes 10:00 Planificar sprint app')" class="absolute left-1.5 right-1.5 top-[600px] h-[90px] bg-[#1f2430] border border-[#2d3345] border-l-4 border-l-indigo-500 rounded-xl p-2.5 flex flex-col justify-between text-xs hover:border-white hover:bg-[#252b3a] transition-all shadow-md z-20 cursor-pointer group" title="10:00 — 11:30: Planificar sprint app (1h 30m)">
-                <div>
-                  <div class="flex items-center justify-between text-[10px] font-mono leading-none mb-1.5">
-                    <span class="text-indigo-400 font-bold">10:00 — 11:30</span>
-                    <span class="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-300 font-mono">1h 30m</span>
-                  </div>
-                  <h4 class="font-bold text-xs text-white leading-snug line-clamp-2">Planificar sprint de la app</h4>
-                </div>
-                <div class="flex items-center gap-1.5 text-[9px] text-[#8b949e] font-medium pt-1 border-t border-[#262b3a]/60">
-                  <svg class="w-3 h-3 ni text-indigo-400 flex-shrink-0" viewBox="0 0 24 24"><use href="#icon-smartphone"/></svg>
-                  <span class="truncate">Mi App Móvil</span>
-                </div>
-              </div>
-            `;
-          }
-        }
-
-        html += `</div>`;
-      });
-
-      html += `</div>`;
-      container.innerHTML = html;
-
-      // Auto-scroll cómodo para arrancar el día alrededor de las 08:30 - 09:00
-      setTimeout(() => {
-        const scrollElem = document.getElementById('weekCalendarScroll');
-        if (scrollElem && scrollElem.scrollTop === 0) {
-          scrollElem.scrollTop = 510;
-        }
-      }, 50);
-    }
-
     function renderDayTimeline24() {
       const container = document.getElementById('dayTimeline24Container');
       container.innerHTML = `
@@ -1629,7 +1550,6 @@
     // Inicialización al cargar la página
     window.addEventListener('DOMContentLoaded', () => {
       renderMiniCalendar();
-      renderWeekCalendar();
       initPanelResizer();
     });
   </script>
