@@ -16,7 +16,8 @@ Este documento recoge el proceso evolutivo de creación y diseño de **DayCraft 
 7. [v7: Pendientes de Hoy sin Hora Fija y Rollover Antiestrés (Móvil)](#v7-final-pendientes-de-hoy-sin-hora-fija-y-rollover-antiestrés)
 8. [v8: Adaptación Web / Escritorio (Dashboard Panorámico 3 Columnas)](#v8-adaptación-web--escritorio-dashboard-panorámico-3-columnas)
 9. [v8.3: Vista Semanal 7D, Agenda Rápida Permanente y Cajón Kanban](#v83-propuesta-alternativa--vista-semanal-7-días--agenda-rápida-permanente)
-10. [Cierre de la Fase de Prototipado (Móvil & Web)](#-cierre-de-la-fase-de-prototipado-móvil--web)
+10. [v8.4: Optimización Ergonómica para Laptops y Saneamiento de Código](#v84-optimización-ergonómica-para-laptops-y-saneamiento-de-código)
+11. [Cierre de la Fase de Prototipado (Móvil & Web)](#-cierre-de-la-fase-de-prototipado-móvil--web)
 
 ---
 
@@ -166,11 +167,43 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
 
 ---
 
+## v8.4: Optimización Ergonómica para Laptops y Saneamiento de Código
+
+### Planteamiento y Feedback de Deimar
+* **Problema de espacio en portátil**: Al trabajar desde la laptop, tener el panel de IA en el extremo derecho ocupaba más de 320 px fijos, comprimiendo las 7 columnas del calendario semanal.
+* **Propuesta de Deimar (Opción A)**: Hacer convivir la "Agenda de Hoy" con el "Chat IA" en el mismo panel lateral izquierdo mediante pestañas segmentadas (`[ 📅 Agenda Hoy ]` y `[ 🧠 Asistente IA ]`), eliminando el panel derecho independiente.
+* **Simplificación de terminología**: Renombrar la sección *"Recordatorios y pendientes"* a simplemente *"Pendientes"*.
+* **Saneamiento del código**: Reducir el ruido visual y el desorden del HTML para garantizar un código modular, cómodo y agradable de inspeccionar.
+
+### Solución Implementada:
+1. **Layout de 3 Paneles**:
+   * `[ Sidebar Navegación (220px) ]` + `[ Panel Multifunción Agenda/IA (350px) ]` + `[ Lienzo Calendario Expandido (Flex-1) ]`.
+   * El calendario semanal gana más de 320 px de ancho horizontal: cada columna tiene espacio generoso para tarjetas horarias.
+2. **Pestañas Segmentadas en Cabecera**:
+   * Switch instantáneo entre la vista de **Agenda de Hoy** (con horario fijado y lista de Pendientes) y el feed del **Asistente IA** (briefing, sugerencias para rescatar ideas y chat dinámico).
+   * Indicador vivo (`pulse`) en la pestaña de IA si hay sugerencias pendientes.
+3. **Smart Intake Compartido**:
+   * Barra de entrada con micrófono en el pie del panel lateral que interactúa con la agenda o conmuta al chat conversacional según el comando.
+4. **Refactorización y Limpieza de Código**:
+   * **Diccionario SVG Centralizado**: Se eliminaron los bloques gigantes de SVG dispersos en el HTML; ahora se invocan limpiamente con `<svg class="icon"><use href="#icon-nombre"/></svg>`.
+   * **Clases Semánticas**: Extracción de estilos recurrentes (`.card-base`, `.segmented-tab`) para limpiar la sobrecarga de clases inline de Tailwind.
+   * **JavaScript por Capas**: Estado (`AppState`), controladores de pestañas, navegación y acciones limpiamente separados.
+
+5. **Restauración del Raíl Horario Vertical 24h y Cuadrícula Mensual**:
+   * **Timeline 24h (`Día`)**: Raíl vertical físico continuo con columna de horas (00:00 a 24:00), línea conectora (`w-0.5`), nodos circulares en cada hora (con resaltado de eventos en color índigo) y huecos interactivos `+ Agendar bloque`.
+   * **Indicador en Tiempo Real Discreto**: Punto rojo parpadeante (`live-pulse`) montado directamente sobre el raíl vertical (a las 11:45) sin barras horizontales invasivas, evitando cualquier superposición con las tarjetas de actividades.
+   * **Grid Mensual (`Mes`)**: Cuadrícula de 7 columnas completa con días de transición atenuados de septiembre (28, 29, 30), altura mínima de 90px por celda y tarjetas de eventos en los días activos.
+   * **Notion Icons con Dimensiones Fijas**: Contención estricta de 14px y 16px en todos los navegadores, eliminando cualquier distorsión o desbordamiento.
+
+*Mockup optimizado:* [`mockup-web-semanal.html`](mockup-web-semanal.html)
+
+---
+
 ## 🎯 Cierre de la Fase de Prototipado (Móvil & Web)
 
 Con la validación de Deimar, los mockups quedan consolidados como la especificación visual y funcional definitiva:
 1. 📱 **Móvil ([`mockup-mobile.html`](mockup-mobile.html))**: Experiencia ágil vertical, entrada mixta texto/voz, raíl de Time-blocking y rollover antiestrés.
-2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard panorámico con agenda compacta fija a la izquierda, vista semanal de 7 columnas en el lienzo central, cajón de ideas estilo Kanban y dock de IA.
+2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard panorámico de 3 paneles con selector segmentado Agenda/IA, vista semanal de 7 columnas amplia, cajón de ideas Kanban y código saneado.
 
 **Siguiente Hito**: Desarrollo del código base con React Native / Expo, TypeScript y NativeWind.
 
