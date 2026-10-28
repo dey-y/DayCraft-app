@@ -433,9 +433,9 @@
 
     <!-- ------------------------------------------------------------------------
          PANEL 2: PANEL MULTIFUNCIÓN (AGENDA HOY + ASISTENTE IA EN PESTAÑAS)
-         Opción A: Fusión elegante en una sola columna con tabs superiores
+         Redimensionable: se puede estirar o encoger arrastrando el asa divisoria
          ------------------------------------------------------------------------ -->
-    <section class="w-80 md:w-96 border-r border-[#262b3a] bg-[#12151d] flex flex-col justify-between p-3.5 z-10 flex-shrink-0">
+    <section id="agendaAiPanel" class="border-r border-[#262b3a] bg-[#12151d] flex flex-col justify-between p-3.5 z-10 flex-shrink-0 relative" style="width: 310px; min-width: 240px; max-width: 540px;">
       
       <!-- PESTAÑAS SEGMENTADAS SUPERIORES (SWITCH LIMPIO) -->
       <div>
@@ -640,6 +640,11 @@
 
     </section>
 
+    <!-- RESIZER SPLITTER (ASA ARRASTRABLE PARA ESTIRAR O ENCOGER EL PANEL) -->
+    <div id="panelResizer" class="w-2 -ml-1 hover:w-2.5 hover:-ml-1.5 bg-transparent hover:bg-indigo-500/50 active:bg-indigo-500 transition-all cursor-col-resize z-30 flex-shrink-0 flex items-center justify-center group select-none" title="Arrastra para cambiar ancho (o doble clic para alternar tamaño)">
+      <div class="w-0.5 h-10 rounded-full bg-[#3b4256] group-hover:bg-white group-active:bg-white transition-colors"></div>
+    </div>
+
     <!-- ------------------------------------------------------------------------
          PANEL 3: LIENZO PRINCIPAL EXPANDIDO (100% DEL ANCHO RESTANTE)
          ¡Ahora las 7 columnas de la semana respiran de verdad en laptops!
@@ -678,7 +683,7 @@
       <div id="viewContainerWeek" class="flex-1 flex flex-col min-h-0 overflow-hidden">
         
         <!-- Cabecera de los 7 Días (con columna de horas de 60px alineada) -->
-        <div class="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#262b3a] bg-[#161922] text-center py-2 flex-shrink-0 min-w-[760px]">
+        <div class="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#262b3a] bg-[#161922] text-center py-2 flex-shrink-0 min-w-[560px]">
           
           <!-- Espaciador de horas con icono reloj -->
           <div class="flex items-center justify-center border-r border-[#262b3a] text-[#8b949e]">
@@ -732,7 +737,7 @@
         </div>
 
         <!-- Franja "Todo el Día / Pendientes sin hora fija" -->
-        <div class="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#262b3a] bg-[#12151d] text-xs py-1.5 flex-shrink-0 min-w-[760px]">
+        <div class="grid grid-cols-[60px_repeat(7,1fr)] border-b border-[#262b3a] bg-[#12151d] text-xs py-1.5 flex-shrink-0 min-w-[560px]">
           <div class="text-[9px] uppercase tracking-wider text-[#8b949e] font-bold flex items-center justify-center border-r border-[#262b3a]">
             Sin hora
           </div>
@@ -754,8 +759,8 @@
         </div>
 
         <!-- CUERPO DE LA SEMANA CON EJE HORARIO 24H Y CUADRÍCULA PROPORCIONAL -->
-        <div id="weekCalendarScroll" class="flex-1 overflow-y-auto relative bg-[#0d1117]">
-          <div id="weekGridContainer" class="relative min-w-[760px]">
+        <div id="weekCalendarScroll" class="flex-1 overflow-y-auto overflow-x-auto relative bg-[#0d1117]">
+          <div id="weekGridContainer" class="relative min-w-[560px]">
             <!-- Renderizado dinámicamente con horas y bloques milimétricos -->
           </div>
         </div>
@@ -1313,7 +1318,7 @@
         { id: 'sun', name: 'Domingo 01', isToday: false }
       ];
 
-      let html = `<div class="grid grid-cols-[60px_repeat(7,1fr)] relative" style="height: ${hours * hourHeight}px;">`;
+      let html = `<div class="grid grid-cols-[60px_repeat(7,1fr)] relative min-w-[560px]" style="height: ${hours * hourHeight}px;">`;
 
       // 1. Columna de horas a la izquierda (00:00 a 23:00)
       html += `<div class="border-r border-[#262b3a] bg-[#12151d]/60 select-none relative">`;
@@ -1562,10 +1567,64 @@
       }
     }
 
+    /* ==========================================================================
+       7. CONTROLADOR DEL RESIZER ARRASTRABLE (AGENDA / IA PANEL)
+       ========================================================================== */
+    function initPanelResizer() {
+      const resizer = document.getElementById('panelResizer');
+      const panel = document.getElementById('agendaAiPanel');
+      if (!resizer || !panel) return;
+
+      let isDragging = false;
+      let startX = 0;
+      let startWidth = 0;
+      const minWidth = 240;
+      const maxWidth = 540;
+
+      resizer.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startWidth = panel.getBoundingClientRect().width;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        resizer.classList.add('bg-indigo-500');
+        e.preventDefault();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const deltaX = e.clientX - startX;
+        let newWidth = startWidth + deltaX;
+        if (newWidth < minWidth) newWidth = minWidth;
+        if (newWidth > maxWidth) newWidth = maxWidth;
+        panel.style.width = newWidth + 'px';
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          document.body.style.cursor = '';
+          document.body.style.userSelect = '';
+          resizer.classList.remove('bg-indigo-500');
+        }
+      });
+
+      // Doble clic para alternar rápidamente entre tamaño compacto (245px) y estándar (330px)
+      resizer.addEventListener('dblclick', () => {
+        const currentWidth = panel.getBoundingClientRect().width;
+        if (currentWidth > 280) {
+          panel.style.width = '245px';
+        } else {
+          panel.style.width = '330px';
+        }
+      });
+    }
+
     // Inicialización al cargar la página
     window.addEventListener('DOMContentLoaded', () => {
       renderMiniCalendar();
       renderWeekCalendar();
+      initPanelResizer();
     });
   </script>
 
