@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DayCraft AI - Mobile App Mockup v9 (Clean & Unified)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(150, 150, 150, 0.2); border-radius: 999px; }
+    
+    .ni {
+      display: inline-block;
+      vertical-align: middle;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke: currentColor;
+    }
+    .pulse-mic {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(100, 100, 100, 0.3); }
+      50% { transform: scale(1.05); box-shadow: 0 0 0 8px rgba(100, 100, 100, 0); }
+    }
+  </style>
+</head>
+<body class="bg-[#0f1117] text-[#e6e8eb] antialiased min-h-screen p-4 flex flex-col items-center justify-center font-sans">
+
+  <!-- Mobile Frame Simulator -->
+  <div class="w-full max-w-[390px] h-[820px] bg-[#161922] border-[6px] border-[#262b3a] rounded-[46px] shadow-2xl flex flex-col overflow-hidden relative">
+    
+    <!-- Notch / Dynamic Island -->
+    <div class="w-full pt-3 pb-2 px-6 flex justify-between items-center text-xs text-[#8b949e] font-semibold select-none">
+      <span>09:41</span>
+      <div class="w-24 h-4 bg-[#262b3a] rounded-full"></div>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px]">5G</span>
+        <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L12 22l7.03-4.39C20.26 16.07 21 14.12 21 12c0-4.97-4.03-9-9-9z"/></svg>
+      </div>
+    </div>
+
+    <!-- Mobile Top App Bar -->
+    <div class="px-5 py-2.5 border-b border-[#262b3a] flex items-center justify-between relative bg-[#161922] z-20">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-lg bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white">
+          <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h2 id="mobileViewTitle" class="font-bold text-sm text-white">Calendario</h2>
+      </div>
+
+      <!-- Campana no intrusiva con contador -->
+      <button onclick="toggleMobileNotifications()" class="relative p-1.5 rounded-full hover:bg-[#1f2430] transition-colors" title="Ver avisos">
+        <svg class="w-5 h-5 ni text-[#e6e8eb]" viewBox="0 0 24 24">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span id="notifBadge" class="absolute top-0 right-0 w-4 h-4 rounded-full bg-white text-black text-[9px] font-bold flex items-center justify-center">2</span>
+      </button>
+
+      <!-- Panel desplegable de avisos -->
+      <div id="mobileNotifDropdown" class="hidden absolute top-12 right-4 w-72 bg-[#1f2430] border border-[#2d3345] rounded-2xl shadow-2xl p-3 z-30 space-y-2.5">
+        <div class="flex items-center justify-between border-b border-[#2d3345] pb-2">
+          <span class="font-bold text-xs text-white flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Avisos de DayCraft
+          </span>
+          <button onclick="toggleMobileNotifications()" class="text-[10px] text-[#8b949e] hover:text-white">✕</button>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-[#161922] border border-[#2d3345] text-xs space-y-1">
+          <div class="flex items-center justify-between text-[#8b949e] font-bold text-[10px]">
+            <span class="flex items-center gap-1 text-amber-400">
+              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              PENDIENTE NO COMPLETADO
+            </span>
+            <span>Ayer</span>
+          </div>
+          <p class="font-semibold text-[11px] text-white">"Comprar pilas para el mando"</p>
+          <p class="text-[10px] text-[#8b949e]">Se movió automáticamente a tus pendientes de hoy.</p>
+          <div class="flex gap-2 pt-1 text-[10px]">
+            <button onclick="dismissNotification(this)" class="px-2 py-0.5 rounded bg-white text-black font-medium">Mantener hoy</button>
+            <button onclick="dismissNotification(this)" class="text-[#8b949e] hover:underline">Descartar</button>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-[#161922] border border-[#2d3345] text-xs space-y-1">
+          <div class="flex items-center justify-between text-[#8b949e] font-bold text-[10px]">
+            <span class="flex items-center gap-1 text-indigo-400">
+              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/></svg>
+              IDEA EN EL CAJÓN
+            </span>
+            <span>12 días</span>
+          </div>
+          <p class="font-semibold text-[11px] text-white">"Automatizador de presupuestos"</p>
+          <p class="text-[10px] text-[#8b949e]">¿La retomamos o la archivamos?</p>
+          <div class="flex gap-2 pt-1 text-[10px]">
+            <button onclick="retomarIdea(); toggleMobileNotifications();" class="px-2 py-0.5 rounded bg-white text-black font-medium">Retomar ✨</button>
+            <button onclick="dismissNotification(this)" class="text-[#8b949e] hover:underline">Archivar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scrollable Screen Content Body -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-3.5 relative" id="mobileScreenBody">
+      
+      <!-- SCREEN 1: ASISTENTE -->
+      <div id="tabChat" class="space-y-3.5 hidden">
+        <div class="flex gap-2.5 items-start">
+          <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+          </div>
+          <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs leading-relaxed max-w-[85%] shadow-sm">
+            <p class="font-semibold text-white mb-1">¡Hola!</p>
+            Dime lo que tienes en mente: tareas con horario, recordatorios puntuales o cosas para hoy sin hora fija.
+          </div>
+        </div>
+
+        <div class="flex gap-2.5 items-start justify-end">
+          <div class="bg-white text-black p-3 rounded-2xl rounded-tr-sm text-xs leading-relaxed max-w-[85%] shadow-sm font-medium">
+            "Recuérdame el miércoles a las 17:00 llamar al dentista, y hoy tengo que comprar pilas para el mando"
+          </div>
+        </div>
+
+        <div class="flex gap-2.5 items-start">
+          <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+            <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div class="space-y-2 max-w-[90%] w-full">
+            <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs shadow-sm space-y-2">
+              <p class="text-white font-medium">Clasificado exactamente:</p>
+              
+              <div class="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-[11px] font-bold text-sky-400 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Recordatorio
+                  </span>
+                  <span class="text-[11px] font-mono text-sky-400">Miércoles 17:00</span>
+                </div>
+                <p class="font-semibold text-xs text-white">Llamar al dentista</p>
+              </div>
+
+              <div class="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5">
+                <div class="flex items-center justify-between mb-0.5">
+                  <span class="text-[11px] font-bold text-[#8b949e] flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                    Pendiente de hoy (Sin hora)
+                  </span>
+                  <span class="text-[10px] text-[#8b949e]">Para hoy</span>
+                </div>
+                <p class="font-semibold text-xs text-white">Comprar pilas para el mando</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="simulatedChatLog"></div>
+      </div>
+
+      <!-- SCREEN 2: CAJÓN DE IDEAS -->
+      <div id="tabIdeas" class="space-y-3.5 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              Cajón de Ideas
+            </h3>
+            <p class="text-[10px] text-[#8b949e]">Ideas agrupadas por proyectos relacionados</p>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] border border-[#2d3345] text-[#8b949e] font-mono">2 Grupos</span>
+        </div>
+
+        <!-- Grupo 1 -->
+        <div class="bg-[#1f2430] border border-[#2d3345] rounded-2xl p-3.5 space-y-3 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 ni text-indigo-400" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-white">Proyecto: Mi App Móvil</h4>
+                <p class="text-[10px] text-[#8b949e]">3 ideas vinculadas</p>
+              </div>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded-md bg-[#161922] border border-[#2d3345] text-[#8b949e] font-medium">Auto-agrupado</span>
+          </div>
+
+          <div class="space-y-2 pl-3 border-l-2 border-[#2d3345] ml-2">
+            <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+              <p class="font-semibold text-xs text-white">Idea central: App sin fricción para organizar el día</p>
+              <p class="text-[10px] text-[#8b949e] mt-0.5">Captura por voz y separación con IA.</p>
+            </div>
+            <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-xs text-white">Sincronización Offline</p>
+                <span class="text-[9px] text-[#8b949e]">Hoy</span>
+              </div>
+              <p class="text-[10px] text-[#8b949e] mt-0.5">Poder registrar notas en el metro sin cobertura.</p>
+            </div>
+            <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+              <div class="flex items-center justify-between">
+                <p class="font-semibold text-xs text-white">Iconografía NotionIcons</p>
+                <span class="text-[9px] text-[#8b949e]">Hace 10m</span>
+              </div>
+              <p class="text-[10px] text-[#8b949e] mt-0.5">Línea de trazo minimalista.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grupo 2 -->
+        <div class="bg-[#1f2430] border border-[#2d3345] rounded-2xl p-3.5 space-y-2 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] flex items-center justify-center">
+                <svg class="w-3.5 h-3.5 ni text-amber-500" viewBox="0 0 24 24"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+              </div>
+              <div>
+                <h4 class="font-bold text-xs text-white">Cocina & Nutrición</h4>
+                <p class="text-[10px] text-[#8b949e]">1 idea</p>
+              </div>
+            </div>
+          </div>
+          <div class="bg-[#161922] p-2.5 rounded-xl border border-[#2d3345] text-xs">
+            <p class="font-semibold text-xs text-white">App recetas con la nevera</p>
+            <p class="text-[10px] text-[#8b949e] mt-0.5">Sugerencia IA: escaneo de tickets para avisos de caducidad.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: PENDIENTES DE HOY (SIN HORA FIJA) -->
+      <div id="tabPending" class="space-y-3.5 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <svg class="w-4 h-4 ni text-indigo-400" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              Pendientes de Hoy
+            </h3>
+            <p class="text-[10px] text-[#8b949e]">Cosas para hacer hoy sin hora fija asignada</p>
+          </div>
+          <span id="pendingScreenCountBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] border border-[#2d3345] font-mono text-[#8b949e]">2 cosas</span>
+        </div>
+
+        <!-- Punto de Entrada Universal Único (Cero Redundancia) -->
+        <div class="p-2.5 rounded-xl bg-[#161922]/70 border border-[#262b3a] flex items-center justify-between text-[11px] text-[#8b949e]">
+          <span class="flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 ni text-indigo-400" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+            Dicta o escribe en la barra inferior para añadir pendientes
+          </span>
+          <span class="font-mono text-[9px] text-white/40">Smart Intake</span>
+        </div>
+
+        <!-- Lista de Pendientes de Hoy -->
+        <div id="mobilePendingList" class="space-y-2">
+          <!-- Item 1 con pastilla 'De ayer' que NUNCA se rompe -->
+          <div class="bg-[#1f2430] border border-[#2d3345] rounded-xl p-3 flex items-center justify-between text-xs hover:border-white transition-all gap-2 shadow-sm" id="pending-item-1">
+            <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+              <input type="checkbox" onchange="toggleCheckFloatingTask(this, 'pending-item-1')" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0 cursor-pointer">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="font-medium text-xs text-white task-text truncate">Comprar pilas para el mando</span>
+                <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono whitespace-nowrap flex-shrink-0">De ayer</span>
+              </div>
+            </label>
+            <button onclick="promptAssignTimeToPending(this)" title="Fijar hora" class="text-[10px] text-[#8b949e] hover:text-white flex items-center gap-1 px-2 py-1 rounded-lg bg-[#161922] border border-[#2d3345] flex-shrink-0 whitespace-nowrap">
+              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Fijar hora
+            </button>
+          </div>
+
+          <!-- Item 2 -->
+          <div class="bg-[#1f2430] border border-[#2d3345] rounded-xl p-3 flex items-center justify-between text-xs hover:border-white transition-all gap-2 shadow-sm" id="pending-item-2">
+            <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+              <input type="checkbox" onchange="toggleCheckFloatingTask(this, 'pending-item-2')" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0 cursor-pointer">
+              <span class="font-medium text-xs text-white task-text truncate">Llamar a Carlos cuando pueda</span>
+            </label>
+            <button onclick="promptAssignTimeToPending(this)" title="Fijar hora" class="text-[10px] text-[#8b949e] hover:text-white flex items-center gap-1 px-2 py-1 rounded-lg bg-[#161922] border border-[#2d3345] flex-shrink-0 whitespace-nowrap">
+              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Fijar hora
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty State de Pendientes -->
+        <div id="mobilePendingEmptyState" class="hidden text-center py-8 px-4 bg-[#1f2430] border border-[#2d3345] rounded-2xl space-y-2">
+          <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mx-auto flex items-center justify-center">
+            <svg class="w-5 h-5 ni" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h4 class="font-bold text-sm text-white">¡Todo despejado por hoy!</h4>
+          <p class="text-xs text-[#8b949e] leading-relaxed">Has completado todos tus recordatorios y tareas pendientes de hoy. Estás 100% al día sin estrés.</p>
+        </div>
+
+        <!-- Botón simulador de estado vacío -->
+        <button onclick="simulateToggleAllPending()" class="w-full text-center text-[10px] text-[#8b949e] hover:text-white py-1.5 rounded-lg border border-dashed border-[#2d3345] hover:border-white transition-colors">
+          Simular: Todo Hecho / Restaurar
+        </button>
+      </div>
+
+      <!-- SCREEN 4: TIMELINE 24H (CON RAÍL FÍSICO CONTINUO) -->
+      <div id="tabTimeline" class="space-y-3">
+        
+        <!-- Tira Deslizable de Días -->
+        <div class="bg-[#1f2430] border border-[#2d3345] p-2 rounded-2xl shadow-sm flex items-center gap-1.5 select-none">
+          <button onclick="shiftMobileDay(-1)" class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] text-[#8b949e] hover:text-white flex items-center justify-center text-xs flex-shrink-0">‹</button>
+          <div class="flex items-center gap-1 overflow-x-auto scrollbar-none flex-1 py-0.5" id="mobileDayStrip">
+            <!-- Rellenado dinámicamente -->
+          </div>
+          <button onclick="shiftMobileDay(1)" class="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] text-[#8b949e] hover:text-white flex items-center justify-center text-xs flex-shrink-0">›</button>
+        </div>
+
+        <!-- Cabecera del Día Activo en el Timeline -->
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-mic flex-shrink-0"></span>
+            <span class="font-bold text-xs text-white truncate" id="mobileSelectedDayTitle">Martes 27 (Hoy)</span>
+            <span id="mobileTimelineBadgeCount" class="text-[9px] px-1.5 py-0.2 rounded bg-[#1f2430] border border-[#2d3345] text-[#8b949e] font-mono">1 bloque</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="switchMobileTab('pending')" class="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-medium hover:bg-amber-500/20 transition-all flex items-center gap-1" title="Ver pendientes de hoy">
+              <span>2 pendientes</span>
+              <span>→</span>
+            </button>
+            <button onclick="selectMobileDayKey('27')" class="px-2 py-0.5 rounded-md bg-[#1f2430] border border-[#2d3345] text-white text-[10px] font-semibold hover:bg-white hover:text-black transition-all">
+              Hoy
+            </button>
+          </div>
+        </div>
+
+        <!-- Contenedor del Timeline 24h con Raíl Físico Continuo -->
+        <div id="mobile24TimelineContainer" class="bg-[#1f2430] border border-[#2d3345] rounded-2xl p-3 max-h-[440px] overflow-y-auto overscroll-none select-none" style="overscroll-behavior: none;">
+          <!-- Rellenado dinámicamente con las 24 horas -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Floating Toast Notification (Fricción Cero sin Sacarte de Pantalla) -->
+    <div id="mobileToast" class="hidden absolute bottom-20 left-4 right-4 bg-[#1f2430] border border-[#2d3345] shadow-2xl rounded-2xl p-3 z-40 transition-all border-l-4 border-l-emerald-400">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-emerald-400 text-sm">✨</span>
+          <div class="min-w-0">
+            <p id="mobileToastTitle" class="text-xs font-semibold text-white truncate">Añadido a Pendientes</p>
+            <p id="mobileToastDesc" class="text-[10px] text-[#8b949e] truncate">"Comprar pilas para el mando"</p>
+          </div>
+        </div>
+        <button id="mobileToastAction" onclick="switchMobileTab('pending'); hideMobileToast();" class="text-[10px] font-bold text-black bg-white hover:bg-neutral-200 px-2 py-1 rounded-lg flex-shrink-0">
+          Ver
+        </button>
+      </div>
+    </div>
+
+    <!-- Smart Slot Bottom Sheet Modal (1-Tap Time-Blocking) -->
+    <div id="mobileSlotSheet" class="hidden fixed inset-0 bg-black/75 backdrop-blur-xs z-50 flex flex-col justify-end p-3">
+      <div class="bg-[#161922] border border-[#2d3345] rounded-3xl p-4 space-y-3.5 shadow-2xl max-w-sm mx-auto w-full">
+        <div class="flex items-center justify-between pb-2 border-b border-[#262b3a]">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 ni text-indigo-400" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span class="font-bold text-xs text-white" id="sheetTaskTitle">Fijar hora en Timeline</span>
+          </div>
+          <button onclick="closeMobileSlotSheet()" class="w-6 h-6 rounded-full bg-[#1f2430] text-[#8b949e] hover:text-white flex items-center justify-center text-xs">✕</button>
+        </div>
+        
+        <p class="text-[11px] text-[#8b949e]">Selecciona un hueco inteligente libre de hoy:</p>
+        
+        <div class="grid grid-cols-2 gap-2" id="sheetQuickSlots">
+          <button onclick="assignSpecificSlot('12:00', '12:30')" class="p-2.5 rounded-xl bg-[#1f2430] border border-[#2d3345] hover:border-white text-left transition-all">
+            <span class="block font-mono font-bold text-xs text-indigo-400">12:00</span>
+            <span class="text-[10px] text-[#8b949e]">Tras informe</span>
+          </button>
+          <button onclick="assignSpecificSlot('16:00', '16:30')" class="p-2.5 rounded-xl bg-[#1f2430] border border-[#2d3345] hover:border-white text-left transition-all">
+            <span class="block font-mono font-bold text-xs text-indigo-400">16:00</span>
+            <span class="text-[10px] text-[#8b949e]">Tarde libre</span>
+          </button>
+          <button onclick="assignSpecificSlot('19:00', '19:30')" class="p-2.5 rounded-xl bg-[#1f2430] border border-[#2d3345] hover:border-white text-left transition-all">
+            <span class="block font-mono font-bold text-xs text-indigo-400">19:00</span>
+            <span class="text-[10px] text-[#8b949e]">Fin de jornada</span>
+          </button>
+          <button onclick="promptCustomSlot()" class="p-2.5 rounded-xl bg-[#1f2430] border border-dashed border-[#2d3345] hover:border-white text-left transition-all">
+            <span class="block font-mono font-bold text-xs text-white">Personalizada</span>
+            <span class="text-[10px] text-[#8b949e]">Elegir hora</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Quick Input Bar (Universal) -->
+    <div class="p-3 border-t border-[#262b3a] bg-[#161922] z-20">
+      <div class="flex items-center gap-2">
+        <div class="flex-1 bg-[#1f2430] border border-[#2d3345] rounded-full px-4 py-2.5 flex items-center gap-2">
+          <input id="mobileTextInput" type="text" placeholder="Háblame o escribe una idea, tarea o recordatorio..." class="bg-transparent border-none outline-none flex-1 text-xs text-white placeholder-[#8b949e]" onkeydown="if(event.key==='Enter') sendManualMessage()">
+          <button onclick="sendManualMessage()" class="text-white font-bold hover:scale-110 transition-transform">
+            <svg class="w-4 h-4 ni" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <button onclick="simulateVoiceInput()" title="Dictar por voz" class="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-lg pulse-mic flex-shrink-0 active:scale-95 transition-transform">
+          <svg class="w-4 h-4 ni" viewBox="0 0 24 24">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (4 pestañas - 100% Notion Icons) -->
+    <nav class="h-14 border-t border-[#262b3a] bg-[#161922] grid grid-cols-4 items-center px-1.5 z-20">
+      <!-- Tab 1: Asistente -->
+      <button onclick="switchMobileTab('chat')" id="navChat" class="flex flex-col items-center justify-center gap-1 text-[#8b949e] hover:text-white transition-colors">
+        <svg class="w-4 h-4 ni" viewBox="0 0 24 24">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="text-[9px]">Asistente</span>
+      </button>
+
+      <!-- Tab 2: Cajón de Ideas -->
+      <button onclick="switchMobileTab('ideas')" id="navIdeas" class="flex flex-col items-center justify-center gap-1 text-[#8b949e] hover:text-white transition-colors">
+        <svg class="w-4 h-4 ni" viewBox="0 0 24 24">
+          <path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7z"/>
+        </svg>
+        <span class="text-[9px]">Ideas</span>
+      </button>
+
+      <!-- Tab 3: Pendientes de Hoy -->
+      <button onclick="switchMobileTab('pending')" id="navPending" class="flex flex-col items-center justify-center gap-1 text-[#8b949e] hover:text-white transition-colors relative">
+        <div class="relative">
+          <svg class="w-4 h-4 ni" viewBox="0 0 24 24">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+          </svg>
+          <span id="navPendingBadge" class="absolute -top-1 -right-2 px-1 rounded-full bg-white text-black font-mono font-bold text-[8px] leading-tight">2</span>
+        </div>
+        <span class="text-[9px]">Pendientes</span>
+      </button>
+
+      <!-- Tab 4: Timeline 24h -->
+      <button onclick="switchMobileTab('timeline')" id="navTimeline" class="flex flex-col items-center justify-center gap-1 text-white font-semibold transition-colors">
+        <svg class="w-4 h-4 ni" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="text-[9px]">Timeline 24h</span>
+      </button>
+    </nav>
+  </div>
+
+  <script>
+    const mobileDays = [
+      { key: '25', name: 'Dom', num: '25', title: 'Domingo 25 de Octubre', isToday: false },
+      { key: '26', name: 'Lun', num: '26', title: 'Lunes 26 de Octubre', isToday: false },
+      { key: '27', name: 'Mar', num: '27', title: 'Martes 27 (Hoy)', isToday: true },
+      { key: '28', name: 'Mié', num: '28', title: 'Miércoles 28 de Octubre', isToday: false },
+      { key: '29', name: 'Jue', num: '29', title: 'Jueves 29 de Octubre', isToday: false },
+      { key: '30', name: 'Vie', num: '30', title: 'Viernes 30 de Octubre', isToday: false },
+      { key: '31', name: 'Sáb', num: '31', title: 'Sábado 31 de Octubre', isToday: false },
+      { key: '01', name: 'Dom', num: '1', title: 'Domingo 1 de Noviembre', isToday: false }
+    ];
+
+    let selectedDayKey = '27';
+    let currentActiveTab = 'timeline';
+    const HOUR_HEIGHT = 48;
+
+    const mobileEvents = {
+      '27': [
+        {
+          id: 'm-1',
+          title: 'Revisar informe de gastos',
+          desc: 'Bloque agendado',
+          startHour: 11.5,
+          duration: 0.5,
+          type: 'task',
+          timeLabel: '11:30 — 12:00',
+          badge: '30 min',
+          borderCol: 'border-l-indigo-500',
+          tagCol: 'text-indigo-400 bg-indigo-500/10'
+        }
+      ],
+      '28': [
+        {
+          id: 'm-2',
+          title: 'Llamar al dentista',
+          desc: 'Recordatorio puntual',
+          startHour: 17,
+          duration: 0.5,
+          type: 'reminder',
+          timeLabel: '17:00 — 17:30',
+          badge: 'Aviso',
+          borderCol: 'border-l-sky-400',
+          tagCol: 'text-sky-400 bg-sky-500/10'
+        }
+      ],
+      '30': [
+        {
+          id: 'm-3',
+          title: 'Planificar sprint de la app',
+          desc: 'Bloque enfocado',
+          startHour: 10,
+          duration: 1.5,
+          type: 'task',
+          timeLabel: '10:00 — 11:30',
+          badge: '1h 30m',
+          borderCol: 'border-l-indigo-500',
+          tagCol: 'text-indigo-400 bg-indigo-500/10'
+        }
+      ]
+    };
+
+    // Toast flotante
+    let toastTimeout = null;
+    function showMobileToast(title, desc, actionLabel = 'Ver', actionFn = null) {
+      const toast = document.getElementById('mobileToast');
+      const tTitle = document.getElementById('mobileToastTitle');
+      const tDesc = document.getElementById('mobileToastDesc');
+      const tAction = document.getElementById('mobileToastAction');
+      if (!toast) return;
+
+      tTitle.innerText = title;
+      tDesc.innerText = desc;
+      tAction.innerText = actionLabel;
+      tAction.onclick = actionFn || (() => { switchMobileTab('pending'); hideMobileToast(); });
+
+      toast.classList.remove('hidden');
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        hideMobileToast();
+      }, 4000);
+    }
+
+    function hideMobileToast() {
+      const toast = document.getElementById('mobileToast');
+      if (toast) toast.classList.add('hidden');
+    }
+
+    function renderMobileDayStrip() {
+      const container = document.getElementById('mobileDayStrip');
+      if (!container) return;
+      container.innerHTML = mobileDays.map(d => {
+        const isSel = d.key === selectedDayKey;
+        const activeClass = isSel 
+          ? 'bg-white text-black font-bold shadow-sm' 
+          : 'text-[#8b949e] hover:bg-[#161922] hover:text-white';
+        const dot = d.isToday 
+          ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-0.5"></span>' 
+          : '<span class="w-1.5 h-1.5 rounded-full bg-transparent mt-0.5"></span>';
+        
+        return `
+          <button onclick="selectMobileDayKey('${d.key}')" class="px-2.5 py-1.5 rounded-xl flex flex-col items-center flex-shrink-0 text-center transition-all min-w-[40px] ${activeClass}">
+            <span class="text-[9px] uppercase tracking-wider font-semibold">${d.name}</span>
+            <span class="text-xs font-bold leading-tight">${d.num}</span>
+            ${dot}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function shiftMobileDay(delta) {
+      const idx = mobileDays.findIndex(d => d.key === selectedDayKey);
+      if (idx === -1) return;
+      const newIdx = Math.max(0, Math.min(mobileDays.length - 1, idx + delta));
+      selectMobileDayKey(mobileDays[newIdx].key);
+    }
+
+    function selectMobileDayKey(key) {
+      selectedDayKey = key;
+      renderMobileDayStrip();
+      const day = mobileDays.find(d => d.key === key);
+      const titleEl = document.getElementById('mobileSelectedDayTitle');
+      if (titleEl && day) {
+        titleEl.innerText = day.title;
+      }
+      renderMobile24Timeline(true);
+    }
+
+    // Render del Timeline 24h: Limpio, sin líneas invasivas y con Tapping interactivo
+    function renderMobile24Timeline(shouldScroll = false) {
+      const container = document.getElementById('mobile24TimelineContainer');
+      if (!container) return;
+
+      const events = mobileEvents[selectedDayKey] || [];
+      const badgeCount = document.getElementById('mobileTimelineBadgeCount');
+      if (badgeCount) {
+        badgeCount.innerText = `${events.length} ${events.length === 1 ? 'bloque' : 'bloques'}`;
+      }
+
+      const totalHeight = 24 * HOUR_HEIGHT;
+
+      let html = `<div class="relative w-full" style="height: ${totalHeight}px;">`;
+
+      // Raíl vertical físico continuo
+      html += `
+        <div class="absolute left-[44px] top-0 bottom-0 w-[2px] bg-[#2d3345] z-0"></div>
+      `;
+
+      // 24 Horas
+      for (let h = 0; h < 24; h++) {
+        const topPos = h * HOUR_HEIGHT;
+        const timeStr = `${String(h).padStart(2, '0')}:00`;
+
+        html += `
+          <!-- Hora ${timeStr} (Tocar para agendar directamente) -->
+          <div onclick="openHourSlotSheet(${h})" 
+               class="absolute w-full flex items-start select-none cursor-pointer group hover:bg-[#161922]/50 transition-colors rounded-lg" 
+               style="top: ${topPos}px; height: ${HOUR_HEIGHT}px;">
+            <span class="w-[38px] text-[10px] font-mono font-medium text-[#8b949e] group-hover:text-white text-right pr-2 -translate-y-2 flex-shrink-0 transition-colors">
+              ${timeStr}
+            </span>
+            <div class="w-2 h-2 rounded-full bg-[#161922] border-2 border-[#2d3345] group-hover:border-indigo-400 group-hover:bg-indigo-400 -translate-x-[5px] -translate-y-1 z-10 flex-shrink-0 transition-all"></div>
+            <div class="flex-1 border-t border-[#262b3a]/50 ml-2 group-hover:border-indigo-500/40 transition-colors"></div>
+          </div>
+        `;
+      }
+
+      // Eventos
+      events.forEach(ev => {
+        const top = (ev.startHour * HOUR_HEIGHT) + 2;
+        const height = Math.max(34, (ev.duration * HOUR_HEIGHT) - 4);
+        
+        html += `
+          <div class="absolute left-[54px] right-1 bg-[#161922] border border-[#2d3345] ${ev.borderCol} border-l-4 rounded-xl p-2 shadow-sm hover:border-white transition-all z-10 flex flex-col justify-between overflow-hidden" 
+               style="top: ${top}px; height: ${height}px;">
+            <div class="flex items-center justify-between gap-1">
+              <span class="text-[10px] font-mono font-bold truncate text-white flex items-center gap-1">
+                <svg class="w-2.5 h-2.5 ni flex-shrink-0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                ${ev.timeLabel}
+              </span>
+              <span class="text-[8px] font-bold font-mono px-1.5 py-0.2 rounded-full ${ev.tagCol} flex-shrink-0">${ev.badge}</span>
+            </div>
+            <div class="truncate">
+              <p class="font-bold text-[11px] text-white truncate leading-tight">${ev.title}</p>
+              ${height > 44 ? `<p class="text-[9px] text-[#8b949e] truncate leading-tight mt-0.5">${ev.desc}</p>` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      html += `</div>`;
+      container.innerHTML = html;
+
+      if (shouldScroll) {
+        const targetHour = selectedDayKey === '27' ? 10.5 : 9;
+        container.scrollTop = targetHour * HOUR_HEIGHT;
+      }
+    }
+
+    // Pendientes
+    function updatePendingBadges() {
+      const list = document.getElementById('mobilePendingList');
+      const items = list ? list.querySelectorAll('[id^="pending-item-"]') : [];
+      let pendingCount = 0;
+      items.forEach(it => {
+        const cb = it.querySelector('input[type="checkbox"]');
+        if (cb && !cb.checked) pendingCount++;
+      });
+
+      const badgeScreen = document.getElementById('pendingScreenCountBadge');
+      if (badgeScreen) {
+        badgeScreen.innerText = `${pendingCount} ${pendingCount === 1 ? 'cosa' : 'cosas'}`;
+      }
+
+      const navBadge = document.getElementById('navPendingBadge');
+      if (navBadge) {
+        if (pendingCount > 0) {
+          navBadge.classList.remove('hidden');
+          navBadge.innerText = pendingCount;
+        } else {
+          navBadge.classList.add('hidden');
+        }
+      }
+
+      const emptyState = document.getElementById('mobilePendingEmptyState');
+      if (emptyState) {
+        if (items.length === 0 || pendingCount === 0) {
+          emptyState.classList.remove('hidden');
+        } else {
+          emptyState.classList.add('hidden');
+        }
+      }
+    }
+
+    function toggleCheckFloatingTask(checkbox, itemId) {
+      const card = document.getElementById(itemId);
+      if (!card) return;
+      const textSpan = card.querySelector('.task-text');
+      if (checkbox.checked) {
+        if (textSpan) textSpan.classList.add('line-through', 'opacity-50');
+        card.classList.add('opacity-60');
+        showMobileToast('Completado', textSpan.innerText, 'Deshacer', () => {
+          checkbox.checked = false;
+          toggleCheckFloatingTask(checkbox, itemId);
+          hideMobileToast();
+        });
+      } else {
+        if (textSpan) textSpan.classList.remove('line-through', 'opacity-50');
+        card.classList.remove('opacity-60');
+      }
+      updatePendingBadges();
+    }
+
+    // 1-Tap Time Blocking Bottom Sheet
+    let currentPendingTaskTarget = null;
+    function promptAssignTimeToPending(btn) {
+      const card = btn.closest('[id^="pending-item-"]');
+      if (!card) return;
+      const textSpan = card.querySelector('.task-text');
+      const title = textSpan ? textSpan.innerText : 'Pendiente';
+
+      currentPendingTaskTarget = { card, title };
+      document.getElementById('sheetTaskTitle').innerText = `Agendar: "${title}"`;
+      document.getElementById('mobileSlotSheet').classList.remove('hidden');
+    }
+
+    function openHourSlotSheet(hourNum) {
+      const timeStr = `${String(hourNum).padStart(2, '0')}:00`;
+      const endStr = `${String(hourNum).padStart(2, '0')}:30`;
+      const title = prompt(`Nuevo bloque a las ${timeStr}:`, 'Trabajo enfocado');
+      if (title) {
+        if (!mobileEvents[selectedDayKey]) mobileEvents[selectedDayKey] = [];
+        mobileEvents[selectedDayKey].push({
+          id: `m-blk-${Date.now()}`,
+          title: title,
+          desc: 'Agendado directamente en timeline',
+          startHour: hourNum,
+          duration: 0.5,
+          type: 'task',
+          timeLabel: `${timeStr} — ${endStr}`,
+          badge: '30 min',
+          borderCol: 'border-l-indigo-500',
+          tagCol: 'text-indigo-400 bg-indigo-500/10'
+        });
+        renderMobile24Timeline(false);
+        showMobileToast('Bloque Agendado', `${title} (${timeStr})`, 'Ver Timeline', () => {
+          switchMobileTab('timeline');
+          hideMobileToast();
+        });
+      }
+    }
+
+    function assignSpecificSlot(startTime, endTime) {
+      if (!currentPendingTaskTarget) return;
+      const { card, title } = currentPendingTaskTarget;
+
+      const hour = parseFloat(startTime.split(':')[0]);
+      if (!mobileEvents['27']) mobileEvents['27'] = [];
+      mobileEvents['27'].push({
+        id: `m-assigned-${Date.now()}`,
+        title: title,
+        desc: 'Fijado desde pendientes',
+        startHour: hour,
+        duration: 0.5,
+        type: 'task',
+        timeLabel: `${startTime} — ${endTime}`,
+        badge: '30 min',
+        borderCol: 'border-l-indigo-500',
+        tagCol: 'text-indigo-400 bg-indigo-500/10'
+      });
+
+      card.remove();
+      updatePendingBadges();
+      renderMobile24Timeline(false);
+      closeMobileSlotSheet();
+      showMobileToast('Fijada en Timeline', `${title} a las ${startTime}`, 'Ver Timeline', () => {
+        switchMobileTab('timeline');
+        hideMobileToast();
+      });
+    }
+
+    function promptCustomSlot() {
+      const timeInput = prompt('Ingresa la hora exacta (Ej: 15:45):', '15:30');
+      if (timeInput) {
+        assignSpecificSlot(timeInput.trim(), '16:00');
+      }
+    }
+
+    function closeMobileSlotSheet() {
+      document.getElementById('mobileSlotSheet').classList.add('hidden');
+      currentPendingTaskTarget = null;
+    }
+
+    let simulatedAllDone = false;
+    function simulateToggleAllPending() {
+      const list = document.getElementById('mobilePendingList');
+      const empty = document.getElementById('mobilePendingEmptyState');
+      if (!list || !empty) return;
+
+      simulatedAllDone = !simulatedAllDone;
+      if (simulatedAllDone) {
+        list.classList.add('hidden');
+        empty.classList.remove('hidden');
+        document.getElementById('pendingScreenCountBadge').innerText = "0 cosas";
+        const navB = document.getElementById('navPendingBadge');
+        if (navB) navB.classList.add('hidden');
+      } else {
+        list.classList.remove('hidden');
+        empty.classList.add('hidden');
+        updatePendingBadges();
+      }
+    }
+
+    // Tabs
+    function switchMobileTab(tab) {
+      currentActiveTab = tab;
+      document.getElementById('tabChat').classList.add('hidden');
+      document.getElementById('tabIdeas').classList.add('hidden');
+      document.getElementById('tabPending').classList.add('hidden');
+      document.getElementById('tabTimeline').classList.add('hidden');
+
+      const title = document.getElementById('mobileViewTitle');
+      const navChat = document.getElementById('navChat');
+      const navIdeas = document.getElementById('navIdeas');
+      const navPending = document.getElementById('navPending');
+      const navTimeline = document.getElementById('navTimeline');
+
+      const activeClasses = 'flex flex-col items-center justify-center gap-1 text-white font-semibold transition-colors';
+      const inactiveClasses = 'flex flex-col items-center justify-center gap-1 text-[#8b949e] hover:text-white transition-colors';
+
+      navChat.className = inactiveClasses;
+      navIdeas.className = inactiveClasses;
+      navPending.className = `${inactiveClasses} relative`;
+      navTimeline.className = inactiveClasses;
+
+      if (tab === 'chat') {
+        document.getElementById('tabChat').classList.remove('hidden');
+        navChat.className = activeClasses;
+        title.innerText = 'Asistente';
+      } else if (tab === 'ideas') {
+        document.getElementById('tabIdeas').classList.remove('hidden');
+        navIdeas.className = activeClasses;
+        title.innerText = 'Cajón de Ideas';
+      } else if (tab === 'pending') {
+        document.getElementById('tabPending').classList.remove('hidden');
+        navPending.className = `${activeClasses} relative`;
+        title.innerText = 'Pendientes de Hoy';
+        updatePendingBadges();
+      } else if (tab === 'timeline') {
+        document.getElementById('tabTimeline').classList.remove('hidden');
+        navTimeline.className = activeClasses;
+        title.innerText = 'Timeline 24h';
+        renderMobile24Timeline(true);
+      }
+    }
+
+    function toggleMobileNotifications() {
+      const dropdown = document.getElementById('mobileNotifDropdown');
+      dropdown.classList.toggle('hidden');
+    }
+
+    function dismissNotification(btn) {
+      const card = btn.closest('.p-2\.5');
+      if (card) card.remove();
+      const badge = document.getElementById('notifBadge');
+      if (badge) {
+        let count = parseInt(badge.innerText);
+        if (count > 1) {
+          badge.innerText = count - 1;
+        } else {
+          badge.remove();
+        }
+      }
+    }
+
+    // Smart Intake con Toast
+    function simulateVoiceInput() {
+      const input = document.getElementById('mobileTextInput');
+      input.value = "Grabando audio...";
+      setTimeout(() => {
+        input.value = "Comprar bombillas LED cuando pueda hoy";
+        sendManualMessage();
+      }, 1000);
+    }
+
+    function sendManualMessage() {
+      const input = document.getElementById('mobileTextInput');
+      const val = input.value.trim();
+      if (!val) return;
+
+      input.value = "";
+
+      if (currentActiveTab === 'chat') {
+        const log = document.getElementById('simulatedChatLog');
+        const userBubble = document.createElement('div');
+        userBubble.className = "flex gap-2.5 items-start justify-end mt-3";
+        userBubble.innerHTML = `
+          <div class="bg-white text-black p-3 rounded-2xl rounded-tr-sm text-xs leading-relaxed max-w-[85%] shadow-sm font-medium">
+            ${val}
+          </div>
+        `;
+        log.appendChild(userBubble);
+
+        setTimeout(() => {
+          const aiBubble = document.createElement('div');
+          aiBubble.className = "flex gap-2.5 items-start mt-3";
+          aiBubble.innerHTML = `
+            <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+              <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            </div>
+            <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs shadow-sm space-y-1.5 max-w-[90%]">
+              <p class="text-white font-medium">Clasificado en Pendientes de hoy:</p>
+              <p class="font-semibold text-xs text-indigo-300">• ${val}</p>
+            </div>
+          `;
+          log.appendChild(aiBubble);
+          const container = document.getElementById('mobileScreenBody');
+          container.scrollTop = container.scrollHeight;
+        }, 500);
+
+      } else {
+        const list = document.getElementById('mobilePendingList');
+        if (list) {
+          const newId = `pending-item-${Date.now()}`;
+          const itemEl = document.createElement('div');
+          itemEl.id = newId;
+          itemEl.className = "bg-[#1f2430] border border-[#2d3345] rounded-xl p-3 flex items-center justify-between text-xs hover:border-white transition-all gap-2 shadow-sm";
+          itemEl.innerHTML = `
+            <label class="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
+              <input type="checkbox" onchange="toggleCheckFloatingTask(this, '${newId}')" class="w-4 h-4 rounded border-[#2d3345] accent-white flex-shrink-0 cursor-pointer">
+              <span class="font-medium text-xs text-white task-text truncate">${val}</span>
+            </label>
+            <button onclick="promptAssignTimeToPending(this)" title="Fijar hora" class="text-[10px] text-[#8b949e] hover:text-white flex items-center gap-1 px-2 py-1 rounded-lg bg-[#161922] border border-[#2d3345] flex-shrink-0 whitespace-nowrap">
+              <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Fijar hora
+            </button>
+          `;
+          list.prepend(itemEl);
+          updatePendingBadges();
+        }
+
+        showMobileToast('✨ Añadido a Pendientes', val, 'Ver', () => {
+          switchMobileTab('pending');
+          hideMobileToast();
+        });
+      }
+    }
+
+    function retomarIdea() {
+      switchMobileTab('chat');
+      const log = document.getElementById('simulatedChatLog');
+      const aiBubble = document.createElement('div');
+      aiBubble.className = "flex gap-2.5 items-start mt-3";
+      aiBubble.innerHTML = `
+        <div class="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] flex items-center justify-center text-white flex-shrink-0">
+          <svg class="w-3.5 h-3.5 ni" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <div class="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm text-xs shadow-sm space-y-1.5 max-w-[90%]">
+          <p class="font-bold text-white">Retomando: "Automatizador de presupuestos"</p>
+          <p class="text-[#e6e8eb]">Para reactivar esta idea, he pensado en 3 pasos rápidos:</p>
+          <p class="text-[#8b949e]">1. Definir qué campos mínimos necesita un presupuesto.<br>2. Plantilla en PDF simple.<br>3. ¿Quieres que prepare un borrador?</p>
+        </div>
+      `;
+      log.appendChild(aiBubble);
+      const container = document.getElementById('mobileScreenBody');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    renderMobileDayStrip();
+    updatePendingBadges();
+    switchMobileTab('timeline');
+  </script>
+
+</body>
+</html>

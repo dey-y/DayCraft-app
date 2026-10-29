@@ -257,11 +257,32 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
 
 ---
 
-## 🎯 Cierre de la Fase de Prototipado (Móvil & Web)
+## v9.0: Mockups Limpios & Unificados (Post-Auditoría de Producto Senior)
 
-Con la validación de Deimar, los mockups quedan consolidados como la especificación visual y funcional definitiva:
-1. 📱 **Móvil ([`mockup-mobile.html`](mockup-mobile.html))**: Experiencia ágil vertical en 4 pestañas (`Asistente`, `Ideas`, `Pendientes`, `Timeline 24h`), raíl continuo de 24h, entrada por voz/texto y rollover antiestrés.
-2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard ergonómico con panel redimensionable Agenda/IA (splitter arrastrable), Timeline 24h heroico como vista principal, tira horizontal deslizable de días (scroll de días), Time-blocking por cuartos de hora (15m), Cajón de ideas directo auto-agrupado y cero estrés.
+Generados como archivos independientes ([`mockup-web-v9.html`](mockup-web-v9.html) y [`mockup-mobile-v9.html`](mockup-mobile-v9.html)) para incorporar el feedback de la auditoría de UX sin alterar los prototipos v8.x:
+
+### 1. En Escritorio ([`mockup-web-v9.html`](mockup-web-v9.html)):
+* **Sidebar Colapsable con Atajo (`Ctrl+B`)**: Botón en la cabecera y atajo de teclado para ocultar/mostrar el menú lateral, ideal para monitores compactos y *tiling window managers* (Hyprland).
+* **Eliminación del Mini-Calendario del Sidebar**: El sidebar se enfoca puramente en Vistas y Proyectos auto-clasificados, eliminando la redundancia de un tercer calendario en pantalla.
+* **Punto de Entrada Universal Único**: Eliminado el input duplicado de la cabecera de la Agenda; toda captura pasa exclusivamente por el Smart Intake inferior con micrófono.
+* **Horas Vacías 100% Limpias en Reposo**: Eliminadas las cajas punteadas permanentes de cuartos de hora. En reposo el lienzo es sereno; al hacer *hover* o arrastrar, el *snapping* de 15 minutos se activa dinámicamente.
+* **Toast Interactivo Flotante**: Al dictar o capturar un pendiente, aparece una tarjeta flotante en la esquina inferior derecha (`✨ Guardado en Pendientes [Fijar hora]`) con descarte automático en 4s.
+* **Smart Slot Modal (1-Tap Time Blocking)**: Al hacer clic en "Fijar hora", sugiere huecos libres reales (`12:00 Tras reunión`, `16:00 Tarde libre`, `19:00 Fin de jornada`) o manual.
+
+### 2. En Móvil ([`mockup-mobile-v9.html`](mockup-mobile-v9.html)):
+* **Punto de Entrada Único**: Eliminado el input redundante de la pestaña de Pendientes; la barra inferior universal gestiona toda la entrada de texto y voz.
+* **Toast Efímero sin Ruptura de Contexto**: Dictar o escribir en el Timeline o en Pendientes muestra un Toast flotante animado de 4 segundos sin arrancar al usuario hacia la pestaña de chat.
+* **Timeline 24h Interactivo (Tapping Directo)**: Tocar cualquier hora vacía (ej. `15:00`) permite agendar un bloque enfocado directamente.
+* **Píldora Indicadora en la Cabecera del Timeline**: Muestra un enlace rápido `2 pendientes →` para saltar a los pendientes de hoy sin perderlos de vista.
+* **Selector Bottom Sheet de Huecos Libres**: Al pulsar "Fijar hora" en un pendiente, despliega un *bottom sheet* táctil con slots inteligentes.
+
+---
+
+## 🎯 Cierre Definitivo de la Fase de Prototipado (Móvil & Web)
+
+Los mockups v9.0 quedan consolidados como la especificación visual y funcional definitiva:
+1. 📱 **Móvil ([`mockup-mobile-v9.html`](mockup-mobile-v9.html))**: Experiencia ágil vertical en 4 pestañas, raíl 24h interactivo, Toast efímero de captura, 1-tap time-blocking y rollover antiestrés.
+2. 💻 **Escritorio ([`mockup-web-v9.html`](mockup-web-v9.html))**: Dashboard ergonómico con sidebar colapsable (`Ctrl+B`), panel redimensionable Agenda/IA, Timeline 24h limpio en reposo con time-blocking por cuartos de hora (15m), Toast flotante y Smart Intake universal.
 
 **Siguiente Hito**: Desarrollo del código base con React Native / Expo, TypeScript y NativeWind.
 
