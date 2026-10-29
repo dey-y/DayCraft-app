@@ -1246,90 +1246,118 @@
     }
 
     /* ==========================================================================
-       6. RENDERIZADO DINÁMICO DE CALENDARIOS AUXILIARES Y TIMELINE CON ARRASTRE
+       6. RENDERIZADO DINÁMICO DE CALENDARIOS Y TIMELINE CON ARRASTRE DE 15 MIN
        ========================================================================== */
     let isTimeDragging = false;
-    let dragStartHour = null;
-    let dragCurrentHour = null;
+    let dragStartQ = null;
+    let dragCurrentQ = null;
 
-    function startTimeBlockDrag(hour, event) {
+    function formatTimeFromQ(q) {
+      if (q >= 96) return '24:00';
+      const h = Math.floor(q / 4);
+      const m = (q % 4) * 15;
+      const hStr = h < 10 ? '0' + h : '' + h;
+      const mStr = m === 0 ? '00' : '' + m;
+      return `${hStr}:${mStr}`;
+    }
+
+    function formatDurationFromQ(quartersCount) {
+      const totalMins = quartersCount * 15;
+      if (totalMins < 60) {
+        return `${totalMins} min`;
+      }
+      const hours = Math.floor(totalMins / 60);
+      const mins = totalMins % 60;
+      if (mins === 0) {
+        return `${hours}h`;
+      }
+      return `${hours}h ${mins}m`;
+    }
+
+    function startTimeBlockDrag(q, event) {
       if (event.button !== 0) return; // Solo clic izquierdo
       isTimeDragging = true;
-      dragStartHour = hour;
-      dragCurrentHour = hour;
+      dragStartQ = q;
+      dragCurrentQ = q;
       event.preventDefault();
       renderTimeDragSelection();
     }
 
-    function updateTimeBlockDrag(hour) {
+    function updateTimeBlockDrag(q) {
       if (!isTimeDragging) return;
-      if (dragCurrentHour !== hour) {
-        dragCurrentHour = hour;
+      if (dragCurrentQ !== q) {
+        dragCurrentQ = q;
         renderTimeDragSelection();
       }
     }
 
     function renderTimeDragSelection() {
-      if (!isTimeDragging || dragStartHour === null || dragCurrentHour === null) return;
+      if (!isTimeDragging || dragStartQ === null || dragCurrentQ === null) return;
       
-      const minH = Math.min(dragStartHour, dragCurrentHour);
-      const maxH = Math.max(dragStartHour, dragCurrentHour);
-      const durationHours = (maxH - minH) + 1;
-      const startStr = (minH < 10 ? '0' + minH : minH) + ':00';
-      const endHourNum = maxH + 1;
-      const endStr = (endHourNum < 10 ? '0' + endHourNum : (endHourNum === 24 ? '24:00' : endHourNum + ':00'));
+      const minQ = Math.min(dragStartQ, dragCurrentQ);
+      const maxQ = Math.max(dragStartQ, dragCurrentQ);
+      const quartersCount = (maxQ - minQ) + 1;
+      const startStr = formatTimeFromQ(minQ);
+      const endStr = formatTimeFromQ(maxQ + 1);
+      const durationStr = formatDurationFromQ(quartersCount);
 
-      for (let h = 0; h < 24; h++) {
-        const slot = document.getElementById(`time-slot-${h}`);
+      for (let q = 0; q < 96; q++) {
+        const slot = document.getElementById(`time-slot-q-${q}`);
         if (!slot) continue;
 
-        if (h >= minH && h <= maxH) {
-          slot.classList.add('bg-indigo-600/25', 'border-indigo-400', 'text-white', 'ring-1', 'ring-indigo-400/50');
-          slot.classList.remove('border-[#1f2430]');
+        if (q >= minQ && q <= maxQ) {
+          slot.classList.add('bg-indigo-600/40', 'border-l-4', 'border-l-indigo-400', 'text-white');
+          slot.classList.remove('text-[#8b949e]');
           
-          if (h === minH) {
+          if (q === minQ) {
             slot.innerHTML = `
-              <div class="flex items-center justify-between w-full font-mono text-xs text-indigo-200">
+              <div class="flex items-center justify-between w-full font-mono text-xs text-indigo-100">
                 <span class="flex items-center gap-1.5 font-bold text-white">
                   <svg class="w-3.5 h-3.5 ni text-indigo-400" viewBox="0 0 24 24"><use href="#icon-clock"/></svg>
-                  ${startStr} — ${endStr} (${durationHours}h)
+                  ${startStr} — ${endStr} (${durationStr})
                 </span>
-                <span class="text-[10px] bg-indigo-500 text-white px-2 py-0.5 rounded font-sans font-semibold animate-pulse shadow-sm">Suelta para agendar</span>
+                <span class="text-[9px] bg-indigo-500 text-white px-2 py-0.5 rounded font-sans font-semibold animate-pulse shadow-sm">Suelta para agendar</span>
               </div>
             `;
           } else {
             slot.innerHTML = `
-              <div class="w-full text-[10px] text-indigo-300 font-mono italic">
-                ↕ Seleccionando rango (${durationHours}h en total)...
+              <div class="w-full text-[9px] text-indigo-200/80 font-mono italic">
+                ↕ Seleccionando (+15 min)...
               </div>
             `;
           }
         } else {
-          slot.classList.remove('bg-indigo-600/25', 'border-indigo-400', 'text-white', 'ring-1', 'ring-indigo-400/50');
-          slot.classList.add('border-[#1f2430]');
-          const hourStr = h < 10 ? `0${h}:00` : `${h}:00`;
+          slot.classList.remove('bg-indigo-600/40', 'border-l-4', 'border-l-indigo-400', 'text-white');
+          slot.classList.add('text-[#8b949e]');
+          const minVal = (q % 4) * 15;
+          const minLabel = minVal === 0 ? '00' : '' + minVal;
+          const qTime = formatTimeFromQ(q);
           slot.innerHTML = `
-            <span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 text-[#8b949e] hover:text-white pointer-events-none">
-              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-plus"/></svg>
-              <span>Agendar bloque en ${hourStr} <span class="text-[10px] text-[#8b949e]/60 font-mono hidden sm:inline">(o arrastra hacia abajo)</span></span>
+            <span class="opacity-0 hover:opacity-100 transition-opacity flex items-center gap-1.5 text-[#8b949e] hover:text-white pointer-events-none text-[10px]">
+              <span class="font-mono text-indigo-400 font-semibold">${qTime}</span>
+              <span>+ Agendar bloque</span>
             </span>
+            <span class="font-mono text-[9px] text-[#8b949e]/40 select-none">:${minLabel}</span>
           `;
         }
       }
     }
 
     function clearTimeDragSelection() {
-      for (let h = 0; h < 24; h++) {
-        const slot = document.getElementById(`time-slot-${h}`);
+      for (let q = 0; q < 96; q++) {
+        const slot = document.getElementById(`time-slot-q-${q}`);
         if (slot) {
-          slot.classList.remove('bg-indigo-600/25', 'border-indigo-400', 'text-white', 'ring-1', 'ring-indigo-400/50');
-          slot.classList.add('border-[#1f2430]');
-          const hourStr = h < 10 ? `0${h}:00` : `${h}:00`;
+          slot.classList.remove('bg-indigo-600/40', 'border-l-4', 'border-l-indigo-400', 'text-white');
+          slot.classList.add('text-[#8b949e]');
+          const minVal = (q % 4) * 15;
+          const minLabel = minVal === 0 ? '00' : '' + minVal;
+          const qTime = formatTimeFromQ(q);
           slot.innerHTML = `
-            <span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 text-[#8b949e] hover:text-white pointer-events-none">
-              <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-plus"/></svg>
-              <span>Agendar bloque en ${hourStr} <span class="text-[10px] text-[#8b949e]/60 font-mono hidden sm:inline">(o arrastra hacia abajo)</span></span>
+            <span class="opacity-0 hover:opacity-100 transition-opacity flex items-center gap-1.5 text-[#8b949e] hover:text-white pointer-events-none text-[10px]">
+              <span class="font-mono text-indigo-400 font-semibold">${qTime}</span>
+              <span>+ Agendar bloque</span>
             </span>
+            <span class="font-mono text-[9px] text-[#8b949e]/40 select-none">:${minLabel}</span>
           `;
         }
       }
@@ -1339,20 +1367,20 @@
       if (!isTimeDragging) return;
       isTimeDragging = false;
 
-      const minH = Math.min(dragStartHour, dragCurrentHour);
-      const maxH = Math.max(dragStartHour, dragCurrentHour);
-      const durationHours = (maxH - minH) + 1;
-      const startStr = (minH < 10 ? '0' + minH : minH) + ':00';
-      const endHourNum = maxH + 1;
-      const endStr = (endHourNum < 10 ? '0' + endHourNum : (endHourNum === 24 ? '24:00' : endHourNum + ':00'));
-      const durationLabel = durationHours === 1 ? '1 hora' : `${durationHours} horas`;
+      const minQ = Math.min(dragStartQ, dragCurrentQ);
+      const maxQ = Math.max(dragStartQ, dragCurrentQ);
+      const quartersCount = (maxQ - minQ) + 1;
+      const startStr = formatTimeFromQ(minQ);
+      const endStr = formatTimeFromQ(maxQ + 1);
+      const durationStr = formatDurationFromQ(quartersCount);
 
       clearTimeDragSelection();
 
       setTimeout(() => {
-        const title = prompt(`Crear bloque de tiempo de ${startStr} a ${endStr} (${durationLabel}):\nEscribe el título de la tarea o evento:`, "Bloque enfocado");
+        const title = prompt(`Crear bloque de tiempo de ${startStr} a ${endStr} (${durationStr}):\nEscribe el título de la tarea o evento:`, "Bloque enfocado");
         if (title && title.trim()) {
-          addBlockRangeToActiveDay(minH, startStr, endStr, durationHours === 1 ? '1h' : `${durationHours}h`, title.trim());
+          const hourNum = Math.floor(minQ / 4);
+          addBlockRangeToActiveDay(hourNum, startStr, endStr, durationStr, title.trim());
         }
       }, 50);
     });
@@ -1367,7 +1395,7 @@
         time: `${startTime} — ${endTime}`,
         duration: durationStr,
         title: title,
-        desc: 'Bloque agendado por arrastre de horas',
+        desc: 'Bloque agendado por arrastre de 15 min',
         tag: 'Enfoque'
       });
 
@@ -1456,7 +1484,6 @@
         row.className = `flex items-start gap-4 ${isLastHour ? 'pt-2 pb-1' : 'py-2'} group relative z-10`;
         row.id = `timeline-hour-${h}`;
         row.setAttribute('data-hour', h);
-        row.addEventListener('mouseenter', () => updateTimeBlockDrag(h));
 
         row.innerHTML = `
           <!-- Columna Hora -->
@@ -1490,13 +1517,27 @@
                 </div>
               </div>
             ` : `
-              <div id="time-slot-${h}" 
-                   onmousedown="startTimeBlockDrag(${h}, event)"
-                   class="h-9 border-b border-[#1f2430] group-hover:border-[#2d3345] flex items-center px-3 cursor-pointer rounded hover:bg-[#1f2430]/30 text-xs text-[#8b949e] transition-all select-none">
-                <span class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5 text-[#8b949e] hover:text-white pointer-events-none">
-                  <svg class="w-3 h-3 ni" viewBox="0 0 24 24"><use href="#icon-plus"/></svg>
-                  <span>Agendar en ${hourStr} <span class="text-[10px] text-[#8b949e]/60 font-mono hidden sm:inline">(o arrastra para fijar rango)</span></span>
-                </span>
+              <!-- Sub-ranuras de 15 minutos (arrastre preciso por cuartos de hora) -->
+              <div class="flex flex-col rounded-xl overflow-hidden border border-[#262b3a]/70 bg-[#12151d]/40 shadow-inner">
+                ${[0, 1, 2, 3].map(subQ => {
+                  const q = h * 4 + subQ;
+                  const minStr = subQ === 0 ? '00' : (subQ * 15);
+                  const qTime = `${h < 10 ? '0' + h : h}:${minStr}`;
+                  const isLastSubQ = subQ === 3;
+                  return `
+                    <div id="time-slot-q-${q}" 
+                         data-q="${q}"
+                         onmousedown="startTimeBlockDrag(${q}, event)"
+                         onmouseenter="updateTimeBlockDrag(${q})"
+                         class="h-[21px] px-3 flex items-center justify-between cursor-pointer hover:bg-[#1f2430]/70 transition-colors select-none text-[11px] text-[#8b949e] ${isLastSubQ ? '' : 'border-b border-dashed border-[#262b3a]/50'}">
+                      <span class="opacity-0 hover:opacity-100 transition-opacity flex items-center gap-1.5 text-[#8b949e] hover:text-white pointer-events-none text-[10px]">
+                        <span class="font-mono text-indigo-400 font-semibold">${qTime}</span>
+                        <span>+ Agendar bloque (arrastra para rango)</span>
+                      </span>
+                      <span class="font-mono text-[9px] text-[#8b949e]/40 select-none">:${minStr}</span>
+                    </div>
+                  `;
+                }).join('')}
               </div>
             `}
           </div>

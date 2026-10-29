@@ -223,9 +223,9 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
   * Eliminadas las sub-vistas artificiales (`Carpetas`, `Muro de Notas`, `Bandeja de Entrada`), eliminando ruido visual y botones redundantes.
   * Vista única y directa donde las notas aparecen auto-agrupadas por contexto con botón directo `[ Agendar paso ]`.
   * **Punto de Entrada Universal Único**: Sin cajas de texto redundantes en el cajón de ideas; toda captura fluye exclusivamente a través del Asistente IA / Smart Intake.
-* **Freno Firme de Scroll y Time-Blocking por Arrastre**:
+* **Freno Firme de Scroll y Time-Blocking por Arrastre (15 min)**:
   * **Tope en 23:00 sin overscroll**: Aplicado `overscroll-none` y ajuste de padding al final del timeline para que el scroll se detenga en seco en las 23:00 sin rebotes elásticos ni desplazamientos incómodos.
-  * **Clic y arrastrar para crear bloques**: Interacción natural de calendario; al hacer mousedown en una hora y arrastrar hacia abajo, se ilumina el rango de horas en vivo mostrando la duración (`14:00 — 16:00 (2h)`) y al soltar permite agendar el bloque directamente.
+  * **Clic y arrastrar con precisión de cuartos de hora (15 minutos)**: Cada hora se subdivide en 4 cuartos (`:00`, `:15`, `:30`, `:45`). Al hacer clic y arrastrar verticalmente, el bloque se ajusta (*snap*) cada 15 minutos, permitiendo crear con total libertad bloques de 15m, 30m, 45m, 1h 15m, etc., con badge dinámico en tiempo real y registro directo en la agenda.
 
 *Mockup de referencia:* [`mockup-web-semanal.html`](mockup-web-semanal.html)
 
