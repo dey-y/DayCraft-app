@@ -231,11 +231,37 @@ Para resolver la sensación de vacío cuando un día solo tiene 1 o 2 tareas en 
 
 ---
 
+## v8.6: Paridad Móvil con Raíl 24h Continuo y Pestaña Dedicada para Pendientes de Hoy
+
+### Planteamiento y Decisión de Deimar (Opción A)
+* **Paridad conceptual Web ↔ Móvil**: Tras perfeccionar el diseño de escritorio con el Timeline 24h continuo y la tira horizontal de días, se acordó trasladar esta misma experiencia coherente al móvil.
+* **Separación de "Pendientes de Hoy"**:
+  * En una pantalla móvil de ~390px de ancho y espacio vertical limitado, colocar un Timeline de 24 horas y los pendientes sin hora en la misma pantalla obligaba al usuario a deslizar 10 veces hacia abajo para marcar una simple tarea como *"Comprar pilas"*.
+  * Deimar seleccionó la **Opción A**: arquitectura de **4 pestañas dedicadas** en la barra de navegación inferior (`Asistente`, `Ideas`, `Pendientes`, `Timeline 24h`).
+
+### Solución Implementada en [`mockup-mobile.html`](mockup-mobile.html):
+1. **Pestaña 4: Timeline 24h con Raíl Físico Continuo**:
+   * **Tira horizontal de días**: Barra deslizante (`Dom 25` a `Dom 01`) con selector rápido y botón de retorno instantáneo a "Hoy".
+   * **Eje de 24 Horas continuas (00:00 a 23:00)**: Raíl vertical con línea física continua (`#2d3345`), nodos en cada hora y cuadrícula horizontal tenue.
+   * **Línea de Tiempo Actual Viva (11:45)**: Línea roja con punto de brillo (`box-shadow`) presente **únicamente en el día de Hoy (Martes 27)**.
+   * **Bloques Agendados Proporcionales**: Tarjetas con tiempo exacto (`11:30 — 12:00`), badges de duración y acento de color minimalista.
+   * **Tope estricto de scroll y aterrizaje ergonómico**: Desplazamiento inicial automático a las 09:00/10:30 para no abrir en la medianoche.
+2. **Pestaña 3: Pendientes de Hoy (Sin Hora Fija)**:
+   * **Lista enfocada**: Tarjetas con checkbox táctil, badge *"De ayer"* para rollover antiestrés que nunca se rompe ni se desborda en pantallas angostas.
+   * **Acción "Fijar hora"**: Botón que solicita la hora deseada y traslada el pendiente inmediatamente al Timeline 24h del día actual.
+   * **Captura Rápida Directa**: Input superior con Enter para añadir pendientes de hoy al instante.
+   * **Badge Contador Reactivo**: Conteo en tiempo real tanto en la cabecera de la pantalla como en la pastilla de la barra de navegación inferior (`#navPendingBadge`).
+   * **Empty State Celebratorio**: Mensaje de *"¡Todo despejado por hoy! Cero estrés"* al completar todos los pendientes.
+3. **Navegación Móvil de 4 Botones (Notion Icons 100%)**:
+   * Iconos limpios con trazo uniforme (24x24 con viewBox 0 0 24 24, stroke 1.8), etiquetas de 9px y estados activo/inactivo de alto contraste.
+
+---
+
 ## 🎯 Cierre de la Fase de Prototipado (Móvil & Web)
 
 Con la validación de Deimar, los mockups quedan consolidados como la especificación visual y funcional definitiva:
-1. 📱 **Móvil ([`mockup-mobile.html`](mockup-mobile.html))**: Experiencia ágil vertical, entrada mixta texto/voz, raíl de Time-blocking y rollover antiestrés.
-2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard ergonómico con panel redimensionable Agenda/IA (splitter arrastrable), Timeline 24h heroico como vista principal, tira horizontal deslizable de días (scroll de días), Cajón de ideas directo auto-agrupado y cero estrés.
+1. 📱 **Móvil ([`mockup-mobile.html`](mockup-mobile.html))**: Experiencia ágil vertical en 4 pestañas (`Asistente`, `Ideas`, `Pendientes`, `Timeline 24h`), raíl continuo de 24h, entrada por voz/texto y rollover antiestrés.
+2. 💻 **Escritorio ([`mockup-web-semanal.html`](mockup-web-semanal.html))**: Dashboard ergonómico con panel redimensionable Agenda/IA (splitter arrastrable), Timeline 24h heroico como vista principal, tira horizontal deslizable de días (scroll de días), Time-blocking por cuartos de hora (15m), Cajón de ideas directo auto-agrupado y cero estrés.
 
 **Siguiente Hito**: Desarrollo del código base con React Native / Expo, TypeScript y NativeWind.
 
