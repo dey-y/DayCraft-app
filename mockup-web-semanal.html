@@ -647,10 +647,11 @@
       <!-- CABECERA SUPERIOR DEL LIENZO -->
       <div class="h-12 border-b border-[#262b3a] bg-[#12151d] px-4 flex items-center justify-between flex-shrink-0">
         
-        <!-- Título del Día Activo -->
+        <!-- Título del Día Activo (Único en el lienzo) -->
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 live-pulse flex-shrink-0"></div>
           <h2 id="currentDayTitle" class="font-bold text-sm text-white tracking-tight truncate">Martes 27 de Octubre 2026 (Hoy)</h2>
+          <span id="currentDayBadgeCount" class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] text-[#8b949e] font-mono border border-[#262b3a] flex-shrink-0">1 bloque agendado</span>
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 font-mono border border-indigo-500/20 flex-shrink-0 hidden sm:inline">Semana 44</span>
         </div>
 
@@ -1273,16 +1274,13 @@
         ? 'Día libre sin bloques' 
         : `${eventsCount} ${eventsCount === 1 ? 'bloque agendado' : 'bloques agendados'}`;
 
-      container.innerHTML = `
-        <div class="flex items-center justify-between border-b border-[#262b3a] pb-3 mb-4 flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full ${dayData.isToday ? 'bg-emerald-400 live-pulse' : 'bg-indigo-400'}"></span>
-            <span class="font-bold text-sm text-white">Timeline Horario 24h — ${dayData.fullTitle}</span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#1f2430] text-[#8b949e] font-mono border border-[#262b3a]">${countText}</span>
-          </div>
-          <span class="text-[11px] text-[#8b949e] font-mono">Haz clic en cualquier hora para agendar un bloque</span>
-        </div>
-      `;
+      // Actualizar el contador en la cabecera única superior del lienzo
+      const countBadge = document.getElementById('currentDayBadgeCount');
+      if (countBadge) {
+        countBadge.textContent = countText;
+      }
+
+      container.innerHTML = "";
 
       const wrapper = document.createElement('div');
       wrapper.className = "flex flex-col relative pr-2";
