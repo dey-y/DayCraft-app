@@ -654,17 +654,11 @@
           <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-300 font-mono border border-indigo-500/20 flex-shrink-0 hidden sm:inline">Semana 44</span>
         </div>
 
-        <!-- Filtros Rápidos de visualización y Botón Hoy -->
+        <!-- Botón Hoy -->
         <div class="flex items-center gap-2">
           <button onclick="selectDayKey('27')" class="px-2.5 py-1 rounded-lg bg-[#1f2430] hover:bg-white hover:text-black text-white text-[11px] font-semibold border border-[#2d3345] transition-all">
             Hoy
           </button>
-          
-          <div class="flex items-center gap-1 bg-[#161922] p-1 rounded-xl border border-[#262b3a] text-xs">
-            <button onclick="setCalendarFilter('all')" id="btnFilterAll" class="px-2.5 py-0.5 rounded-lg bg-[#1f2430] text-white font-medium">Todo</button>
-            <button onclick="setCalendarFilter('tasks')" id="btnFilterTasks" class="px-2.5 py-0.5 rounded-lg text-[#8b949e] hover:text-white">Tareas</button>
-            <button onclick="setCalendarFilter('reminders')" id="btnFilterReminders" class="px-2.5 py-0.5 rounded-lg text-[#8b949e] hover:text-white">Pendientes</button>
-          </div>
         </div>
       </div>
 
@@ -1035,20 +1029,6 @@
       if (currentIndex === -1) return;
       const nextIndex = Math.max(0, Math.min(calendarDaysData.length - 1, currentIndex + delta));
       selectDayKey(calendarDaysData[nextIndex].key);
-    }
-
-    function setCalendarFilter(filter) {
-      const filters = ['all', 'tasks', 'reminders'];
-      filters.forEach(f => {
-        const btn = document.getElementById('btnFilter' + f.charAt(0).toUpperCase() + f.slice(1));
-        if (btn) {
-          if (f === filter) {
-            btn.className = "px-2.5 py-0.5 rounded-lg bg-[#1f2430] text-white font-medium";
-          } else {
-            btn.className = "px-2.5 py-0.5 rounded-lg text-[#8b949e] hover:text-white";
-          }
-        }
-      });
     }
 
 
