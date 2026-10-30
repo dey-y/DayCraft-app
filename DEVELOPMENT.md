@@ -350,8 +350,13 @@ npx expo start --web --clear   # si algo se ve raro tras tocar tailwind/babel/me
 npm run typecheck      # tsc --noEmit
 ```
 * Con el servidor en marcha se puede seguir editando: **Fast Refresh** recarga al guardar. Los cambios en `tailwind.config.js`, `babel.config.js`, `metro.config.js`, `global.css` o dependencias requieren reiniciar (con `--clear`).
-* **Expo Go muestra "Algo ha salido mal"**: el código compila (se comprobó con `npx expo export`), la causa habitual es la red (firewall de Windows o Wi-Fi que aísla dispositivos). Se soluciona con `npx expo start --tunnel`; también conviene que Expo Go esté actualizado para SDK 52.
-* En esta laptop `git` necesitó `git config core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"` para usar el cliente SSH de Windows.
+* **Expo Go muestra "Algo ha salido mal" / no abre el proyecto en el móvil**: el código compila (se comprobó con `npx expo export`), así que casi siempre es uno de estos dos motivos:
+  1. **Versión del SDK**: el proyecto usa **Expo SDK 52**, pero Expo Go en las tiendas solo soporta la **última** versión del SDK. *No sirve actualizar Expo Go*; hay que igualar el SDK:
+     * **Android**: instalar la versión de Expo Go que corresponde a SDK 52 desde <https://expo.dev/go> (se puede instalar un APK por versión de SDK), tras desinstalar la actual.
+     * **iPhone físico**: Apple no permite versiones antiguas. Opciones: subir el proyecto al SDK actual (`npx expo install expo@latest`, `npx expo install --fix`, `npx expo-doctor`; revisar Reanimated, NativeWind y expo-router) o usar un *development build*.
+  2. **Red**: el PC tiene varios adaptadores virtuales (WSL, VMware) y Metro puede anunciar una IP equivocada en el QR. Se fuerza la IP real del Wi-Fi/Ethernet: en PowerShell `$env:REACT_NATIVE_PACKAGER_HOSTNAME="192.168.x.x"; npx expo start`. Si aun así no conecta: permitir Node.js en el Firewall de Windows (red privada) o usar `npx expo start --tunnel`.
+* **Probar en el móvil sin Expo Go**: con `npm run web` en marcha y el móvil en la misma Wi-Fi, abrir `http://<IP-del-PC>:8081` en el navegador del móvil (requiere permitir el puerto 8081 en el Firewall de Windows para redes privadas). Sirve para revisar el diseño móvil; no prueba APIs nativas.
+* **Android por USB**: activar *Depuración USB*, conectar el cable, `adb reverse tcp:8081 tcp:8081` y abrir `exp://localhost:8081` en Expo Go (sigue necesitando el Expo Go del SDK 52). En iPhone desde Windows no hay vía por cable para Expo Go.* En esta laptop `git` necesitó `git config core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"` para usar el cliente SSH de Windows.
 
 ### Hoja de ruta (resto de la auditoría de diseño)
 Hecho: tokens de color (1), migración de colores (2), selector de temas (7), corrección de la barra inferior móvil.
