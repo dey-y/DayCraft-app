@@ -58,7 +58,7 @@ export default function TimelineScreen() {
           </Text>
 
           <View className="px-2 py-0.5 rounded-full bg-raised border border-line flex-shrink-0">
-            <Text className="text-[10px] font-mono text-muted">
+            <Text className="text-xs font-mono text-muted">
               {dayEventsCount === 0
                 ? 'Día despejado'
                 : `${dayEventsCount} ${
@@ -72,9 +72,9 @@ export default function TimelineScreen() {
           {!isDesktop && pendingCount > 0 ? (
             <Pressable
               onPress={() => router.push('/pending')}
-              className="px-2.5 py-1 rounded-lg bg-warm/15 border border-warm/30 flex-row items-center gap-1"
+              className="px-3 py-1.5 rounded-lg bg-warm/15 border border-warm/30 flex-row items-center gap-1 active:opacity-80"
             >
-              <Text className="text-[10px] font-semibold text-warm">
+              <Text className="text-xs font-semibold text-warm">
                 {pendingCount} pend. →
               </Text>
             </Pressable>
@@ -83,10 +83,10 @@ export default function TimelineScreen() {
           {nextMonthFirstDay && isDesktop ? (
             <Pressable
               onPress={() => setSelectedDayKey(nextMonthFirstDay.key)}
-              className="px-2.5 py-1 rounded-lg bg-card border border-line flex-row items-center gap-1 active:border-ink"
+              className="px-3 py-1.5 rounded-lg bg-card border border-line flex-row items-center gap-1.5 active:border-ink"
             >
-              <NotionIcon name="calendar" size={11} color={colors.accentSoft} />
-              <Text className="text-[10px] font-mono font-semibold text-accent-soft">
+              <NotionIcon name="calendar" size={12} color={colors.accentSoft} />
+              <Text className="text-xs font-mono font-semibold text-accent-soft">
                 Ir a {nextMonthFirstDay.monthShort}
               </Text>
             </Pressable>
@@ -94,13 +94,13 @@ export default function TimelineScreen() {
 
           <Pressable
             onPress={() => setSelectedDayKey('27')}
-            className={`px-2.5 py-1 rounded-lg border ${
+            className={`px-3 py-1.5 rounded-lg border active:opacity-80 ${
               activeDay?.isToday
                 ? 'bg-accent/20 border-accent'
                 : 'bg-raised border-line'
             }`}
           >
-            <Text className="text-[10px] font-bold text-ink">Hoy</Text>
+            <Text className="text-xs font-bold text-ink">Hoy</Text>
           </Pressable>
         </View>
       </View>

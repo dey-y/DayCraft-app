@@ -30,27 +30,27 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
         <View className="flex-row items-center gap-1.5 flex-1 min-w-0">
           <Text
             numberOfLines={1}
-            className="font-semibold text-xs text-ink flex-shrink"
+            className="font-semibold text-sm text-ink flex-shrink"
           >
             {idea.title}
           </Text>
-          <View className="px-1.5 py-0.2 rounded bg-raised border border-line flex-shrink-0">
-            <Text className="text-[9px] font-mono text-accent-soft">.md</Text>
+          <View className="px-1.5 py-0.5 rounded bg-raised border border-line flex-shrink-0">
+            <Text className="text-[10px] font-mono font-semibold text-accent-soft">.md</Text>
           </View>
         </View>
-        <Text className="text-[9px] font-mono text-muted flex-shrink-0">
+        <Text className="text-[11px] font-mono text-muted flex-shrink-0">
           {idea.createdAtLabel}
         </Text>
       </View>
 
-      <Text numberOfLines={2} className="text-[11px] text-muted leading-relaxed">
+      <Text numberOfLines={2} className="text-xs text-muted leading-relaxed">
         {idea.desc}
       </Text>
 
       <View className="flex-row items-center justify-between pt-2 mt-0.5 border-t border-line-subtle">
         <Text
           numberOfLines={1}
-          className="text-[10px] text-accent-soft/80 flex-1 mr-2"
+          className="text-xs text-accent-soft/80 flex-1 mr-2"
         >
           Abrir nota .md o agendar paso →
         </Text>
@@ -60,10 +60,10 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
             e.stopPropagation?.();
             onScheduleStep(idea);
           }}
-          className="flex-row items-center gap-1 px-2.5 py-1 rounded-lg bg-ink active:opacity-85 flex-shrink-0"
+          className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ink active:opacity-85 flex-shrink-0"
         >
-          <NotionIcon name="clock" size={11} color={colors.canvas} />
-          <Text className="text-[10px] font-bold text-canvas">Agendar paso</Text>
+          <NotionIcon name="clock" size={12} color={colors.canvas} />
+          <Text className="text-xs font-bold text-canvas">Agendar paso</Text>
         </Pressable>
       </View>
     </Pressable>

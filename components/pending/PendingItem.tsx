@@ -32,21 +32,21 @@ export const PendingItem: React.FC<PendingItemProps> = ({
         className="flex-row items-center gap-2.5 flex-1 min-w-0"
       >
         <View
-          className={`w-4 h-4 rounded border items-center justify-center flex-shrink-0 ${
+          className={`w-5 h-5 rounded-md border items-center justify-center flex-shrink-0 ${
             task.completed
               ? 'bg-ink border-ink'
               : 'bg-card border-line'
           }`}
         >
           {task.completed ? (
-            <NotionIcon name="check" size={11} color={colors.canvas} strokeWidth={2.5} />
+            <NotionIcon name="check" size={12} color={colors.canvas} strokeWidth={2.5} />
           ) : null}
         </View>
 
         <View className="flex-row items-center gap-2 flex-1 min-w-0">
           <Text
             numberOfLines={1}
-            className={`text-xs font-medium flex-shrink ${
+            className={`text-sm font-medium flex-shrink ${
               task.completed ? 'line-through text-muted' : 'text-ink'
             }`}
           >
@@ -54,10 +54,10 @@ export const PendingItem: React.FC<PendingItemProps> = ({
           </Text>
 
           {task.isFromYesterday ? (
-            <View className="px-2 py-0.5 rounded-full bg-warm/10 border border-warm/25 flex-shrink-0">
+            <View className="px-2 py-0.5 rounded-full bg-warm/15 border border-warm/30 flex-shrink-0">
               <Text
                 numberOfLines={1}
-                className="text-[9px] font-mono font-semibold text-warm"
+                className="text-[11px] font-mono font-semibold text-warm"
               >
                 De ayer
               </Text>
@@ -68,10 +68,11 @@ export const PendingItem: React.FC<PendingItemProps> = ({
 
       <Pressable
         onPress={() => onAssignTime(task)}
-        className="flex-row items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-line active:border-ink flex-shrink-0"
+        hitSlop={6}
+        className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-line active:border-ink flex-shrink-0"
       >
-        <NotionIcon name="clock" size={11} color={colors.muted} />
-        <Text className="text-[10px] font-medium text-muted">Fijar hora</Text>
+        <NotionIcon name="clock" size={12} color={colors.muted} />
+        <Text className="text-xs font-medium text-muted">Fijar hora</Text>
       </Pressable>
     </View>
   );

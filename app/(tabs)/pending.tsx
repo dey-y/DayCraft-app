@@ -47,7 +47,7 @@ export default function PendingScreen() {
         </View>
 
         <View className="px-2.5 py-1 rounded-full bg-raised border border-line">
-          <Text className="text-[10px] font-mono text-muted">
+          <Text className="text-xs font-mono text-muted">
             {incompleteCount} {incompleteCount === 1 ? 'cosa' : 'cosas'}
           </Text>
         </View>
@@ -57,11 +57,11 @@ export default function PendingScreen() {
       <View className="p-3 rounded-xl bg-card border border-line-subtle flex-row items-center justify-between">
         <View className="flex-row items-center gap-2 flex-1">
           <NotionIcon name="mic" size={14} color={colors.accentSoft} />
-          <Text className="text-[11px] text-muted flex-1">
+          <Text className="text-xs text-muted flex-1">
             Dicta o escribe en la barra Smart Intake para añadir pendientes
           </Text>
         </View>
-        <Text className="font-mono text-[9px] text-muted">Smart Intake</Text>
+        <Text className="font-mono text-xs text-muted">Smart Intake</Text>
       </View>
 
       {/* Lista de Pendientes o Empty State Motivador */}
@@ -92,7 +92,7 @@ export default function PendingScreen() {
           onPress={simulateAllPendingDone}
           className="flex-1 py-2 px-3 rounded-xl border border-dashed border-line items-center active:border-ink"
         >
-          <Text className="text-[10px] text-muted font-medium">
+          <Text className="text-xs text-muted font-medium">
             Simular: Todo Hecho / Restaurar
           </Text>
         </Pressable>
@@ -101,7 +101,7 @@ export default function PendingScreen() {
           onPress={triggerRolloverSimulation}
           className="flex-1 py-2 px-3 rounded-xl border border-dashed border-warm/30 items-center active:border-warm"
         >
-          <Text className="text-[10px] text-warm font-medium">
+          <Text className="text-xs text-warm font-medium">
             Simular: Rollover (+1 día)
           </Text>
         </Pressable>

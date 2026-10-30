@@ -102,7 +102,7 @@ export const DayStrip: React.FC = () => {
               <Pressable
                 onPress={() => setSelectedDayKey(d.key)}
                 style={{ width: cardWidth }}
-                className={`py-2 px-2 rounded-xl border items-center justify-between flex-shrink-0 ${
+                className={`py-2.5 px-2 rounded-xl border items-center justify-between flex-shrink-0 ${
                   isSelected
                     ? 'bg-accent/20 border-accent'
                     : d.isToday
@@ -113,7 +113,7 @@ export const DayStrip: React.FC = () => {
                 {/* Fila Superior: Día de la Semana + Punto de Carga / Hoy */}
                 <View className="flex-row items-center justify-center gap-1">
                   <Text
-                    className={`text-[10px] uppercase font-bold tracking-wider ${
+                    className={`text-[11px] uppercase font-bold tracking-wider ${
                       isSelected
                         ? 'text-accent-soft'
                         : d.isToday
@@ -141,14 +141,14 @@ export const DayStrip: React.FC = () => {
                 {/* Número del Día + Mes Abreviado en formato compacto */}
                 <View className="flex-row items-baseline justify-center gap-1 my-0.5">
                   <Text
-                    className={`font-mono font-bold ${
-                      isDesktop ? 'text-sm' : 'text-xs'
-                    } ${isSelected ? 'text-ink' : 'text-ink'}`}
+                    className={`font-mono font-bold text-sm ${
+                      isSelected ? 'text-ink' : 'text-ink'
+                    }`}
                   >
                     {d.dayNum}
                   </Text>
                   <Text
-                    className={`text-[9px] font-mono font-semibold uppercase ${
+                    className={`text-[10px] font-mono font-semibold uppercase ${
                       isSelected
                         ? 'text-accent-soft'
                         : d.isFirstOfMonth
@@ -163,14 +163,14 @@ export const DayStrip: React.FC = () => {
                 {/* Sub-etiqueta Inferior: "Hoy", contador de bloques o estado */}
                 <Text
                   numberOfLines={1}
-                  className={`text-[9px] font-medium ${
+                  className={`text-[10.5px] font-medium ${
                     isSelected
-                      ? 'text-ink'
+                      ? 'text-ink font-semibold'
                       : d.isToday
-                      ? 'text-ok'
+                      ? 'text-ok font-semibold'
                       : hasEvents
                       ? 'text-accent-soft'
-                      : 'text-muted/50'
+                      : 'text-muted/60'
                   }`}
                 >
                   {d.isToday

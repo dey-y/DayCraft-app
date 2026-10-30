@@ -48,7 +48,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
         <Text
           numberOfLines={1}
-          className={`font-mono text-[10px] ${
+          className={`font-mono text-xs font-medium ${
             isReminder ? 'text-info' : 'text-accent-soft'
           }`}
         >
@@ -60,10 +60,10 @@ export const EventCard: React.FC<EventCardProps> = ({
       {onRemove ? (
         <Pressable
           onPress={() => onRemove(event.id)}
-          hitSlop={8}
-          className="p-0.5 rounded-md active:bg-card/60 flex-shrink-0"
+          hitSlop={12}
+          className="p-1 rounded-md active:bg-card/60 flex-shrink-0"
         >
-          <NotionIcon name="close" size={11} color={colors.muted} />
+          <NotionIcon name="close" size={12} color={colors.muted} />
         </Pressable>
       ) : null}
     </View>

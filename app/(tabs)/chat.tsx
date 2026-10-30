@@ -31,16 +31,16 @@ export default function ChatScreen() {
             <NotionIcon name="sparkle" size={14} color={colors.accentSoft} />
           </View>
           <View>
-            <Text className="font-bold text-xs text-ink">
+            <Text className="font-bold text-sm text-ink">
               Cerebro IA Gemini · Smart Intake
             </Text>
-            <Text className="text-[10px] text-muted">
+            <Text className="text-xs text-muted">
               Separa automáticamente bloques, recordatorios, pendientes e ideas
             </Text>
           </View>
         </View>
-        <View className="px-2 py-0.5 rounded-full bg-raised border border-line">
-          <Text className="text-[9px] font-mono text-ok">Listo</Text>
+        <View className="px-2.5 py-0.5 rounded-full bg-raised border border-line">
+          <Text className="text-[11px] font-mono font-medium text-ok">Listo</Text>
         </View>
       </View>
 
@@ -52,8 +52,8 @@ export default function ChatScreen() {
           if (isUser) {
             return (
               <View key={msg.id} className="flex-row justify-end">
-                <View className="bg-ink px-3.5 py-2.5 rounded-2xl rounded-tr-sm max-w-[85%]">
-                  <Text className="text-xs font-medium text-canvas leading-relaxed">
+                <View className="bg-ink px-4 py-3 rounded-2xl rounded-tr-sm max-w-[85%]">
+                  <Text className="text-sm font-medium text-canvas leading-relaxed">
                     "{msg.text}"
                   </Text>
                 </View>
@@ -63,12 +63,12 @@ export default function ChatScreen() {
 
           return (
             <View key={msg.id} className="flex-row items-start gap-2.5">
-              <View className="w-7 h-7 rounded-full bg-raised border border-line items-center justify-center flex-shrink-0 mt-0.5">
-                <NotionIcon name="sparkle" size={13} color={colors.ink} />
+              <View className="w-8 h-8 rounded-full bg-raised border border-line items-center justify-center flex-shrink-0 mt-0.5">
+                <NotionIcon name="sparkle" size={14} color={colors.ink} />
               </View>
 
-              <View className="bg-raised border border-line p-3 rounded-2xl rounded-tl-sm flex-1 max-w-[88%] gap-2">
-                <Text className="text-xs text-ink leading-relaxed">
+              <View className="bg-raised border border-line p-3.5 rounded-2xl rounded-tl-sm flex-1 max-w-[88%] gap-2.5">
+                <Text className="text-sm text-ink leading-relaxed">
                   {msg.text}
                 </Text>
 
@@ -98,7 +98,7 @@ export default function ChatScreen() {
                       return (
                         <View
                           key={`${msg.id}-item-${idx}`}
-                          className="bg-card border border-line rounded-xl p-2.5 gap-1"
+                          className="bg-card border border-line rounded-xl p-3 gap-1.5"
                         >
                           <View className="flex-row items-center justify-between">
                             <View className="flex-row items-center gap-1.5">
@@ -110,7 +110,7 @@ export default function ChatScreen() {
                                     ? 'reminder'
                                     : 'clock'
                                 }
-                                size={12}
+                                size={13}
                                 color={
                                   isReminder
                                     ? colors.info
@@ -121,16 +121,16 @@ export default function ChatScreen() {
                                     : colors.muted
                                 }
                               />
-                              <Text className={`text-[10px] font-bold ${accentText}`}>
+                              <Text className={`text-xs font-bold ${accentText}`}>
                                 {labelType}
                               </Text>
                             </View>
-                            <Text className={`text-[10px] font-mono ${accentText}`}>
+                            <Text className={`text-xs font-mono ${accentText}`}>
                               {item.meta}
                             </Text>
                           </View>
 
-                          <Text className="font-semibold text-xs text-ink">
+                          <Text className="font-semibold text-sm text-ink">
                             {item.title}
                           </Text>
                         </View>

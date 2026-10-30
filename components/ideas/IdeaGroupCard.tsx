@@ -48,12 +48,12 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
           </View>
           <View className="flex-1 min-w-0">
             <View className="flex-row items-center gap-1.5">
-              <Text numberOfLines={1} className="font-bold text-xs text-ink">
+              <Text numberOfLines={1} className="font-bold text-sm text-ink">
                 {group.title}
               </Text>
               <View className="w-1.5 h-1.5 rounded-full bg-ok" />
             </View>
-            <Text numberOfLines={1} className="text-[10px] text-muted mt-0.5">
+            <Text numberOfLines={1} className="text-xs text-muted mt-0.5">
               {group.items.length}{' '}
               {group.items.length === 1 ? 'nota .md' : 'notas .md'} ·{' '}
               {group.subtitle}
@@ -64,10 +64,11 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
         {onCreateIdeaInGroup ? (
           <Pressable
             onPress={() => onCreateIdeaInGroup(group.id)}
-            className="flex-row items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-line active:border-ink flex-shrink-0"
+            hitSlop={6}
+            className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-line active:border-ink flex-shrink-0"
           >
-            <NotionIcon name="plus" size={11} color={colors.ink} />
-            <Text className="text-[10px] font-mono font-semibold text-ink">
+            <NotionIcon name="plus" size={12} color={colors.ink} />
+            <Text className="text-xs font-mono font-semibold text-ink">
               Nueva .md
             </Text>
           </Pressable>

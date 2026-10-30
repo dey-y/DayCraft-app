@@ -61,7 +61,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
       }`}
     >
       <View className="flex-row items-center gap-2">
-        <View className="flex-1 bg-raised border border-line rounded-full px-3.5 py-2 flex-row items-center gap-2">
+        <View className="flex-1 bg-raised border border-line rounded-full px-4 py-2 flex-row items-center gap-2">
           <TextInput
             value={isRecording ? 'Escuchando dictado por voz...' : text}
             onChangeText={setText}
@@ -70,7 +70,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
             placeholderTextColor={colors.muted}
             onSubmitEditing={handleSubmit}
             returnKeyType="send"
-            className="flex-1 text-xs text-ink py-0.5 outline-none"
+            className="flex-1 text-sm text-ink py-0.5 outline-none"
           />
           {text.trim().length > 0 && !isRecording ? (
             <Pressable
@@ -78,14 +78,15 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
               className="p-1 rounded-full active:scale-95"
               hitSlop={8}
             >
-              <NotionIcon name="send" size={14} color={colors.ink} />
+              <NotionIcon name="send" size={15} color={colors.ink} />
             </Pressable>
           ) : null}
         </View>
 
         <Pressable
           onPress={handleVoiceSimulate}
-          className={`w-9 h-9 rounded-full items-center justify-center flex-shrink-0 ${
+          hitSlop={6}
+          className={`w-10 h-10 rounded-full items-center justify-center flex-shrink-0 ${
             isRecording
               ? 'bg-now/20 border border-now'
               : 'bg-ink active:opacity-85'
@@ -93,14 +94,14 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
         >
           <NotionIcon
             name="mic"
-            size={15}
+            size={16}
             color={isRecording ? colors.now : colors.canvas}
           />
         </Pressable>
       </View>
 
       {compact ? (
-        <Text className="text-[10px] text-muted text-center mt-1.5">
+        <Text className="text-xs text-muted text-center mt-1.5">
           Gemini clasifica en Tarea con Horario, Pendiente o Idea.
         </Text>
       ) : null}

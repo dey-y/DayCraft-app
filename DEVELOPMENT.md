@@ -386,6 +386,14 @@ Pendiente, en este orden:
 
 ---
 
+4. **Auditoría de Diseño — Punto 1: Tamaños mínimos y Zonas táctiles ergonómicas**:
+   - Se erradicaron todos los textos ilegibles de 9 y 10 px en componentes móviles y modales. Ahora todo texto de cuerpo y badges se sitúa entre 11px y 14px (text-sm).
+   - **Zonas táctiles**: Los botones de acción rápida ("Fijar hora", "Agendar paso", "Nueva .md", "Hoy") se ampliaron a un mínimo de 36–40 px de altura con paddings confortables (px-3 py-1.5 / px-4 py-2).
+   - Los botones de cierre e iconos interactivos en modales y tarjetas incorporan hitSlop de 10 a 12 px para facilitar el toque preciso con el pulgar en pantallas de 360–390 px.
+   - Modales (slot-picker.tsx, IdeaNoteModal.tsx), pestañas (pending.tsx, chat.tsx, index.tsx) y componentes clave (SmartIntakeBar.tsx, PendingItem.tsx, EventCard.tsx, DayStrip.tsx, IdeaItem.tsx, IdeaGroupCard.tsx) completamente homogeneizados.
+
+---
+
 ### Tarea crítica pendiente para la próxima sesión: Migración a Expo SDK 58
 * **Diagnóstico confirmado**: La app Expo Go instalada en el móvil de Deimar cuenta con **Expo SDK 58** (lanzado en octubre de 2026), mientras que el proyecto DayCraft fue inicializado en **Expo SDK 52**. Dado que Expo Go en Google Play / App Store solo soporta la versión mayor más reciente, rechaza abrir proyectos en SDK 52 con el error *"Algo ha salido mal"*.
 * **Plan de acción para la siguiente sesión**:
