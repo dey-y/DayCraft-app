@@ -64,16 +64,16 @@ export const DayStrip: React.FC = () => {
   };
 
   return (
-    <View className="w-full bg-header border border-line-subtle px-2.5 py-2 rounded-2xl flex-row items-center gap-2">
+    <View className="w-full bg-header border border-line-subtle px-2 py-1.5 rounded-2xl flex-row items-center gap-2">
       {/* Botón Anterior */}
       <Pressable
         onPress={() => shiftDay(-1)}
-        className="w-8 h-12 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
+        className="w-8 h-9 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
         <NotionIcon name="chevron-left" size={14} color={colors.muted} />
       </Pressable>
 
-      {/* Tira Horizontal Deslizable Continua (Multimes) */}
+      {/* Tira Horizontal Deslizable Continua (Pastillas / Pills estilo Kuro-Zen) */}
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -81,8 +81,8 @@ export const DayStrip: React.FC = () => {
         onScroll={handleScroll}
         scrollEventThrottle={32}
         contentContainerStyle={{
-          gap: 8,
-          paddingHorizontal: 4,
+          gap: 6,
+          paddingHorizontal: 2,
           alignItems: 'center',
         }}
         className="flex-1"
@@ -97,98 +97,45 @@ export const DayStrip: React.FC = () => {
 
           return (
             <React.Fragment key={d.isoDate}>
-              {/* Divisor visual cuando cambia de mes (ej. Fin de Octubre -> 01 NOVIEMBRE) */}
+              {/* Separador de Mes compacto */}
               {showMonthDivider ? (
-                <View className="h-12 px-2.5 rounded-xl bg-accent/10 border border-accent/25 items-center justify-center flex-shrink-0">
-                  <Text className="text-[9px] font-mono font-bold uppercase tracking-widest text-accent-soft">
-                    {d.monthFull}
-                  </Text>
-                  <Text className="text-[9px] font-mono text-muted">
-                    {d.year}
+                <View className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/25 items-center justify-center flex-shrink-0">
+                  <Text className="text-[10px] font-mono font-bold uppercase tracking-widest text-accent-soft">
+                    {d.monthShort}
                   </Text>
                 </View>
               ) : null}
 
+              {/* Pastilla del Día */}
               <Pressable
                 onPress={() => setSelectedDayKey(d.key)}
-                style={{ width: cardWidth }}
-                className={`py-2.5 px-2 rounded-xl border items-center justify-between flex-shrink-0 ${
+                className={`px-3.5 py-2 rounded-xl border flex-row items-center gap-1.5 flex-shrink-0 active:opacity-85 ${
                   isSelected
                     ? 'bg-accent/20 border-accent'
                     : d.isToday
-                    ? 'bg-raised border-accent/50'
+                    ? 'bg-raised border-accent/40'
                     : 'bg-card border-line-subtle'
                 }`}
               >
-                {/* Fila Superior: Día de la Semana + Punto de Carga / Hoy */}
-                <View className="flex-row items-center justify-center gap-1">
-                  <Text
-                    className={`text-[11px] font-mono tracking-wider font-bold ${
-                      isSelected
-                        ? 'text-accent-soft'
-                        : d.isToday
-                        ? 'text-accent-soft'
-                        : 'text-muted'
-                    }`}
-                  >
-                    {d.dayName}
-                  </Text>
-                  {d.isToday ? (
-                    <View
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        isSelected ? 'bg-ink' : 'bg-ok'
-                      }`}
-                    />
-                  ) : hasEvents ? (
-                    <View
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        isSelected ? 'bg-ink' : 'bg-accent'
-                      }`}
-                    />
-                  ) : null}
-                </View>
-
-                {/* Número del Día + Mes Abreviado en formato compacto */}
-                <View className="flex-row items-baseline justify-center gap-1 my-0.5">
-                  <Text
-                    className={`font-bold text-base ${
-                      isSelected ? 'text-ink' : 'text-ink'
-                    }`}
-                  >
-                    {d.dayNum}
-                  </Text>
-                  <Text
-                    className={`text-[10px] font-mono font-semibold uppercase ${
-                      isSelected
-                        ? 'text-accent-soft'
-                        : d.isFirstOfMonth
-                        ? 'text-accent-soft'
-                        : 'text-muted'
-                    }`}
-                  >
-                    {d.monthShort}
-                  </Text>
-                </View>
-
-                {/* Sub-etiqueta Inferior: "Hoy", contador de bloques o estado */}
                 <Text
-                  numberOfLines={1}
-                  className={`text-[10.5px] font-medium ${
+                  className={`text-xs ${
                     isSelected
-                      ? 'text-ink font-semibold'
+                      ? 'font-bold text-ink'
                       : d.isToday
-                      ? 'text-ok font-semibold'
-                      : hasEvents
-                      ? 'text-accent-soft'
-                      : 'text-muted/60'
+                      ? 'font-bold text-accent-soft'
+                      : 'font-semibold text-muted'
                   }`}
                 >
-                  {d.isToday
-                    ? 'Hoy'
-                    : hasEvents
-                    ? `${dayEventsCount} ${dayEventsCount === 1 ? 'blq' : 'blqs'}`
-                    : 'Libre'}
+                  {d.isToday ? `HOY ${d.dayNum}` : `${d.dayName} ${d.dayNum}`}
                 </Text>
+
+                {hasEvents ? (
+                  <View
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      isSelected ? 'bg-accent-soft' : 'bg-accent/70'
+                    }`}
+                  />
+                ) : null}
               </Pressable>
             </React.Fragment>
           );
@@ -198,7 +145,7 @@ export const DayStrip: React.FC = () => {
       {/* Botón Siguiente (Avanza 1 día) */}
       <Pressable
         onPress={() => shiftDay(1)}
-        className="w-8 h-12 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
+        className="w-8 h-9 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
         <NotionIcon name="chevron-right" size={14} color={colors.muted} />
       </Pressable>

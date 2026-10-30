@@ -30,42 +30,53 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <View
-      className={`w-full h-full border border-l-[3px] rounded-xl px-3 ${
-        compact ? 'py-1' : 'py-2'
-      } ${
+      className={`w-full h-full border border-line-subtle/80 border-l-[3.5px] rounded-xl px-3 py-1.5 ${
         isReminder
-          ? 'bg-info/10 border-info/25 border-l-info'
-          : 'bg-accent/10 border-accent/25 border-l-accent'
-      } flex-row items-start justify-between gap-2 overflow-hidden`}
+          ? 'bg-info/15 border-l-info'
+          : 'bg-card border-l-accent'
+      } flex-row items-center justify-between gap-2 overflow-hidden shadow-sm`}
     >
-      <View className="flex-1 min-w-0 flex-row items-center gap-2 flex-wrap">
-        <Text
-          numberOfLines={1}
-          className="font-semibold text-xs text-ink flex-shrink"
-        >
-          {event.title}
-        </Text>
+      <View className="flex-1 min-w-0 justify-center">
+        <View className="flex-row items-center gap-1.5">
+          <Text
+            numberOfLines={1}
+            className="font-bold text-xs sm:text-sm text-ink flex-shrink"
+          >
+            {event.title}
+          </Text>
+          {hasRecurrence ? (
+            <Text className="text-[10px] text-muted font-mono">↻</Text>
+          ) : null}
+        </View>
 
-        <Text
-          numberOfLines={1}
-          className={`font-mono text-xs font-medium ${
-            isReminder ? 'text-info' : 'text-accent-soft'
-          }`}
-        >
-          {startStr} – {endStr}
-          {hasRecurrence ? ' · ↻' : ''}
-        </Text>
+        {!compact && event.desc ? (
+          <Text numberOfLines={1} className="text-[11px] text-muted mt-0.5">
+            {event.desc}
+          </Text>
+        ) : null}
       </View>
 
-      {onRemove ? (
-        <Pressable
-          onPress={() => onRemove(event.id)}
-          hitSlop={12}
-          className="p-1 rounded-md active:bg-card/60 flex-shrink-0"
-        >
-          <NotionIcon name="close" size={12} color={colors.muted} />
-        </Pressable>
-      ) : null}
+      <View className="flex-row items-center gap-1.5 flex-shrink-0">
+        <View className="px-2 py-0.5 rounded-md bg-raised border border-line-subtle">
+          <Text
+            className={`font-mono text-xs font-semibold ${
+              isReminder ? 'text-info' : 'text-accent-soft'
+            }`}
+          >
+            {startStr} – {endStr}
+          </Text>
+        </View>
+
+        {onRemove ? (
+          <Pressable
+            onPress={() => onRemove(event.id)}
+            hitSlop={12}
+            className="p-1 rounded-md active:bg-raised flex-shrink-0"
+          >
+            <NotionIcon name="close" size={12} color={colors.muted} />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 };

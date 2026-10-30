@@ -50,8 +50,8 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const touchStartQ = useRef<number | null>(null);
   const isTouchDragging = useRef<boolean>(false);
 
-  // Dimensiones exactas de la cuadrícula estilo Google Calendar (más compacta para que 2h no se vea gigante)
-  const quarterHeight = isDesktop ? 14 : 13; // 15 min = 14px (1 hora = 56px en desktop, 52px en móvil)
+  // Dimensiones holgadas y ergonómicas (Auditoría de diseño Punto 3 - Concepto "Ma")
+  const quarterHeight = isDesktop ? 18 : 17; // 15 min = 17-18px (1 hora = 68-72px, bloques de 30m = 34-36px)
   const hourHeight = quarterHeight * 4;
   const totalCanvasHeight = 24 * hourHeight;
   const hourColumnWidth = isDesktop ? 62 : 48;
@@ -60,6 +60,19 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const [dragStartQ, setDragStartQ] = useState<number | null>(null);
   const [dragCurrentQ, setDragCurrentQ] = useState<number | null>(null);
   const [hoverQuarter, setHoverQuarter] = useState<number | null>(null);
+
+  const [nowMinutes, setNowMinutes] = useState(() => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes();
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const d = new Date();
+      setNowMinutes(d.getHours() * 60 + d.getMinutes());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const activeDay =
     days.find((d) => d.key === selectedDayKey) || days[7] || days[0];
@@ -318,13 +331,8 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   </Text>
                 </View>
 
-                {/* Columna Derecha: Línea de hora en punto y sub-línea sutil de :30 */}
-                <View className="flex-1 border-t border-line-subtle">
-                  <View
-                    style={{ marginTop: hourHeight / 2 }}
-                    className="border-t border-line-subtle/35 border-dashed"
-                  />
-                </View>
+                {/* Columna Derecha: Línea de hora limpia y relajante (sin línea discontinua :30) */}
+                <View className="flex-1 border-t border-line-subtle/35" />
               </View>
             );
           })}
@@ -454,6 +462,27 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                 </View>
               );
             })}
+
+            {/* 6. LÍNEA EN VIVO DE LA HORA ACTUAL (NOW INDICATOR) */}
+            {activeDay?.isToday ? (
+              <View
+                style={{
+                  position: 'absolute',
+                  top: (nowMinutes / 15) * quarterHeight - 5,
+                  left: 0,
+                  right: 12,
+                  zIndex: 40,
+                }}
+                pointerEvents="none"
+                className="flex-row items-center"
+              >
+                <View
+                  style={{ width: 10, height: 10 }}
+                  className="rounded-full bg-now border-2 border-canvas -ml-1.5 shadow-sm"
+                />
+                <View className="flex-1 h-[2px] bg-now/85" />
+              </View>
+            ) : null}
           </View>
         </View>
       </ScrollView>

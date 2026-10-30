@@ -404,6 +404,15 @@ Pendiente, en este orden:
 
 ---
 
+6. **Auditoría de Diseño — Punto 3: Aire y Cuadrícula del Raíl ("Ma" y Pastillas Zen)**:
+   - **Tira de días en pastilla (`pills`)**: Reemplazadas las cajas altas de 3 filas apiladas por pastillas horizontales compactas (`[ LUN 26 ] [ HOY 27 ]`), reduciendo la altura de la tira a unos limpios ~44 px sin saturación vertical.
+   - **Erradicación del ruido visual en el raíl**: Se eliminaron las 24 líneas discontinuas de `:30` que saturaban la pantalla tipo Excel. Ahora las horas tienen una línea ultra-sutil y relajante.
+   - **Mayor holgura en bloques (`quarterHeight`)**: Incrementada la altura de los cuartos de hora de 13–14 px a 17–18 px (68–72 px por hora), dando a los bloques de 15m y 30m espacio suficiente para alojar títulos y duraciones legibles sin apretujarse.
+   - **Tarjetas de eventos estilo maqueta (`EventCard.tsx`)**: Fondo suave `bg-card`, franja de acento a la izquierda (`border-l-[3.5px] border-l-accent`), badge de hora en cápsula `JetBrains Mono` a la derecha.
+   - **Indicador de hora actual en vivo (`NowMarker`)**: Línea horizontal viva (`border-now`) con nodo circular que marca el minuto actual sobre el eje cuando se visualiza el día de hoy.
+
+---
+
 ### Tarea crítica pendiente para la próxima sesión: Migración a Expo SDK 58
 * **Diagnóstico confirmado**: La app Expo Go instalada en el móvil de Deimar cuenta con **Expo SDK 58** (lanzado en octubre de 2026), mientras que el proyecto DayCraft fue inicializado en **Expo SDK 52**. Dado que Expo Go en Google Play / App Store solo soporta la versión mayor más reciente, rechaza abrir proyectos en SDK 52 con el error *"Algo ha salido mal"*.
 * **Plan de acción para la siguiente sesión**:
