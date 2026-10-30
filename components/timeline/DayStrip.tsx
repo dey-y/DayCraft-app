@@ -141,7 +141,7 @@ export const DayStrip: React.FC = () => {
                 {/* Número del Día + Mes Abreviado en formato compacto */}
                 <View className="flex-row items-baseline justify-center gap-1 my-0.5">
                   <Text
-                    className={`font-serif font-bold text-base ${
+                    className={`font-bold text-base ${
                       isSelected ? 'text-ink' : 'text-ink'
                     }`}
                   >

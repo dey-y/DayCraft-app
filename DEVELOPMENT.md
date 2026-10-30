@@ -394,14 +394,13 @@ Pendiente, en este orden:
 
 ---
 
-5. **Auditoría de Diseño — Punto 2: Tipografía Japandi (Plus Jakarta Sans, JetBrains Mono, Fraunces)**:
-   - Se erradicó la fuente genérica del sistema. Se instalaron e integraron los paquetes de @expo-google-fonts:
-     * **Plus Jakarta Sans** (font-sans): Fuente principal de interfaz limpia, geométrica y de alta legibilidad en pantallas táctiles.
-     * **JetBrains Mono** (font-mono): Para horas (11:30 - 12:00), cifras tabulares en la cuadrícula de 24h y bloques de código Markdown.
-     * **Fraunces** (font-serif): Serif cálida y artesanal para fechas destacadas (números en DayStrip) y títulos editoriales de notas .md (IdeaNoteModal).
-   - **Carga optimizada**: Integración en app/_layout.tsx mediante useFonts() y expo-splash-screen, evitando saltos o parpadeos de fuente (FOUT).
-   - **Respaldo Web**: Inyección de Google Fonts CDN en global.css para renderizado inmediato en navegadores de escritorio y móviles.
-   - **Mapeo Tailwind**: Clases font-sans, font-mono y font-serif configuradas en tailwind.config.js.
+5. **Auditoría de Diseño — Punto 2: Tipografía Zen (Plus Jakarta Sans + JetBrains Mono)**:
+   - Se aplicó fielmente la tipografía de la maqueta original `palette-dark-japandi.html`:
+     * **Plus Jakarta Sans** (`font-sans`): Tipografía geométrica, minimalista y calmante para **toda la interfaz** (títulos, días en `DayStrip`, notas `.md`, botones y badges).
+     * **JetBrains Mono** (`font-mono`): Utilizada exclusivamente para horas del raíl (`11:30 - 12:00`), cifras tabulares y bloques técnicos.
+   - **Carga optimizada**: Integración en `app/_layout.tsx` mediante `useFonts()` y `expo-splash-screen`, evitando saltos o parpadeos de fuente (FOUT).
+   - **Respaldo Web**: Inyección de Google Fonts CDN en `global.css` para renderizado inmediato en navegadores de escritorio y móviles.
+   - **Mapeo Tailwind**: Clases `font-sans` y `font-mono` configuradas en `tailwind.config.js`.
 
 ---
 

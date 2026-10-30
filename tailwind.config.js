@@ -30,8 +30,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ["PlusJakartaSans", "Plus Jakarta Sans", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
-        mono: ["JetBrainsMono", "JetBrains Mono", "monospace"],
-        serif: ["Fraunces", "serif"]
+        mono: ["JetBrainsMono", "JetBrains Mono", "monospace"]
       }
     }
   },

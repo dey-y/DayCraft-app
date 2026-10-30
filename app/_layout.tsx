@@ -18,11 +18,6 @@ import {
   JetBrainsMono_600SemiBold,
   JetBrainsMono_700Bold,
 } from '@expo-google-fonts/jetbrains-mono';
-import {
-  Fraunces_400Regular,
-  Fraunces_600SemiBold,
-  Fraunces_700Bold,
-} from '@expo-google-fonts/fraunces';
 
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { FloatingToast } from '@/components/ui/FloatingToast';
@@ -36,7 +31,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /**
  * Root Layout Global (_layout.tsx)
- * - Carga y publica las fuentes tipográficas del sistema Japandi (Plus Jakarta Sans, JetBrains Mono, Fraunces).
+ * - Carga y publica las fuentes tipográficas del sistema Japandi (Plus Jakarta Sans y JetBrains Mono).
  * - Hidrata automáticamente la base de datos SQLite Offline (`expo-sqlite`).
  * - Monta el Toast Flotante Efímero y el Bottom Sheet de 1-Tap Time Blocking en raíz.
  */
@@ -50,9 +45,6 @@ export default function RootLayout() {
     'JetBrainsMono-Medium': JetBrainsMono_500Medium,
     'JetBrainsMono-SemiBold': JetBrainsMono_600SemiBold,
     'JetBrainsMono-Bold': JetBrainsMono_700Bold,
-    Fraunces: Fraunces_400Regular,
-    'Fraunces-SemiBold': Fraunces_600SemiBold,
-    'Fraunces-Bold': Fraunces_700Bold,
   });
 
   const { theme, colors, isDark } = useTheme();

@@ -181,7 +181,7 @@ export const IdeaNoteModal: React.FC = () => {
               onChangeText={setTitle}
               placeholder="Título de la idea..."
               placeholderTextColor={colors.muted}
-              className="text-lg font-bold font-serif text-ink bg-raised border border-line rounded-xl px-3.5 py-2.5"
+              className="text-base font-bold text-ink bg-raised border border-line rounded-xl px-3.5 py-2.5"
             />
           </View>
 
