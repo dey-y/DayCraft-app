@@ -371,20 +371,28 @@ Pendiente, en este orden:
 7. **Contraste**: verificar con un script WCAG AA (≥ 4.5:1) todos los pares texto/fondo de los 5 temas; los valores de Shiro, Sumi-e y Akane se ajustaron a ojo.
 8. Limpiar la constante `COLORS` heredada de [`constants/theme.ts`](constants/theme.ts) (ya sin uso) y los mockups HTML antiguos de la raíz.
 
-### Pendiente: errores reportados por Deimar en la versión móvil (2026-10-30)
-Detectados probando la app en el navegador del móvil. **Aún sin corregir**, por orden de prioridad:
+### Correcciones de experiencia móvil aplicadas (2026-10-30)
+1. **Ideas → Visor y Editor de Notas (.md) (`components/ideas/IdeaNoteModal.tsx`)**:
+   - **Título con puntos suspensivos**: El badge del archivo `.md` ahora tiene `numberOfLines={1}`, `ellipsizeMode="tail"` y un ancho adaptativo para que si el nombre es largo (`mi-idea-larga...md`) nunca se monte ni quede detrás del botón de descarga.
+   - **Botón "Guardar" siempre visible**: El pie del modal se transformó en un layout adaptativo (`flex-col sm:flex-row`). En móviles, el botón secundario "Agendar en Timeline" se ubica arriba y los botones "Cancelar" y "Guardar" se alinean en la fila inferior. "Guardar" **nunca** se desborda ni se corta fuera del panel.
 
-1. **Calendario: no funciona seleccionar un rango de horas arrastrando.**
-   * Causa probable: en [`components/timeline/Rail24h.tsx`](components/timeline/Rail24h.tsx) el arrastre solo existe para ratón (`onMouseDown` / `onMouseEnter` / `mouseup`, solo con `Platform.OS === 'web'`). En pantalla táctil esos eventos no se disparan y solo funciona el toque simple, que crea un bloque fijo de 30 min.
-   * Solución propuesta: arrastre táctil con `react-native-gesture-handler` (ya instalado, `Gesture.Pan` + `runOnJS`) o `PanResponder`, con *snap* cada 15 min (`quarterHeight`), bloque fantasma en vivo y bloqueo del scroll del raíl mientras se arrastra (pulsación larga para iniciar la selección y no pelear con el scroll vertical).
-2. **Ideas → nota `.md` abierta: el botón "Guardar" se sale del panel y el título del `.md` queda por detrás del botón "Descargar .md".**
-   * Archivo: [`components/ideas/IdeaNoteModal.tsx`](components/ideas/IdeaNoteModal.tsx).
-   * Comportamiento deseado por Deimar: si el título no cabe, mostrar **puntos suspensivos** en vez de solaparse.
-   * Solución propuesta: título en `numberOfLines={1}` con `flex-1 min-w-0` (y `ellipsizeMode="tail"`), botones con `flex-shrink-0`, y la fila de acciones con `flex-wrap` o iconos compactos en pantallas estrechas, para que "Guardar" quede siempre dentro del panel.
-3. **Barra inferior móvil: las etiquetas siguen viéndose "partidas".**
-   * El ajuste de altura de la v10 (`mobileTabBarHeight`) no lo resolvió del todo. Hipótesis: etiquetas largas ("Timeline 24h", "Pendientes") que se parten en dos líneas por el ancho de cada pestaña; puede ser exclusivo del navegador del móvil.
-   * Solución propuesta: etiqueta de una sola línea (`numberOfLines={1}` mediante `tabBarLabel` personalizado) y/o acortar a "Timeline"; verificar también en Expo Go para descartar que sea un efecto del navegador.
-4. **Expo Go en el móvil: incompatibilidad de SDK.**
-   * El móvil de Deimar tiene Expo Go con **SDK 58**; el proyecto usa **SDK 52**, por eso Expo Go falla con "Algo ha salido mal".
-   * Solución pendiente: **subir el proyecto al SDK 58** (`npx expo install expo@latest`, `npx expo install --fix`, `npx expo-doctor`) y revisar compatibilidad de `react-native-reanimated`, `nativewind`, `expo-router`, `react-native-svg`, `react-native-gesture-handler` y `expo-sqlite`; después `npm run typecheck`, `npx expo start --clear` y probar en el móvil. Hacerlo en una rama aparte por el riesgo de romper dependencias.
-   * Alternativa sin migrar: probar desde el navegador del móvil (`http://<IP-del-PC>:8081`, ver guía de arriba).
+2. **Barra inferior móvil (`app/(tabs)/_layout.tsx`)**:
+   - Se reemplazó la etiqueta `"Timeline 24h"` por `"Timeline"`, manteniendo nombres concisos de 1 sola palabra para todas las pestañas (*Asistente*, *Ideas*, *Pendientes*, *Timeline*).
+   - Se implementó un renderizador personalizado de `tabBarLabel` con `<Text numberOfLines={1}>` forzando `white-space: nowrap` y centrado estricto para evitar que las letras se partan o corten en navegadores móviles.
+
+3. **Calendario 24h: Tapping y Arrastre Táctil (`components/timeline/Rail24h.tsx`)**:
+   - **Tapping táctil**: Se eliminó la restricción `if (Platform.OS === 'web') return;` que bloqueaba las pulsaciones en navegadores móviles. Ahora tocar cualquier cuarto de hora abre instantáneamente el selector con 30m por defecto.
+   - **Arrastre táctil (`Touch Drag`)**: Se incorporaron controladores táctiles nativos del navegador (`handleTouchStart`, `handleTouchMove`, `handleTouchEnd`) sobre la cuadrícula de 96 cuartos. Al deslizar el dedo verticalmente, se activa el bloque fantasma en tiempo real y al soltar se abre el selector con el rango exacto seleccionado (de hora X a hora Y).
+
+---
+
+### Tarea crítica pendiente para la próxima sesión: Migración a Expo SDK 58
+* **Diagnóstico confirmado**: La app Expo Go instalada en el móvil de Deimar cuenta con **Expo SDK 58** (lanzado en octubre de 2026), mientras que el proyecto DayCraft fue inicializado en **Expo SDK 52**. Dado que Expo Go en Google Play / App Store solo soporta la versión mayor más reciente, rechaza abrir proyectos en SDK 52 con el error *"Algo ha salido mal"*.
+* **Plan de acción para la siguiente sesión**:
+  1. Crear una rama de migración: `git checkout -b chore/upgrade-expo-sdk-58`.
+  2. Ejecutar `npx expo install expo@^58.0.0` y alinear dependencias: `npx expo install --fix`.
+  3. Actualizar React Native (a 0.88), React (19), NativeWind v4/v5, Reanimated y SQLite a sus versiones compatibles con SDK 58.
+  4. Ejecutar `npm run typecheck` y verificar que los bundlers de Metro y Tailwind compilen limpiamente.
+  5. Probar la apertura nativa directa en Expo Go desde el móvil.
+* **Alternativa inmediata mientras se realiza la migración**:
+  - Seguir probando la app en el móvil a través de su navegador web abriendo `http://192.168.1.130:8081` (misma red Wi-Fi y puerto 8081 habilitado).

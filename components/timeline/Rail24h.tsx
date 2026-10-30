@@ -43,6 +43,10 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
 
   const scrollRef = useRef<ScrollView>(null);
+  const gridContainerRef = useRef<View>(null);
+  const touchStartClientY = useRef<number | null>(null);
+  const touchStartQ = useRef<number | null>(null);
+  const isTouchDragging = useRef<boolean>(false);
 
   // Dimensiones exactas de la cuadrícula estilo Google Calendar (más compacta para que 2h no se vea gigante)
   const quarterHeight = isDesktop ? 14 : 13; // 15 min = 14px (1 hora = 56px en desktop, 52px en móvil)
@@ -103,8 +107,76 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     return () => window.removeEventListener('mouseup', handleMouseUp);
   }, [isDragging, dragStartQ, dragCurrentQ, onRequestSlotPicker, openSlotPicker]);
 
+  const handleTouchStart = (e: any) => {
+    const touch = e.touches?.[0] || e.nativeEvent?.touches?.[0];
+    if (!touch) return;
+    touchStartClientY.current = touch.clientY;
+    const targetElement = e.currentTarget || e.target;
+    const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
+    if (rect) {
+      const relY = touch.clientY - rect.top;
+      const q = Math.floor(Math.max(0, Math.min(95, relY / quarterHeight)));
+      touchStartQ.current = q;
+    }
+  };
+
+  const handleTouchMove = (e: any) => {
+    if (touchStartQ.current === null) return;
+    const touch = e.touches?.[0] || e.nativeEvent?.touches?.[0];
+    if (!touch) return;
+
+    if (!isTouchDragging.current && touchStartClientY.current !== null) {
+      if (Math.abs(touch.clientY - touchStartClientY.current) > 8) {
+        isTouchDragging.current = true;
+        setIsDragging(true);
+        setDragStartQ(touchStartQ.current);
+      }
+    }
+
+    if (isTouchDragging.current) {
+      const targetElement = e.currentTarget || e.target;
+      const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
+      if (rect) {
+        const relY = touch.clientY - rect.top;
+        const currentQ = Math.floor(Math.max(0, Math.min(95, relY / quarterHeight)));
+        setDragCurrentQ(currentQ);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (isTouchDragging.current && dragStartQ !== null && dragCurrentQ !== null) {
+      const minQ = Math.min(dragStartQ, dragCurrentQ);
+      const maxQ = Math.max(dragStartQ, dragCurrentQ);
+      const quarters = minQ === maxQ ? 2 : maxQ - minQ + 1;
+
+      setIsDragging(false);
+      setDragStartQ(null);
+      setDragCurrentQ(null);
+      isTouchDragging.current = false;
+      touchStartQ.current = null;
+      touchStartClientY.current = null;
+
+      const target: SlotPickerTarget = {
+        type: 'direct_hour',
+        title: '',
+        defaultStartQ: minQ,
+        defaultQuarters: quarters,
+      };
+      if (onRequestSlotPicker) {
+        onRequestSlotPicker(target);
+      } else {
+        openSlotPicker(target);
+      }
+    } else {
+      isTouchDragging.current = false;
+      touchStartQ.current = null;
+      touchStartClientY.current = null;
+    }
+  };
+
   const handleTapQuarter = (q: number) => {
-    if (Platform.OS === 'web') return; // En web lo gestiona el mouseDown/mouseUp de arrastre
+    if (isDragging) return;
     const target: SlotPickerTarget = {
       type: 'direct_hour',
       title: '',
@@ -219,6 +291,14 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
 
           {/* 3. CAPA INTERACTIVA DE 96 CUARTOS DE HORA (SNAPPING DE 15 MINUTOS) */}
           <View
+            ref={gridContainerRef}
+            {...(Platform.OS === 'web'
+              ? {
+                  onTouchStart: handleTouchStart,
+                  onTouchMove: handleTouchMove,
+                  onTouchEnd: handleTouchEnd,
+                }
+              : {})}
             style={{
               position: 'absolute',
               top: 12,
