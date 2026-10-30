@@ -44,7 +44,9 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
 
   const scrollRef = useRef<ScrollView>(null);
   const gridContainerRef = useRef<View>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartClientY = useRef<number | null>(null);
+  const touchStartClientX = useRef<number | null>(null);
   const touchStartQ = useRef<number | null>(null);
   const isTouchDragging = useRef<boolean>(false);
 
@@ -104,19 +106,42 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     };
 
     window.addEventListener('mouseup', handleMouseUp);
-    return () => window.removeEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    };
   }, [isDragging, dragStartQ, dragCurrentQ, onRequestSlotPicker, openSlotPicker]);
 
   const handleTouchStart = (e: any) => {
     const touch = e.touches?.[0] || e.nativeEvent?.touches?.[0];
     if (!touch) return;
+
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+
     touchStartClientY.current = touch.clientY;
+    touchStartClientX.current = touch.clientX;
+    isTouchDragging.current = false;
+
     const targetElement = e.currentTarget || e.target;
     const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
     if (rect) {
       const relY = touch.clientY - rect.top;
       const q = Math.floor(Math.max(0, Math.min(95, relY / quarterHeight)));
       touchStartQ.current = q;
+
+      // Long Press de 280ms para activar modo arrastre sin pelear con el scroll vertical
+      longPressTimer.current = setTimeout(() => {
+        isTouchDragging.current = true;
+        setIsDragging(true);
+        setDragStartQ(q);
+        setDragCurrentQ(q);
+        if (typeof window !== 'undefined' && window.navigator && 'vibrate' in window.navigator) {
+          try { window.navigator.vibrate(25); } catch {}
+        }
+      }, 280);
     }
   };
 
@@ -125,26 +150,35 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     const touch = e.touches?.[0] || e.nativeEvent?.touches?.[0];
     if (!touch) return;
 
-    if (!isTouchDragging.current && touchStartClientY.current !== null) {
-      if (Math.abs(touch.clientY - touchStartClientY.current) > 8) {
-        isTouchDragging.current = true;
-        setIsDragging(true);
-        setDragStartQ(touchStartQ.current);
+    // Si el usuario no ha completado el long-press y mueve el dedo, cancelamos: ESTÁ HACIENDO SCROLL
+    if (!isTouchDragging.current) {
+      const deltaY = touchStartClientY.current !== null ? Math.abs(touch.clientY - touchStartClientY.current) : 0;
+      const deltaX = touchStartClientX.current !== null ? Math.abs(touch.clientX - touchStartClientX.current) : 0;
+      if (deltaY > 8 || deltaX > 8) {
+        if (longPressTimer.current) {
+          clearTimeout(longPressTimer.current);
+          longPressTimer.current = null;
+        }
       }
+      return;
     }
 
-    if (isTouchDragging.current) {
-      const targetElement = e.currentTarget || e.target;
-      const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
-      if (rect) {
-        const relY = touch.clientY - rect.top;
-        const currentQ = Math.floor(Math.max(0, Math.min(95, relY / quarterHeight)));
-        setDragCurrentQ(currentQ);
-      }
+    // Si ya se activó el long-press, ahora sí estiramos el bloque fantasma
+    const targetElement = e.currentTarget || e.target;
+    const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
+    if (rect) {
+      const relY = touch.clientY - rect.top;
+      const currentQ = Math.floor(Math.max(0, Math.min(95, relY / quarterHeight)));
+      setDragCurrentQ(currentQ);
     }
   };
 
   const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+
     if (isTouchDragging.current && dragStartQ !== null && dragCurrentQ !== null) {
       const minQ = Math.min(dragStartQ, dragCurrentQ);
       const maxQ = Math.max(dragStartQ, dragCurrentQ);
@@ -156,6 +190,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
       isTouchDragging.current = false;
       touchStartQ.current = null;
       touchStartClientY.current = null;
+      touchStartClientX.current = null;
 
       const target: SlotPickerTarget = {
         type: 'direct_hour',
@@ -172,6 +207,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
       isTouchDragging.current = false;
       touchStartQ.current = null;
       touchStartClientY.current = null;
+      touchStartClientX.current = null;
     }
   };
 

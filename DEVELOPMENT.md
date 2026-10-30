@@ -382,7 +382,7 @@ Pendiente, en este orden:
 
 3. **Calendario 24h: Tapping y Arrastre Táctil (`components/timeline/Rail24h.tsx`)**:
    - **Tapping táctil**: Se eliminó la restricción `if (Platform.OS === 'web') return;` que bloqueaba las pulsaciones en navegadores móviles. Ahora tocar cualquier cuarto de hora abre instantáneamente el selector con 30m por defecto.
-   - **Arrastre táctil (`Touch Drag`)**: Se incorporaron controladores táctiles nativos del navegador (`handleTouchStart`, `handleTouchMove`, `handleTouchEnd`) sobre la cuadrícula de 96 cuartos. Al deslizar el dedo verticalmente, se activa el bloque fantasma en tiempo real y al soltar se abre el selector con el rango exacto seleccionado (de hora X a hora Y).
+   - **Arrastre táctil mediante Long-Press (Pulsación sostenida ~280ms - Estilo Google Calendar)**: Deslizar con el dedo con normalidad realiza **scroll vertical libre y fluido** por las 24 horas sin interferencias ni bloqueos. Si se mantiene el dedo pulsado ~280ms sobre una hora, se activa el modo de creación con micro-vibración háptica y al arrastrar se estira el bloque fantasma de 15m en 15m. Un toque rápido (tap) abre el selector en esa hora directamente.
 
 ---
 
