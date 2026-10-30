@@ -547,9 +547,9 @@
           <div class="color-dot" style="background: #F4EFE6; border: 1px solid #C4BEB3;"></div>
           <span>5. Blanco (Washi Paper)</span>
         </button>
-        <button class="theme-btn" onclick="setTheme('fuchsia')">
-          <div class="color-dot" style="background: #E03E9C;"></div>
-          <span>6. Fucsia (Botan)</span>
+        <button class="theme-btn" onclick="setTheme('crimson')">
+          <div class="color-dot" style="background: #A82236;"></div>
+          <span>6. Granate (Enji)</span>
         </button>
       </div>
     </header>
@@ -734,19 +734,19 @@
         <p class="variant-desc">Papel artesanal washi, tinta carbón y lino. Cero destello blanco duro.</p>
       </div>
 
-      <!-- 6. Fucsia -->
-      <div class="variant-card" id="card-fuchsia" onclick="setTheme('fuchsia')">
+      <!-- 6. Granate -->
+      <div class="variant-card" id="card-crimson" onclick="setTheme('crimson')">
         <div class="variant-header">
-          <div class="variant-name">6. Fucsia</div>
-          <div class="variant-badge" style="background: rgba(224, 62, 156, 0.15); color: #E03E9C;">Botan</div>
+          <div class="variant-name">6. Granate</div>
+          <div class="variant-badge" style="background: rgba(168, 34, 54, 0.18); color: #C94255;">Enji</div>
         </div>
         <div class="variant-swatches">
-          <div style="background: #141013;"></div>
-          <div style="background: #1C151B;"></div>
-          <div style="background: #E03E9C;"></div>
-          <div style="background: #F472B6;"></div>
+          <div style="background: #130F11;"></div>
+          <div style="background: #1A1417;"></div>
+          <div style="background: #A82236;"></div>
+          <div style="background: #D4A373;"></div>
         </div>
-        <p class="variant-desc">Vitalidad zen, flor de ciruelo y chispa creativa sobre negro mora.</p>
+        <p class="variant-desc">Rojo vino noble, caoba y terciopelo oscuro. Profundo, maduro y sin matices rosas.</p>
       </div>
 
     </div>
@@ -893,29 +893,29 @@
           { name: 'Tinta Carbón', hex: '#211F1D' },
         ]
       },
-      fuchsia: {
-        title: "6. Fucsia Zen & Flor de Ciruelo (Zen Botan / Ume)",
-        desc: "Vitalidad magnética, calidez floral y elegancia contemporánea. Un fucsia equilibrado sobre negro ébano con tintes de mora.",
+      crimson: {
+        title: "6. Rojo Granate Profundo / Caoba Oscuro (Zen Enji)",
+        desc: "Intensidad noble, sobriedad y carácter. Un rojo granate/vino profundo, mineral y masculino, sin tonos rosados, sobre fondo ébano ahumado.",
         vars: {
-          '--bg-base': '#141013',
-          '--bg-card': '#1C151B',
-          '--bg-surface': '#251A23',
-          '--bg-active': '#331F2F',
-          '--border-subtle': '#3A2436',
-          '--text-primary': '#F7EFF5',
-          '--text-muted': '#A68D9F',
-          '--accent-main': '#E03E9C',
-          '--accent-subtle': 'rgba(224, 62, 156, 0.15)',
-          '--accent-glow': 'rgba(224, 62, 156, 0.28)',
-          '--accent-indicator': '#F43F5E',
-          '--accent-rollover': '#D4A373',
-          '--accent-rollover-subtle': 'rgba(212, 163, 115, 0.15)',
+          '--bg-base': '#130F11',
+          '--bg-card': '#1A1417',
+          '--bg-surface': '#241B1F',
+          '--bg-active': '#312128',
+          '--border-subtle': '#36232B',
+          '--text-primary': '#F4ECEE',
+          '--text-muted': '#9E888D',
+          '--accent-main': '#A82236',
+          '--accent-subtle': 'rgba(168, 34, 54, 0.16)',
+          '--accent-glow': 'rgba(168, 34, 54, 0.28)',
+          '--accent-indicator': '#D4A373',
+          '--accent-rollover': '#C8976C',
+          '--accent-rollover-subtle': 'rgba(200, 151, 108, 0.15)',
         },
         hexes: [
-          { name: 'Fondo Ébano Mora', hex: '#141013' },
-          { name: 'Tarjeta Ciruelo', hex: '#1C151B' },
-          { name: 'Acento Fucsia', hex: '#E03E9C' },
-          { name: 'Texto Washi Pétalo', hex: '#F7EFF5' },
+          { name: 'Fondo Ébano Caoba', hex: '#130F11' },
+          { name: 'Tarjeta Granate Oscuro', hex: '#1A1417' },
+          { name: 'Acento Granate Enji', hex: '#A82236' },
+          { name: 'Texto Marfil Washi', hex: '#F4ECEE' },
         ]
       }
     };
@@ -944,12 +944,12 @@
 
       const buttons = document.querySelectorAll('.theme-btn');
       buttons.forEach(b => b.classList.remove('active'));
-      const activeIdx = ['purple', 'red', 'blue', 'black', 'white', 'fuchsia'].indexOf(key);
+      const activeIdx = ['purple', 'red', 'blue', 'black', 'white', 'crimson'].indexOf(key);
       if (buttons[activeIdx]) {
         buttons[activeIdx].classList.add('active');
       }
 
-      ['purple', 'red', 'blue', 'black', 'white', 'fuchsia'].forEach(k => {
+      ['purple', 'red', 'blue', 'black', 'white', 'crimson'].forEach(k => {
         const c = document.getElementById('card-' + k);
         if (c) c.classList.toggle('current', k === key);
       });
