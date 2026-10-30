@@ -48,26 +48,26 @@ export const TimeSlot: React.FC<TimeSlotProps> = ({
       {...(webMouseProps as object)}
       className={`h-[20px] px-2.5 flex-row items-center justify-between rounded-md ${
         isSelectedInDrag
-          ? 'bg-indigo-600/35 border-l-4 border-l-indigo-400'
+          ? 'bg-accent/35 border-l-4 border-l-accent'
           : hovered
-          ? 'bg-[#1f2430]'
+          ? 'bg-raised'
           : 'bg-transparent'
       }`}
     >
       {isSelectedInDrag ? (
         isDragStart ? (
           <View className="flex-row items-center justify-between flex-1">
-            <Text className="text-[10px] font-mono font-bold text-white">
+            <Text className="text-[10px] font-mono font-bold text-ink">
               {dragRangeLabel || qTime}
             </Text>
-            <View className="px-1.5 py-0.5 rounded bg-indigo-500">
-              <Text className="text-[9px] font-bold text-white">
+            <View className="px-1.5 py-0.5 rounded bg-accent/30">
+              <Text className="text-[9px] font-bold text-ink">
                 Suelta para agendar
               </Text>
             </View>
           </View>
         ) : (
-          <Text className="text-[9px] font-mono text-indigo-200">
+          <Text className="text-[9px] font-mono text-accent-soft">
             ↕ +15 min seleccionado...
           </Text>
         )
@@ -77,15 +77,15 @@ export const TimeSlot: React.FC<TimeSlotProps> = ({
             style={{ opacity: hovered ? 1 : 0 }}
             className="flex-row items-center gap-1.5"
           >
-            <Text className="text-[10px] font-mono font-bold text-indigo-400">
+            <Text className="text-[10px] font-mono font-bold text-accent-soft">
               {qTime}
             </Text>
-            <Text className="text-[10px] text-[#8b949e]">+ Agendar bloque</Text>
+            <Text className="text-[10px] text-muted">+ Agendar bloque</Text>
           </View>
 
           <Text
             style={{ opacity: hovered ? 0.65 : 0 }}
-            className="text-[9px] font-mono text-[#8b949e]"
+            className="text-[9px] font-mono text-muted"
           >
             :{minLabel}
           </Text>

@@ -3,6 +3,7 @@ import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { LAYOUT } from '@/constants/theme';
 import { NotionIcon } from './NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 /**
  * FloatingToast — Fricción Cero (Principio Innegociable v9)
@@ -10,6 +11,7 @@ import { NotionIcon } from './NotionIcon';
  * ("✨ Añadido a Pendientes [Fijar hora] [Deshacer]") sin forzar cambio brusco de pantalla.
  */
 export const FloatingToast: React.FC = () => {
+  const { colors } = useTheme();
   const activeToast = useDayCraftStore((s) => s.activeToast);
   const hideToast = useDayCraftStore((s) => s.hideToast);
   const { width } = useWindowDimensions();
@@ -36,17 +38,17 @@ export const FloatingToast: React.FC = () => {
         maxWidth: isDesktop ? 440 : undefined,
         zIndex: 100,
       }}
-      className="bg-[#161922] border border-[#2d3345] border-l-4 border-l-emerald-400 rounded-2xl p-3.5 shadow-2xl flex-row items-center justify-between gap-3"
+      className="bg-card border border-line border-l-4 border-l-ok rounded-2xl p-3.5 shadow-2xl flex-row items-center justify-between gap-3"
     >
       <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
-        <View className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 items-center justify-center flex-shrink-0">
-          <NotionIcon name="sparkle" size={13} color="#34d399" />
+        <View className="w-6 h-6 rounded-lg bg-ok/10 border border-ok/20 items-center justify-center flex-shrink-0">
+          <NotionIcon name="sparkle" size={13} color={colors.ok} />
         </View>
         <View className="flex-1 min-w-0">
-          <Text numberOfLines={1} className="text-xs font-bold text-white">
+          <Text numberOfLines={1} className="text-xs font-bold text-ink">
             {activeToast.title}
           </Text>
-          <Text numberOfLines={1} className="text-[11px] text-[#8b949e] mt-0.5">
+          <Text numberOfLines={1} className="text-[11px] text-muted mt-0.5">
             {activeToast.description}
           </Text>
         </View>
@@ -59,9 +61,9 @@ export const FloatingToast: React.FC = () => {
               activeToast.onPrimaryAction?.();
               hideToast();
             }}
-            className="bg-white px-2.5 py-1.5 rounded-lg active:opacity-80"
+            className="bg-ink px-2.5 py-1.5 rounded-lg active:opacity-80"
           >
-            <Text className="text-[10px] font-bold text-black">
+            <Text className="text-[10px] font-bold text-canvas">
               {activeToast.primaryActionLabel}
             </Text>
           </Pressable>
@@ -73,9 +75,9 @@ export const FloatingToast: React.FC = () => {
               activeToast.onUndoAction?.();
               hideToast();
             }}
-            className="bg-[#1f2430] border border-[#2d3345] px-2.5 py-1.5 rounded-lg active:border-white"
+            className="bg-raised border border-line px-2.5 py-1.5 rounded-lg active:border-ink"
           >
-            <Text className="text-[10px] font-semibold text-[#e6edf3]">
+            <Text className="text-[10px] font-semibold text-ink">
               {activeToast.undoActionLabel}
             </Text>
           </Pressable>
@@ -83,10 +85,10 @@ export const FloatingToast: React.FC = () => {
 
         <Pressable
           onPress={hideToast}
-          className="p-1 rounded-lg active:bg-[#1f2430]"
+          className="p-1 rounded-lg active:bg-raised"
           hitSlop={8}
         >
-          <NotionIcon name="close" size={13} color="#8b949e" />
+          <NotionIcon name="close" size={13} color={colors.muted} />
         </Pressable>
       </View>
     </View>

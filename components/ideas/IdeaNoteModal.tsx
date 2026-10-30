@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 /**
  * IdeaNoteModal — Editor y Visor de Documentos Markdown (.md) para el Cajón de Ideas
@@ -16,6 +17,7 @@ import { NotionIcon } from '@/components/ui/NotionIcon';
  * - Genera automáticamente el archivo `.md` con Frontmatter YAML y permite descargarlo a disco en 1 clic.
  */
 export const IdeaNoteModal: React.FC = () => {
+  const { colors } = useTheme();
   const activeIdeaId = useDayCraftStore((s) => s.activeIdeaId);
   const setActiveIdeaId = useDayCraftStore((s) => s.setActiveIdeaId);
   const ideaGroups = useDayCraftStore((s) => s.ideaGroups);
@@ -121,18 +123,18 @@ export const IdeaNoteModal: React.FC = () => {
       }}
       className="bg-black/80 justify-center items-center p-4"
     >
-      <View className="bg-[#161922] border border-[#2d3345] rounded-3xl w-full max-w-2xl max-h-[88%] overflow-hidden shadow-2xl">
+      <View className="bg-card border border-line rounded-3xl w-full max-w-2xl max-h-[88%] overflow-hidden shadow-2xl">
         {/* Cabecera estilo Editor Notion / Obsidian */}
-        <View className="px-5 py-3.5 bg-[#12151d] border-b border-[#262b3a] flex-row items-center justify-between gap-2">
+        <View className="px-5 py-3.5 bg-header border-b border-line-subtle flex-row items-center justify-between gap-2">
           <View className="flex-row items-center gap-2 flex-1 min-w-0">
-            <View className="px-2 py-0.5 rounded-md bg-[#1f2430] border border-[#2d3345]">
-              <Text className="text-[10px] font-mono text-indigo-400">
+            <View className="px-2 py-0.5 rounded-md bg-raised border border-line">
+              <Text className="text-[10px] font-mono text-accent-soft">
                 {slugFilename}.md
               </Text>
             </View>
             <Text
               numberOfLines={1}
-              className="text-[11px] text-[#8b949e] flex-shrink"
+              className="text-[11px] text-muted flex-shrink"
             >
               {foundGroupTitle}
             </Text>
@@ -141,19 +143,19 @@ export const IdeaNoteModal: React.FC = () => {
           <View className="flex-row items-center gap-2 flex-shrink-0">
             <Pressable
               onPress={handleDownloadMdFile}
-              className="flex-row items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#1f2430] border border-[#2d3345] active:border-white"
+              className="flex-row items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-raised border border-line active:border-ink"
             >
-              <NotionIcon name="folder" size={12} color="#34d399" />
-              <Text className="text-[10px] font-mono font-bold text-emerald-400">
+              <NotionIcon name="folder" size={12} color={colors.ok} />
+              <Text className="text-[10px] font-mono font-bold text-ok">
                 Descargar .md
               </Text>
             </Pressable>
 
             <Pressable
               onPress={() => setActiveIdeaId(null)}
-              className="w-7 h-7 rounded-full bg-[#1f2430] items-center justify-center"
+              className="w-7 h-7 rounded-full bg-raised items-center justify-center"
             >
-              <NotionIcon name="close" size={13} color="#8b949e" />
+              <NotionIcon name="close" size={13} color={colors.muted} />
             </Pressable>
           </View>
         </View>
@@ -165,24 +167,24 @@ export const IdeaNoteModal: React.FC = () => {
           showsVerticalScrollIndicator={false}
         >
           <View className="gap-1">
-            <Text className="text-[10px] uppercase tracking-wider font-bold text-[#8b949e]">
+            <Text className="text-[10px] uppercase tracking-wider font-bold text-muted">
               Título de la Nota
             </Text>
             <TextInput
               value={title}
               onChangeText={setTitle}
               placeholder="Título de la idea..."
-              placeholderTextColor="#8b949e"
-              className="text-base font-bold text-white bg-[#1f2430] border border-[#2d3345] rounded-xl px-3.5 py-2.5"
+              placeholderTextColor={colors.muted}
+              className="text-base font-bold text-ink bg-raised border border-line rounded-xl px-3.5 py-2.5"
             />
           </View>
 
           <View className="gap-1.5">
             <View className="flex-row items-center justify-between">
-              <Text className="text-[10px] uppercase tracking-wider font-bold text-[#8b949e]">
+              <Text className="text-[10px] uppercase tracking-wider font-bold text-muted">
                 Contenido Markdown (.md)
               </Text>
-              <Text className="text-[10px] font-mono text-[#8b949e]">
+              <Text className="text-[10px] font-mono text-muted">
                 Soporta # Títulos, - [ ] Checklists, `código`
               </Text>
             </View>
@@ -193,15 +195,15 @@ export const IdeaNoteModal: React.FC = () => {
               multiline
               textAlignVertical="top"
               placeholder="Escribe tus notas en Markdown..."
-              placeholderTextColor="#8b949e"
+              placeholderTextColor={colors.muted}
               style={{ minHeight: 240 }}
-              className="bg-[#0d1117] border border-[#2d3345] rounded-2xl p-4 text-xs font-mono text-[#e6edf3] leading-relaxed"
+              className="bg-canvas border border-line rounded-2xl p-4 text-xs font-mono text-ink leading-relaxed"
             />
           </View>
         </ScrollView>
 
         {/* Pie de Acciones */}
-        <View className="px-5 py-3.5 bg-[#12151d] border-t border-[#262b3a] flex-row items-center justify-between">
+        <View className="px-5 py-3.5 bg-header border-t border-line-subtle flex-row items-center justify-between">
           <Pressable
             onPress={() => {
               const targetTitle = title.trim() || foundIdea!.title;
@@ -212,10 +214,10 @@ export const IdeaNoteModal: React.FC = () => {
                 title: targetTitle,
               });
             }}
-            className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-[#1f2430] border border-[#2d3345] active:border-white"
+            className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
           >
-            <NotionIcon name="clock" size={13} color="#818cf8" />
-            <Text className="text-xs font-semibold text-indigo-300">
+            <NotionIcon name="clock" size={13} color={colors.accentSoft} />
+            <Text className="text-xs font-semibold text-accent-soft">
               Agendar bloque en Timeline
             </Text>
           </Pressable>
@@ -225,16 +227,16 @@ export const IdeaNoteModal: React.FC = () => {
               onPress={() => setActiveIdeaId(null)}
               className="px-3 py-2 rounded-xl"
             >
-              <Text className="text-xs font-medium text-[#8b949e]">
+              <Text className="text-xs font-medium text-muted">
                 Cancelar
               </Text>
             </Pressable>
 
             <Pressable
               onPress={handleSave}
-              className="px-4 py-2 rounded-xl bg-white active:opacity-85"
+              className="px-4 py-2 rounded-xl bg-ink active:opacity-85"
             >
-              <Text className="text-xs font-bold text-black">
+              <Text className="text-xs font-bold text-canvas">
                 Guardar Nota .md
               </Text>
             </Pressable>

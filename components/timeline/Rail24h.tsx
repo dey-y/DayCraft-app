@@ -17,6 +17,7 @@ import {
 import { LAYOUT } from '@/constants/theme';
 import { EventCard } from './EventCard';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 interface Rail24hProps {
   onRequestSlotPicker?: (target: SlotPickerTarget) => void;
@@ -31,6 +32,7 @@ interface Rail24hProps {
  * - Incluye la línea roja horizontal en vivo de la hora actual con su nodo circular en el borde izquierdo.
  */
 export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
+  const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
 
@@ -135,17 +137,17 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
       : 0;
 
   return (
-    <View className="flex-1 bg-[#161922] border border-[#262b3a] rounded-2xl overflow-hidden">
+    <View className="flex-1 bg-card border border-line-subtle rounded-2xl overflow-hidden">
       {/* Banner sutil superior cuando el día está libre */}
       {dayEvents.length === 0 ? (
-        <View className="px-4 py-2.5 bg-[#12151d] border-b border-[#262b3a] flex-row items-center justify-between">
+        <View className="px-4 py-2.5 bg-header border-b border-line-subtle flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
             <NotionIcon
               name={activeDay?.isToday ? 'cup' : 'clock'}
               size={14}
-              color={activeDay?.isToday ? '#34d399' : '#818cf8'}
+              color={activeDay?.isToday ? colors.ok : colors.accentSoft}
             />
-            <Text className="text-xs text-[#8b949e]">
+            <Text className="text-xs text-muted">
               {activeDay?.isToday
                 ? 'Día despejado · Haz clic o arrastra sobre cualquier cuarto de hora en la cuadrícula para crear un bloque.'
                 : `Sin bloques para el ${activeDay?.dayNum} ${activeDay?.monthShort} · Haz clic o arrastra en la rejilla para agendar.`}
@@ -186,16 +188,16 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   style={{ width: hourColumnWidth }}
                   className="items-end pr-3 -mt-2"
                 >
-                  <Text className="font-mono text-[11px] font-medium text-[#8b949e]">
+                  <Text className="font-mono text-[11px] font-medium text-muted">
                     {hourStr}
                   </Text>
                 </View>
 
                 {/* Columna Derecha: Línea de hora en punto y sub-línea sutil de :30 */}
-                <View className="flex-1 border-t border-[#262b3a]">
+                <View className="flex-1 border-t border-line-subtle">
                   <View
                     style={{ marginTop: hourHeight / 2 }}
-                    className="border-t border-[#262b3a]/35 border-dashed"
+                    className="border-t border-line-subtle/35 border-dashed"
                   />
                 </View>
               </View>
@@ -210,7 +212,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
               top: 0,
               bottom: 0,
               width: 1,
-              backgroundColor: '#262b3a',
+              backgroundColor: colors.lineSubtle,
             }}
             pointerEvents="none"
           />
@@ -259,8 +261,8 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                 >
                   {/* Indicador ultra-sutil al pasar el ratón por un cuarto de hora libre */}
                   {isHovered ? (
-                    <View className="flex-1 bg-indigo-500/10 border-l-2 border-l-indigo-400/60 px-2.5 justify-center">
-                      <Text className="text-[10px] font-mono text-indigo-300/90">
+                    <View className="flex-1 bg-accent/10 border-l-2 border-l-accent/60 px-2.5 justify-center">
+                      <Text className="text-[10px] font-mono text-accent-soft/90">
                         {formatQuarterToTime(q)}
                       </Text>
                     </View>
@@ -281,9 +283,9 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   height: Math.max(quarterHeight - 2, ghostQuarters * quarterHeight - 2),
                   zIndex: 30,
                 }}
-                className="bg-indigo-500/20 border border-indigo-400/60 border-l-[3px] border-l-indigo-400 rounded-xl px-3 py-1.5 items-start justify-start overflow-hidden"
+                className="bg-accent/20 border border-accent/60 border-l-[3px] border-l-accent rounded-xl px-3 py-1.5 items-start justify-start overflow-hidden"
               >
-                <Text className="text-[11px] font-mono font-bold text-indigo-200">
+                <Text className="text-[11px] font-mono font-bold text-accent-soft">
                   {formatQuarterToTime(ghostStartQ)} –{' '}
                   {formatQuarterToTime(ghostStartQ + ghostQuarters)}
                 </Text>

@@ -11,6 +11,7 @@ import {
 import { useDayCraftStore, doesEventApplyToDay } from '@/store/useDayCraftStore';
 import { LAYOUT } from '@/constants/theme';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 /**
  * DayStrip — Tira Horizontal Infinita de Días con Tarjetas Compactas (LUN · 27 · OCT)
@@ -19,6 +20,7 @@ import { NotionIcon } from '@/components/ui/NotionIcon';
  * - Soporta scroll infinito hacia adelante: al acercarse al final, genera dinámicamente el siguiente mes.
  */
 export const DayStrip: React.FC = () => {
+  const { colors } = useTheme();
   const days = useDayCraftStore((s) => s.days);
   const selectedDayKey = useDayCraftStore((s) => s.selectedDayKey);
   const setSelectedDayKey = useDayCraftStore((s) => s.setSelectedDayKey);
@@ -52,13 +54,13 @@ export const DayStrip: React.FC = () => {
   };
 
   return (
-    <View className="w-full bg-[#12151d] border border-[#262b3a] px-2.5 py-2 rounded-2xl flex-row items-center gap-2">
+    <View className="w-full bg-header border border-line-subtle px-2.5 py-2 rounded-2xl flex-row items-center gap-2">
       {/* Botón Anterior */}
       <Pressable
         onPress={() => shiftDay(-1)}
-        className="w-8 h-12 rounded-xl bg-[#161922] border border-[#2d3345] items-center justify-center active:border-white flex-shrink-0"
+        className="w-8 h-12 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
-        <NotionIcon name="chevron-left" size={14} color="#8b949e" />
+        <NotionIcon name="chevron-left" size={14} color={colors.muted} />
       </Pressable>
 
       {/* Tira Horizontal Deslizable Continua (Multimes) */}
@@ -87,11 +89,11 @@ export const DayStrip: React.FC = () => {
             <React.Fragment key={d.isoDate}>
               {/* Divisor visual cuando cambia de mes (ej. Fin de Octubre -> 01 NOVIEMBRE) */}
               {showMonthDivider ? (
-                <View className="h-12 px-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/25 items-center justify-center flex-shrink-0">
-                  <Text className="text-[9px] font-mono font-bold uppercase tracking-widest text-indigo-400">
+                <View className="h-12 px-2.5 rounded-xl bg-accent/10 border border-accent/25 items-center justify-center flex-shrink-0">
+                  <Text className="text-[9px] font-mono font-bold uppercase tracking-widest text-accent-soft">
                     {d.monthFull}
                   </Text>
-                  <Text className="text-[9px] font-mono text-[#8b949e]">
+                  <Text className="text-[9px] font-mono text-muted">
                     {d.year}
                   </Text>
                 </View>
@@ -102,10 +104,10 @@ export const DayStrip: React.FC = () => {
                 style={{ width: cardWidth }}
                 className={`py-2 px-2 rounded-xl border items-center justify-between flex-shrink-0 ${
                   isSelected
-                    ? 'bg-indigo-600 border-indigo-400 shadow-md'
+                    ? 'bg-accent/20 border-accent'
                     : d.isToday
-                    ? 'bg-[#1f2430] border-indigo-500/50'
-                    : 'bg-[#161922] border-[#262b3a]'
+                    ? 'bg-raised border-accent/50'
+                    : 'bg-card border-line-subtle'
                 }`}
               >
                 {/* Fila Superior: Día de la Semana + Punto de Carga / Hoy */}
@@ -113,10 +115,10 @@ export const DayStrip: React.FC = () => {
                   <Text
                     className={`text-[10px] uppercase font-bold tracking-wider ${
                       isSelected
-                        ? 'text-indigo-100'
+                        ? 'text-accent-soft'
                         : d.isToday
-                        ? 'text-indigo-400'
-                        : 'text-[#8b949e]'
+                        ? 'text-accent-soft'
+                        : 'text-muted'
                     }`}
                   >
                     {d.dayName}
@@ -124,13 +126,13 @@ export const DayStrip: React.FC = () => {
                   {d.isToday ? (
                     <View
                       className={`w-1.5 h-1.5 rounded-full ${
-                        isSelected ? 'bg-white' : 'bg-emerald-400'
+                        isSelected ? 'bg-ink' : 'bg-ok'
                       }`}
                     />
                   ) : hasEvents ? (
                     <View
                       className={`w-1.5 h-1.5 rounded-full ${
-                        isSelected ? 'bg-white' : 'bg-indigo-400'
+                        isSelected ? 'bg-ink' : 'bg-accent'
                       }`}
                     />
                   ) : null}
@@ -141,17 +143,17 @@ export const DayStrip: React.FC = () => {
                   <Text
                     className={`font-mono font-bold ${
                       isDesktop ? 'text-sm' : 'text-xs'
-                    } ${isSelected ? 'text-white' : 'text-[#e6edf3]'}`}
+                    } ${isSelected ? 'text-ink' : 'text-ink'}`}
                   >
                     {d.dayNum}
                   </Text>
                   <Text
                     className={`text-[9px] font-mono font-semibold uppercase ${
                       isSelected
-                        ? 'text-indigo-200'
+                        ? 'text-accent-soft'
                         : d.isFirstOfMonth
-                        ? 'text-indigo-400'
-                        : 'text-[#8b949e]'
+                        ? 'text-accent-soft'
+                        : 'text-muted'
                     }`}
                   >
                     {d.monthShort}
@@ -163,12 +165,12 @@ export const DayStrip: React.FC = () => {
                   numberOfLines={1}
                   className={`text-[9px] font-medium ${
                     isSelected
-                      ? 'text-white'
+                      ? 'text-ink'
                       : d.isToday
-                      ? 'text-emerald-400'
+                      ? 'text-ok'
                       : hasEvents
-                      ? 'text-indigo-300'
-                      : 'text-[#8b949e]/50'
+                      ? 'text-accent-soft'
+                      : 'text-muted/50'
                   }`}
                 >
                   {d.isToday
@@ -186,9 +188,9 @@ export const DayStrip: React.FC = () => {
       {/* Botón Siguiente (Avanza 5 días para explorar rápido el mes siguiente) */}
       <Pressable
         onPress={() => shiftDay(isDesktop ? 5 : 1)}
-        className="w-8 h-12 rounded-xl bg-[#161922] border border-[#2d3345] items-center justify-center active:border-white flex-shrink-0"
+        className="w-8 h-12 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
-        <NotionIcon name="chevron-right" size={14} color="#8b949e" />
+        <NotionIcon name="chevron-right" size={14} color={colors.muted} />
       </Pressable>
     </View>
   );

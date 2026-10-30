@@ -1,5 +1,6 @@
 import React from 'react';
 import Svg, { Path, Circle, Rect, Line, Polyline, Polygon } from 'react-native-svg';
+import { useTheme } from '@/store/useThemeStore';
 
 export type NotionIconName =
   | 'zap'
@@ -42,9 +43,11 @@ interface NotionIconProps {
 export const NotionIcon: React.FC<NotionIconProps> = ({
   name,
   size = 16,
-  color = '#e6edf3',
+  color: colorProp,
   strokeWidth = 1.8,
 }) => {
+  const { colors } = useTheme();
+  const color = colorProp ?? colors.ink;
   const commonProps = {
     stroke: color,
     strokeWidth,

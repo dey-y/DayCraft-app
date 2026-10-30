@@ -18,6 +18,7 @@ Este documento recoge el proceso evolutivo de creación y diseño de **DayCraft 
 9. [v8.3: Vista Semanal 7D, Agenda Rápida Permanente y Cajón Kanban](#v83-propuesta-alternativa--vista-semanal-7-días--agenda-rápida-permanente)
 10. [v8.4: Optimización Ergonómica para Laptops y Saneamiento de Código](#v84-optimización-ergonómica-para-laptops-y-saneamiento-de-código)
 11. [Cierre de la Fase de Prototipado (Móvil & Web)](#-cierre-de-la-fase-de-prototipado-móvil--web)
+12. [v10: Código base Expo y sistema de temas Kuro-Zen](#v10-código-base-expo-y-sistema-de-temas-kuro-zen)
 
 ---
 
@@ -286,4 +287,81 @@ Los mockups v9.0 quedan consolidados como la especificación visual y funcional 
 
 **Siguiente Hito**: Desarrollo del código base con React Native / Expo, TypeScript y NativeWind.
 
+---
 
+## v10: Código base Expo y sistema de temas Kuro-Zen
+
+### Contexto y decisión de diseño de Deimar
+* Tras recuperar en la laptop los cambios subidos a GitHub (`git pull origin main`), el proyecto ya contiene la app Expo (SDK 52, expo-router, NativeWind v4, Zustand, expo-sqlite).
+* **Problema detectado por Deimar**: el diseño v9 (fondo `#0d1117`, índigo `#6366f1`, bordes grises) se sentía "muy común", la estética por defecto de cualquier herramienta de desarrollo. Quiere sentirse cómodo con su propia herramienta.
+* **Dirección elegida**: **Dark Japandi / Kuro-Zen** (fusión escandinava y japonesa: piedra mineral mate, papel washi, madera y té matcha), con **5 temas intercambiables** según el estado de ánimo. Los mockups de exploración están en [`docs/mockups/palette-dark-japandi.html`](docs/mockups/palette-dark-japandi.html).
+
+### Los 5 temas
+| Tema | Nombre | Fondo | Tarjeta | Acento | Sensación |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| Morado | Murasaki (por defecto) | `#131217` | `#191720` | `#9A88C8` | Introspección, creatividad |
+| Rojo | Akane | `#141212` | `#1C1818` | `#C25447` | Calidez, determinación |
+| Azul | Aizome | `#111316` | `#171B20` | `#5E85A8` | Claridad, foco |
+| Negro | Sumi-e | `#101111` | `#181A1A` | `#D1D5DB` | Minimalismo puro |
+| Blanco | Shiro (único tema claro) | `#FAF8F5` | `#FFFFFF` | `#4A6B5B` | Papel washi, luz de día |
+
+### Arquitectura del sistema de temas
+La UI **nunca usa colores sueltos**; todo sale de 15 tokens semánticos definidos igual en cada tema:
+`canvas`, `header`, `card`, `raised`, `line`, `lineSubtle`, `ink`, `muted`, `accent`, `accentSoft`, `onAccent`, `ok`, `warm`, `info`, `now`.
+
+* [`constants/themes.ts`](constants/themes.ts): definición de los 5 temas, `THEME_ORDER`, `DEFAULT_THEME` y utilidades `hexToChannels` / `themeCssVars`.
+* [`store/useThemeStore.ts`](store/useThemeStore.ts): store Zustand con `themeName`, `setTheme` y `hydrateTheme`. Persiste en la tabla `kv_store` existente con la clave `theme_v1` (SQLite en nativo, `localStorage` en web). Incluye el hook `useTheme()` que devuelve `{ theme, colors, isDark }`.
+* [`tailwind.config.js`](tailwind.config.js): los tokens se exponen como colores de Tailwind con soporte de opacidad (`rgb(var(--c-canvas) / <alpha-value>)`), de modo que sirven `bg-canvas`, `border-line`, `text-ink`, `bg-accent/20`, etc.
+* [`app/_layout.tsx`](app/_layout.tsx): publica el tema activo como variables CSS con `vars()` de NativeWind en la raíz, ajusta el `StatusBar` (claro/oscuro según el tema) y, en web, también escribe las variables en `<html>` para que los `Modal`/portales las hereden. Recupera el tema guardado tras abrir SQLite (`hydrateFromSQLite().then(hydrateTheme)`).
+* [`global.css`](global.css): valores por defecto (Murasaki) y fondo del `body` desde `--c-canvas`.
+
+**Regla para el código nuevo**
+* Clases: `bg-canvas`, `bg-card`, `bg-raised`, `border-line`, `border-line-subtle`, `text-ink`, `text-muted`, `bg-accent`, `text-accent-soft`, `text-ok`, `text-warm`, `text-info`, `text-now`.
+* Props nativas (iconos, SVG, StyleSheet): `const { colors } = useTheme();` y `colors.muted`, etc. `NotionIcon` usa `colors.ink` por defecto.
+* Prohibido usar hex sueltos, `text-white`/`bg-white` o las paletas `indigo/emerald/amber/sky/rose` de Tailwind.
+
+### Migración realizada (paso 1 y 2 de la auditoría)
+* Se sustituyeron los **241 colores fijos** de 22 archivos de `app/` y `components/` por tokens (por ejemplo `bg-[#161922]` → `bg-card`, `text-white` → `text-ink`, `text-black` → `text-canvas`, `indigo` → `accent`, `emerald` → `ok`, `amber` → `warm`, `sky` → `info`, `rose` → `now`).
+* Los colores pasados como props (iconos) ahora leen `colors.*` mediante `useTheme()`.
+* **Decisión de diseño**: los estados "seleccionado" (día elegido en `DayStrip`, chips del selector de hora, etiqueta de arrastre) pasaron de relleno sólido a **acento tintado con borde** (`bg-accent/20 border-accent`). Un relleno sólido con texto claro no se leería en Sumi-e (acento plata) ni en Shiro; además encaja mejor con el principio de calma visual.
+* En Akane el color de "hora actual" es dorado (`#E3A857`) para no confundirse con el acento rojo.
+* Las opacidades no estándar (`/12`) se normalizaron a `/10`, porque Tailwind no las genera.
+
+### Selector de tema en la app
+* Componente [`components/ui/ThemePicker.tsx`](components/ui/ThemePicker.tsx) (`ThemePickerButton`).
+* Botón discreto (punto del color de acento actual) junto a la campana, en la cabecera de escritorio y en la móvil.
+* Abre un popover "Atmósfera" (`Modal` transparente, válido en web/iOS/Android) con los 5 temas como círculos que muestran **sus propios colores**. Al elegir, el tema se aplica en vivo bajo un velo suave, se guarda en SQLite y el popover se cierra solo a los 550 ms. Las variables de tema se pasan también al propio `Modal` por si el nativo vive en otra raíz de vistas.
+
+### Corrección: texto cortado en la barra inferior móvil
+* **Síntoma**: los iconos se veían bien pero las etiquetas ("Asistente", "Ideas", "Pendientes", "Timeline 24h") quedaban cortadas.
+* **Causa**: `tabBarStyle` tenía `height: 58` fijo con `paddingTop/Bottom: 6`, dejando ~46 px para icono + etiqueta; además, al fijar la altura se ignoraba el área segura inferior (barra de gestos).
+* **Solución** en [`app/(tabs)/_layout.tsx`](app/(tabs)/_layout.tsx):
+  * Altura calculada `mobileTabBarHeight = 64 + insets.bottom` (con `useSafeAreaInsets`), `paddingTop: 8` y `paddingBottom: Math.max(insets.bottom, 8)`.
+  * Etiquetas con `fontSize: 11`, `lineHeight: 14`, `marginTop: 3` y `tabBarAllowFontScaling: false` (el escalado de fuente del sistema las desbordaba).
+  * El `SmartIntakeBar` ya no está anclado a `bottom: 58`, sino a `mobileTabBarHeight`, para no solaparse nunca con la barra.
+* Pendiente de verificación visual en el móvil real de Deimar.
+
+### Cómo ejecutar el proyecto
+```bash
+npm install            # solo la primera vez o tras cambiar dependencias
+npm run web            # navegador (http://localhost:8081)
+npm start              # QR para Expo Go (móvil)
+npx expo start --web --clear   # si algo se ve raro tras tocar tailwind/babel/metro/global.css
+npm run typecheck      # tsc --noEmit
+```
+* Con el servidor en marcha se puede seguir editando: **Fast Refresh** recarga al guardar. Los cambios en `tailwind.config.js`, `babel.config.js`, `metro.config.js`, `global.css` o dependencias requieren reiniciar (con `--clear`).
+* **Expo Go muestra "Algo ha salido mal"**: el código compila (se comprobó con `npx expo export`), la causa habitual es la red (firewall de Windows o Wi-Fi que aísla dispositivos). Se soluciona con `npx expo start --tunnel`; también conviene que Expo Go esté actualizado para SDK 52.
+* En esta laptop `git` necesitó `git config core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe"` para usar el cliente SSH de Windows.
+
+### Hoja de ruta (resto de la auditoría de diseño)
+Hecho: tokens de color (1), migración de colores (2), selector de temas (7), corrección de la barra inferior móvil.
+
+Pendiente, en este orden:
+1. **Tipografía**: cargar fuentes con `expo-font` (hoy se usa la del sistema). Propuesta: *Fraunces* (títulos/fechas), *Plus Jakarta Sans* o *Inter* (interfaz), *JetBrains Mono* (horas, `tabular-nums`) y una serif de lectura para las notas Markdown.
+2. **Tamaños mínimos**: existen textos de 9 y 10 px (etiqueta "De ayer", hora en el evento); subir a 12 px mínimo, cuerpo de tareas a 15 px en móvil y zonas táctiles de 44×44 px (el botón "Fijar hora" mide ~24 px).
+3. **Cuadrícula del raíl**: `quarterHeight` de 13–14 px no admite texto en bloques de 15 min; subir a ~18 px por cuarto en móvil.
+4. **Concepto "Ma" (espacio negativo)**: quitar líneas de hora y la discontinua de `:30`, bloques sin borde (solo fondo tintado y barra de 2 px), más aire entre eventos y colapsar la madrugada (00:00–06:00).
+5. **Microinteracciones** con Reanimated: completar tarea (relleno desde el centro y tachado animado, haptic ligero), tarea "de ayer" (punto bambú en vez de ámbar, tono amable, sin culpa), selección de cuartos de hora (fantasma con fade y "asentado" del bloque) y transición de 350 ms entre temas.
+6. **Modo automático**: Shiro de día y el último tema oscuro elegido de noche, opción en Ajustes.
+7. **Contraste**: verificar con un script WCAG AA (≥ 4.5:1) todos los pares texto/fondo de los 5 temas; los valores de Shiro, Sumi-e y Akane se ajustaron a ojo.
+8. Limpiar la constante `COLORS` heredada de [`constants/theme.ts`](constants/theme.ts) (ya sin uso) y los mockups HTML antiguos de la raíz.

@@ -8,6 +8,7 @@ import {
 } from '@/services/db/sqlite';
 import { SMART_SLOTS_PRESETS } from '@/constants/theme';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 interface SlotPickerSheetContentProps {
   onClose?: () => void;
@@ -37,6 +38,7 @@ const FREQUENCY_OPTIONS: { key: RecurrenceFrequency; label: string }[] = [
 export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
   onClose,
 }) => {
+  const { colors } = useTheme();
   const slotPickerTarget = useDayCraftStore((s) => s.slotPickerTarget);
   const assignSlotFromPicker = useDayCraftStore((s) => s.assignSlotFromPicker);
   const closeSlotPicker = useDayCraftStore((s) => s.closeSlotPicker);
@@ -126,7 +128,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
 
   const renderRecurrenceSelector = () => (
     <View className="gap-2">
-      <Text className="text-[10px] uppercase tracking-wider font-bold text-[#8b949e]">
+      <Text className="text-[10px] uppercase tracking-wider font-bold text-muted">
         Repetición
       </Text>
       <View className="flex-row flex-wrap gap-1.5">
@@ -138,13 +140,13 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
               onPress={() => setFrequency(opt.key)}
               className={`px-2.5 py-1.5 rounded-lg border ${
                 isSel
-                  ? 'bg-indigo-600 border-indigo-400'
-                  : 'bg-[#1f2430] border-[#2d3345]'
+                  ? 'bg-accent/20 border-accent'
+                  : 'bg-raised border-line'
               }`}
             >
               <Text
                 className={`text-[11px] font-semibold ${
-                  isSel ? 'text-white' : 'text-[#8b949e]'
+                  isSel ? 'text-ink' : 'text-muted'
                 }`}
               >
                 {opt.label}
@@ -165,13 +167,13 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
                 onPress={() => toggleWeekDay(wd.key)}
                 className={`w-9 h-9 rounded-xl border items-center justify-center ${
                   active
-                    ? 'bg-white border-white'
-                    : 'bg-[#0d1117] border-[#2d3345]'
+                    ? 'bg-ink border-ink'
+                    : 'bg-canvas border-line'
                 }`}
               >
                 <Text
                   className={`text-xs font-mono font-bold ${
-                    active ? 'text-black' : 'text-[#8b949e]'
+                    active ? 'text-canvas' : 'text-muted'
                   }`}
                 >
                   {wd.short}
@@ -184,8 +186,8 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
 
       {/* Confirmación del día del mes cuando elige Mensual */}
       {frequency === 'monthly' ? (
-        <View className="px-3 py-2 rounded-xl bg-[#0d1117] border border-[#262b3a]">
-          <Text className="text-[11px] text-indigo-300 font-mono">
+        <View className="px-3 py-2 rounded-xl bg-canvas border border-line-subtle">
+          <Text className="text-[11px] text-accent-soft font-mono">
             Se repetirá el día {Number(activeDay?.dayNum || 27)} de cada mes
           </Text>
         </View>
@@ -200,11 +202,11 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
     const endStr = formatQuarterToTime(startQ + quarters);
 
     return (
-      <View className="bg-[#161922] border border-[#2d3345] rounded-2xl p-4 gap-3.5 w-full max-w-sm self-center shadow-2xl">
+      <View className="bg-card border border-line rounded-2xl p-4 gap-3.5 w-full max-w-sm self-center shadow-2xl">
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2">
-            <NotionIcon name="clock" size={14} color="#818cf8" />
-            <Text className="font-mono font-bold text-xs text-indigo-400">
+            <NotionIcon name="clock" size={14} color={colors.accentSoft} />
+            <Text className="font-mono font-bold text-xs text-accent-soft">
               {startStr} – {endStr}
             </Text>
           </View>
@@ -212,9 +214,9 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
           <Pressable
             onPress={handleClose}
             hitSlop={8}
-            className="w-6 h-6 rounded-full bg-[#1f2430] items-center justify-center"
+            className="w-6 h-6 rounded-full bg-raised items-center justify-center"
           >
-            <NotionIcon name="close" size={12} color="#8b949e" />
+            <NotionIcon name="close" size={12} color={colors.muted} />
           </Pressable>
         </View>
 
@@ -223,9 +225,9 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
           onChangeText={setCustomTitle}
           autoFocus
           placeholder="Añade un título y pulsa Enter..."
-          placeholderTextColor="#8b949e"
+          placeholderTextColor={colors.muted}
           onSubmitEditing={() => handleSelectSlot(startQ, quarters)}
-          className="bg-[#0d1117] border border-[#2d3345] rounded-xl px-3.5 py-2.5 text-xs text-white"
+          className="bg-canvas border border-line rounded-xl px-3.5 py-2.5 text-xs text-ink"
         />
 
         {renderRecurrenceSelector()}
@@ -235,14 +237,14 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
             onPress={handleClose}
             className="px-3 py-1.5 rounded-lg"
           >
-            <Text className="text-xs font-medium text-[#8b949e]">Cancelar</Text>
+            <Text className="text-xs font-medium text-muted">Cancelar</Text>
           </Pressable>
 
           <Pressable
             onPress={() => handleSelectSlot(startQ, quarters)}
-            className="px-4 py-1.5 rounded-xl bg-white active:opacity-85"
+            className="px-4 py-1.5 rounded-xl bg-ink active:opacity-85"
           >
-            <Text className="text-xs font-bold text-black">Guardar</Text>
+            <Text className="text-xs font-bold text-canvas">Guardar</Text>
           </Pressable>
         </View>
       </View>
@@ -251,25 +253,25 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
 
   // ==================== MODO B: 1-TAP TIME BLOCKING DESDE PENDIENTES / IDEAS ====================
   return (
-    <View className="bg-[#161922] border border-[#2d3345] rounded-3xl p-5 gap-3.5 w-full max-w-sm self-center shadow-2xl">
-      <View className="flex-row items-center justify-between pb-2 border-b border-[#262b3a]">
+    <View className="bg-card border border-line rounded-3xl p-5 gap-3.5 w-full max-w-sm self-center shadow-2xl">
+      <View className="flex-row items-center justify-between pb-2 border-b border-line-subtle">
         <View className="flex-row items-center gap-2 flex-1 min-w-0">
-          <NotionIcon name="clock" size={15} color="#818cf8" />
-          <Text numberOfLines={1} className="font-bold text-xs text-white flex-1">
+          <NotionIcon name="clock" size={15} color={colors.accentSoft} />
+          <Text numberOfLines={1} className="font-bold text-xs text-ink flex-1">
             Agendar: "{customTitle}"
           </Text>
         </View>
         <Pressable
           onPress={handleClose}
-          className="w-6 h-6 rounded-full bg-[#1f2430] items-center justify-center"
+          className="w-6 h-6 rounded-full bg-raised items-center justify-center"
         >
-          <NotionIcon name="close" size={12} color="#8b949e" />
+          <NotionIcon name="close" size={12} color={colors.muted} />
         </Pressable>
       </View>
 
       {renderRecurrenceSelector()}
 
-      <Text className="text-xs text-[#8b949e]">
+      <Text className="text-xs text-muted">
         Elige un hueco libre de hoy en 1 toque:
       </Text>
 
@@ -279,12 +281,12 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
             key={slot.startTime}
             onPress={() => handleSelectSlot(slot.startQ, 2)}
             style={{ width: '48%' }}
-            className="p-3 rounded-xl bg-[#1f2430] border border-[#2d3345] active:border-white"
+            className="p-3 rounded-xl bg-raised border border-line active:border-ink"
           >
-            <Text className="font-mono font-bold text-xs text-indigo-400">
+            <Text className="font-mono font-bold text-xs text-accent-soft">
               {slot.startTime}
             </Text>
-            <Text numberOfLines={1} className="text-[10px] text-[#8b949e] mt-0.5">
+            <Text numberOfLines={1} className="text-[10px] text-muted mt-0.5">
               {slot.label}
             </Text>
           </Pressable>
@@ -293,10 +295,10 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
         <Pressable
           onPress={() => setShowCustomInput((v) => !v)}
           style={{ width: '48%' }}
-          className="p-3 rounded-xl bg-[#1f2430] border border-dashed border-[#2d3345] active:border-white"
+          className="p-3 rounded-xl bg-raised border border-dashed border-line active:border-ink"
         >
-          <Text className="font-mono font-bold text-xs text-white">Manual</Text>
-          <Text className="text-[10px] text-[#8b949e] mt-0.5">Elegir HH:MM</Text>
+          <Text className="font-mono font-bold text-xs text-ink">Manual</Text>
+          <Text className="text-[10px] text-muted mt-0.5">Elegir HH:MM</Text>
         </Pressable>
       </View>
 
@@ -306,14 +308,14 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
             value={customHourStr}
             onChangeText={setCustomHourStr}
             placeholder="15:30"
-            placeholderTextColor="#8b949e"
-            className="flex-1 bg-[#1f2430] border border-[#2d3345] rounded-xl px-3 py-2 text-xs font-mono text-white"
+            placeholderTextColor={colors.muted}
+            className="flex-1 bg-raised border border-line rounded-xl px-3 py-2 text-xs font-mono text-ink"
           />
           <Pressable
             onPress={handleApplyCustomTime}
-            className="px-3.5 py-2 rounded-xl bg-white"
+            className="px-3.5 py-2 rounded-xl bg-ink"
           >
-            <Text className="text-xs font-bold text-black">Fijar</Text>
+            <Text className="text-xs font-bold text-canvas">Fijar</Text>
           </Pressable>
         </View>
       ) : null}

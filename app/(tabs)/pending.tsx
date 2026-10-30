@@ -5,6 +5,7 @@ import { LAYOUT } from '@/constants/theme';
 import { NotionIcon } from '@/components/ui/NotionIcon';
 import { PendingItem } from '@/components/pending/PendingItem';
 import { EmptyCelebration } from '@/components/pending/EmptyCelebration';
+import { useTheme } from '@/store/useThemeStore';
 
 /**
  * Tab 3: Pendientes de Hoy (Sin hora fija) & Rollover Antiestrés
@@ -12,6 +13,7 @@ import { EmptyCelebration } from '@/components/pending/EmptyCelebration';
  * - Incluye pastilla `[ De ayer ]`, botón `[ Fijar hora ]` y simulador de Rollover / Todo Hecho.
  */
 export default function PendingScreen() {
+  const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
 
@@ -25,7 +27,7 @@ export default function PendingScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#0d1117' }}
+      style={{ flex: 1, backgroundColor: colors.canvas }}
       contentContainerStyle={{
         padding: 16,
         paddingBottom: isDesktop ? 32 : 96,
@@ -36,30 +38,30 @@ export default function PendingScreen() {
       <View className="flex-row items-center justify-between">
         <View>
           <View className="flex-row items-center gap-2">
-            <NotionIcon name="checkbox-checked" size={16} color="#818cf8" />
-            <Text className="font-bold text-sm text-white">Pendientes de Hoy</Text>
+            <NotionIcon name="checkbox-checked" size={16} color={colors.accentSoft} />
+            <Text className="font-bold text-sm text-ink">Pendientes de Hoy</Text>
           </View>
-          <Text className="text-[11px] text-[#8b949e] mt-0.5">
+          <Text className="text-[11px] text-muted mt-0.5">
             Cosas para hacer hoy sin hora fija asignada
           </Text>
         </View>
 
-        <View className="px-2.5 py-1 rounded-full bg-[#1f2430] border border-[#2d3345]">
-          <Text className="text-[10px] font-mono text-[#8b949e]">
+        <View className="px-2.5 py-1 rounded-full bg-raised border border-line">
+          <Text className="text-[10px] font-mono text-muted">
             {incompleteCount} {incompleteCount === 1 ? 'cosa' : 'cosas'}
           </Text>
         </View>
       </View>
 
       {/* Indicador de Punto de Entrada Único (Cero Redundancia de Inputs) */}
-      <View className="p-3 rounded-xl bg-[#161922] border border-[#262b3a] flex-row items-center justify-between">
+      <View className="p-3 rounded-xl bg-card border border-line-subtle flex-row items-center justify-between">
         <View className="flex-row items-center gap-2 flex-1">
-          <NotionIcon name="mic" size={14} color="#818cf8" />
-          <Text className="text-[11px] text-[#8b949e] flex-1">
+          <NotionIcon name="mic" size={14} color={colors.accentSoft} />
+          <Text className="text-[11px] text-muted flex-1">
             Dicta o escribe en la barra Smart Intake para añadir pendientes
           </Text>
         </View>
-        <Text className="font-mono text-[9px] text-[#8b949e]">Smart Intake</Text>
+        <Text className="font-mono text-[9px] text-muted">Smart Intake</Text>
       </View>
 
       {/* Lista de Pendientes o Empty State Motivador */}
@@ -88,18 +90,18 @@ export default function PendingScreen() {
       <View className="flex-row gap-2 pt-2">
         <Pressable
           onPress={simulateAllPendingDone}
-          className="flex-1 py-2 px-3 rounded-xl border border-dashed border-[#2d3345] items-center active:border-white"
+          className="flex-1 py-2 px-3 rounded-xl border border-dashed border-line items-center active:border-ink"
         >
-          <Text className="text-[10px] text-[#8b949e] font-medium">
+          <Text className="text-[10px] text-muted font-medium">
             Simular: Todo Hecho / Restaurar
           </Text>
         </Pressable>
 
         <Pressable
           onPress={triggerRolloverSimulation}
-          className="flex-1 py-2 px-3 rounded-xl border border-dashed border-amber-500/30 items-center active:border-amber-400"
+          className="flex-1 py-2 px-3 rounded-xl border border-dashed border-warm/30 items-center active:border-warm"
         >
-          <Text className="text-[10px] text-amber-400 font-medium">
+          <Text className="text-[10px] text-warm font-medium">
             Simular: Rollover (+1 día)
           </Text>
         </Pressable>

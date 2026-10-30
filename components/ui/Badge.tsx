@@ -11,24 +11,24 @@ interface BadgeProps {
 
 const VARIANT_STYLES: Record<BadgeVariant, { container: string; text: string }> = {
   neutral: {
-    container: 'bg-[#1f2430] border-[#2d3345]',
-    text: 'text-[#8b949e]',
+    container: 'bg-raised border-line',
+    text: 'text-muted',
   },
   indigo: {
-    container: 'bg-indigo-500/15 border-indigo-500/30',
-    text: 'text-indigo-300',
+    container: 'bg-accent/15 border-accent/30',
+    text: 'text-accent-soft',
   },
   emerald: {
-    container: 'bg-emerald-500/15 border-emerald-500/30',
-    text: 'text-emerald-400',
+    container: 'bg-ok/15 border-ok/30',
+    text: 'text-ok',
   },
   amber: {
-    container: 'bg-amber-500/15 border-amber-500/30',
-    text: 'text-amber-400',
+    container: 'bg-warm/15 border-warm/30',
+    text: 'text-warm',
   },
   sky: {
-    container: 'bg-sky-500/15 border-sky-500/30',
-    text: 'text-sky-400',
+    container: 'bg-info/15 border-info/30',
+    text: 'text-info',
   },
 };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { NotionIcon, NotionIconName } from './NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 interface ButtonProps {
   label: string;
@@ -19,18 +20,19 @@ export const Button: React.FC<ButtonProps> = ({
   icon,
   fullWidth = false,
 }) => {
+  const { colors } = useTheme();
   const variantClasses = {
-    primary: 'bg-white border border-white active:opacity-85',
-    secondary: 'bg-[#1f2430] border border-[#2d3345] active:border-white',
-    ghost: 'bg-transparent border border-transparent active:bg-[#1f2430]',
-    dashed: 'bg-transparent border border-dashed border-[#2d3345] active:border-white',
+    primary: 'bg-ink border border-ink active:opacity-85',
+    secondary: 'bg-raised border border-line active:border-ink',
+    ghost: 'bg-transparent border border-transparent active:bg-raised',
+    dashed: 'bg-transparent border border-dashed border-line active:border-ink',
   }[variant];
 
   const textClasses = {
-    primary: 'text-black font-bold',
-    secondary: 'text-[#e6edf3] font-semibold',
-    ghost: 'text-[#8b949e] font-medium',
-    dashed: 'text-[#8b949e] font-medium',
+    primary: 'text-canvas font-bold',
+    secondary: 'text-ink font-semibold',
+    ghost: 'text-muted font-medium',
+    dashed: 'text-muted font-medium',
   }[variant];
 
   const sizeClasses = {
@@ -45,7 +47,7 @@ export const Button: React.FC<ButtonProps> = ({
     md: 'text-sm',
   }[size];
 
-  const iconColor = variant === 'primary' ? '#000000' : variant === 'secondary' ? '#e6edf3' : '#8b949e';
+  const iconColor = variant === 'primary' ? colors.canvas : variant === 'secondary' ? colors.ink : colors.muted;
 
   return (
     <Pressable

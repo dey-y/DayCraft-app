@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Pressable, Text } from 'react-native';
 import { NotionIcon } from '@/components/ui/NotionIcon';
 import { useDayCraftStore, SlotPickerTarget } from '@/store/useDayCraftStore';
+import { useTheme } from '@/store/useThemeStore';
 
 interface SmartIntakeBarProps {
   isOnChatScreen?: boolean;
@@ -26,6 +27,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
   compact = false,
   onOpenSlotPicker,
 }) => {
+  const { colors } = useTheme();
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [sampleIdx, setSampleIdx] = useState(0);
@@ -54,21 +56,21 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
     <View
       className={`${
         compact
-          ? 'pt-2.5 border-t border-[#262b3a]'
-          : 'px-3.5 py-2.5 border-t border-[#262b3a] bg-[#161922]'
+          ? 'pt-2.5 border-t border-line-subtle'
+          : 'px-3.5 py-2.5 border-t border-line-subtle bg-card'
       }`}
     >
       <View className="flex-row items-center gap-2">
-        <View className="flex-1 bg-[#1f2430] border border-[#2d3345] rounded-full px-3.5 py-2 flex-row items-center gap-2">
+        <View className="flex-1 bg-raised border border-line rounded-full px-3.5 py-2 flex-row items-center gap-2">
           <TextInput
             value={isRecording ? 'Escuchando dictado por voz...' : text}
             onChangeText={setText}
             editable={!isRecording}
             placeholder="Háblame o escribe una idea, tarea o recordatorio..."
-            placeholderTextColor="#8b949e"
+            placeholderTextColor={colors.muted}
             onSubmitEditing={handleSubmit}
             returnKeyType="send"
-            className="flex-1 text-xs text-white py-0.5 outline-none"
+            className="flex-1 text-xs text-ink py-0.5 outline-none"
           />
           {text.trim().length > 0 && !isRecording ? (
             <Pressable
@@ -76,7 +78,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
               className="p-1 rounded-full active:scale-95"
               hitSlop={8}
             >
-              <NotionIcon name="send" size={14} color="#ffffff" />
+              <NotionIcon name="send" size={14} color={colors.ink} />
             </Pressable>
           ) : null}
         </View>
@@ -85,20 +87,20 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
           onPress={handleVoiceSimulate}
           className={`w-9 h-9 rounded-full items-center justify-center flex-shrink-0 ${
             isRecording
-              ? 'bg-rose-500/20 border border-rose-400'
-              : 'bg-white active:opacity-85'
+              ? 'bg-now/20 border border-now'
+              : 'bg-ink active:opacity-85'
           }`}
         >
           <NotionIcon
             name="mic"
             size={15}
-            color={isRecording ? '#fb7185' : '#000000'}
+            color={isRecording ? colors.now : colors.canvas}
           />
         </Pressable>
       </View>
 
       {compact ? (
-        <Text className="text-[10px] text-[#8b949e] text-center mt-1.5">
+        <Text className="text-[10px] text-muted text-center mt-1.5">
           Gemini clasifica en Tarea con Horario, Pendiente o Idea.
         </Text>
       ) : null}

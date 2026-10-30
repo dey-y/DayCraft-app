@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DayCraft AI - Selector de Temas Zen (Morado, Rojo, Azul, Negro y Blanco)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-base, #0f1110);
+      color: var(--text-primary, #E8E6DF);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      padding: 36px 20px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      max-width: 1140px;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 9999px;
+      background: var(--bg-card, #191B1A);
+      border: 1px solid var(--border-subtle, #2B302D);
+      color: var(--accent-rollover, #C89F77);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+      color: var(--text-primary, #E8E6DF);
+    }
+
+    p.subtitle {
+      font-size: 14.5px;
+      color: var(--text-muted, #8E948F);
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* Theme Selector Tabs */
+    .theme-selector {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 26px 0 34px 0;
+      flex-wrap: wrap;
+    }
+
+    .theme-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      background: var(--bg-card, #181A19);
+      border: 1px solid var(--border-subtle, #282D2A);
+      color: var(--text-muted, #A3A8A4);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .theme-btn:hover {
+      border-color: var(--accent-main, #3E4540);
+      color: var(--text-primary, #E8E6DF);
+      transform: translateY(-1px);
+    }
+
+    .theme-btn.active {
+      background: var(--bg-surface, #242826);
+      color: var(--text-primary, #FFFFFF);
+      border-color: var(--accent-main, #9A88C8);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+    }
+
+    .color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 5px;
+    }
+
+    /* Live Interactive Canvas */
+    .live-preview-section {
+      background: var(--bg-card, #17161B);
+      border: 1px solid var(--border-subtle, #272430);
+      border-radius: 24px;
+      padding: 32px;
+      margin-bottom: 40px;
+      box-shadow: 0 16px 50px rgba(0, 0, 0, 0.25);
+      transition: all 0.3s ease;
+    }
+
+    .preview-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-subtle, #272430);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .preview-title-box h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary, #EDEAF2);
+    }
+
+    .preview-title-box p {
+      font-size: 13px;
+      color: var(--text-muted, #908A9B);
+    }
+
+    .hex-pills-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .hex-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      background: var(--bg-surface, rgba(0, 0, 0, 0.35));
+      border: 1px solid var(--border-subtle, #272430);
+      color: var(--text-primary, #EDEAF2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+
+    .hex-pill:hover {
+      filter: brightness(1.15);
+    }
+
+    .hex-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    /* Mockup Layout */
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 840px) {
+      .mockup-grid {
+        grid-template-columns: 1fr;
+      }
+      .live-preview-section {
+        padding: 20px;
+      }
+    }
+
+    .panel {
+      background: var(--bg-surface, #1C1A22);
+      border: 1px solid var(--border-subtle, #272430);
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .panel-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+      color: var(--text-muted, #908A9B);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* DayStrip Component */
+    .daystrip {
+      display: flex;
+      gap: 8px;
+    }
+
+    .day-item {
+      flex: 1;
+      padding: 10px 4px;
+      border-radius: 12px;
+      text-align: center;
+      background: var(--bg-card, #17161B);
+      border: 1px solid var(--border-subtle, #272430);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .day-item .day-name {
+      font-size: 10.5px;
+      color: var(--text-muted, #908A9B);
+      margin-bottom: 2px;
+      font-weight: 500;
+    }
+
+    .day-item .day-num {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary, #EDEAF2);
+    }
+
+    .day-item.active {
+      background: var(--bg-active, #262232);
+      border-color: var(--accent-main, #9A88C8);
+      box-shadow: 0 0 12px var(--accent-glow, rgba(154, 136, 200, 0.2));
+    }
+
+    .day-item.active .day-name {
+      color: var(--accent-main, #9A88C8);
+    }
+
+    /* Time-Blocking Slot */
+    .time-slot {
+      background: var(--accent-subtle, rgba(154, 136, 200, 0.12));
+      border-left: 3.5px solid var(--accent-main, #9A88C8);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .time-slot .slot-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-primary, #EDEAF2);
+      margin-bottom: 2px;
+    }
+
+    .time-slot .slot-meta {
+      font-size: 11.5px;
+      color: var(--text-muted, #908A9B);
+    }
+
+    .time-badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--bg-card, rgba(0, 0, 0, 0.25));
+      border: 1px solid var(--border-subtle);
+      color: var(--accent-main, #9A88C8);
+      font-weight: 500;
+    }
+
+    /* Current Time Indicator */
+    .timeline-now-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 4px 0;
+    }
+
+    .now-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--accent-indicator, #D45A4D);
+      font-weight: 600;
+    }
+
+    .now-line {
+      flex: 1;
+      height: 1.5px;
+      background: var(--accent-indicator, #D45A4D);
+      opacity: 0.8;
+      position: relative;
+    }
+
+    .now-line::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent-indicator, #D45A4D);
+    }
+
+    /* Tasks / Rollover */
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card, #17161B);
+      border: 1px solid var(--border-subtle, #272430);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13.5px;
+    }
+
+    .check-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .check-btn.checked {
+      background: var(--accent-main, #9A88C8);
+      color: #FFFFFF;
+      font-weight: bold;
+    }
+
+    .check-btn.unchecked {
+      border: 1.5px solid var(--border-subtle, #272430);
+    }
+
+    .task-text {
+      color: var(--text-primary, #EDEAF2);
+      flex: 1;
+    }
+
+    .task-text.done {
+      text-decoration: line-through;
+      color: var(--text-muted, #908A9B);
+      opacity: 0.75;
+    }
+
+    .rollover-chip {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: var(--accent-rollover-subtle, rgba(200, 159, 119, 0.15));
+      color: var(--accent-rollover, #C89F77);
+      font-weight: 500;
+    }
+
+    /* 5 Variations Grid (At a glance) */
+    .section-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-weight: 600;
+      color: var(--text-muted, #8E948F);
+      margin: 40px 0 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle, #252A27);
+    }
+
+    .variants-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+    }
+
+    .variant-card {
+      background: var(--bg-card, #151716);
+      border: 1px solid var(--border-subtle, #252A27);
+      border-radius: 18px;
+      padding: 18px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .variant-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .variant-card.current {
+      border-color: var(--accent-main, #A3A8A4);
+      background: var(--bg-surface, #1B1D1C);
+    }
+
+    .variant-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .variant-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary, #E8E6DF);
+    }
+
+    .variant-badge {
+      font-size: 10px;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+
+    .variant-swatches {
+      display: flex;
+      gap: 6px;
+      height: 26px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .variant-swatches div {
+      flex: 1;
+    }
+
+    .variant-desc {
+      font-size: 12px;
+      color: var(--text-muted, #8E948F);
+      line-height: 1.45;
+    }
+
+    /* In-App Theme Switcher Feature Callout */
+    .feature-callout {
+      background: var(--bg-card, #181A19);
+      border: 1px solid var(--border-subtle, #2B302D);
+      border-radius: 20px;
+      padding: 24px;
+      margin-top: 36px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .feature-icon {
+      font-size: 32px;
+    }
+
+    .feature-info h4 {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary, #E8E6DF);
+      margin-bottom: 4px;
+    }
+
+    .feature-info p {
+      font-size: 13px;
+      color: var(--text-muted, #8E948F);
+      line-height: 1.5;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      background: var(--text-primary, #E8E6DF);
+      color: var(--bg-base, #121413);
+      font-weight: 600;
+      font-size: 12.5px;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="tag">DayCraft AI Design System</div>
+      <h1>Selector de Temas Zen</h1>
+      <p class="subtitle">
+        Elige tu atmósfera según el momento del día: 4 modos oscuros minerales y el nuevo modo claro en papel washi artesanal.
+      </p>
+
+      <!-- Theme Switcher Pills -->
+      <div class="theme-selector">
+        <button class="theme-btn active" onclick="setTheme('purple')">
+          <div class="color-dot" style="background: #9A88C8;"></div>
+          <span>1. Morado (Murasaki)</span>
+        </button>
+        <button class="theme-btn" onclick="setTheme('red')">
+          <div class="color-dot" style="background: #C25447;"></div>
+          <span>2. Rojo (Akane)</span>
+        </button>
+        <button class="theme-btn" onclick="setTheme('blue')">
+          <div class="color-dot" style="background: #5E85A8;"></div>
+          <span>3. Azul (Aizome)</span>
+        </button>
+        <button class="theme-btn" onclick="setTheme('black')">
+          <div class="color-dot" style="background: #D1D5DB;"></div>
+          <span>4. Negro (Sumi-e)</span>
+        </button>
+        <button class="theme-btn" onclick="setTheme('white')">
+          <div class="color-dot" style="background: #F4EFE6; border: 1px solid #C4BEB3;"></div>
+          <span>5. Blanco (Washi Paper)</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Interactive Live Preview Section -->
+    <section class="live-preview-section" id="liveSection">
+      <div class="preview-header">
+        <div class="preview-title-box">
+          <h3 id="currentThemeTitle">1. Morado Ciruela / Lavanda Ahumada (Zen Murasaki)</h3>
+          <p id="currentThemeDesc">Introspectivo, creativo y calmado. Un morado desaturado con tintes de té y ciruela japonesa.</p>
+        </div>
+        <div class="hex-pills-row" id="hexRow">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Mockup of Actual DayCraft Components -->
+      <div class="mockup-grid">
+        <!-- Left: Time-blocking & DayStrip -->
+        <div class="panel">
+          <div class="panel-title">
+            <span>Agenda & Time-Blocking (15m)</span>
+            <span style="font-family: 'JetBrains Mono', monospace;">OCTUBRE 2026</span>
+          </div>
+
+          <!-- DayStrip -->
+          <div class="daystrip">
+            <div class="day-item">
+              <div class="day-name">LUN</div>
+              <div class="day-num">26</div>
+            </div>
+            <div class="day-item active">
+              <div class="day-name">HOY</div>
+              <div class="day-num">27</div>
+            </div>
+            <div class="day-item">
+              <div class="day-name">MIÉ</div>
+              <div class="day-num">28</div>
+            </div>
+            <div class="day-item">
+              <div class="day-name">JUE</div>
+              <div class="day-num">29</div>
+            </div>
+            <div class="day-item">
+              <div class="day-name">VIE</div>
+              <div class="day-num">30</div>
+            </div>
+          </div>
+
+          <!-- Time slot -->
+          <div class="time-slot">
+            <div>
+              <div class="slot-title">Bloque de Enfoque Profundo</div>
+              <div class="slot-meta">Diseño de arquitectura & ideas</div>
+            </div>
+            <div class="time-badge">09:30 - 11:00</div>
+          </div>
+
+          <!-- Indicator Now -->
+          <div class="timeline-now-row">
+            <div class="now-tag">10:45</div>
+            <div class="now-line"></div>
+          </div>
+
+          <!-- Second slot -->
+          <div class="time-slot" style="opacity: 0.88;">
+            <div>
+              <div class="slot-title">Revisión de Notas & Diario</div>
+              <div class="slot-meta">Bandeja de ideas Markdown</div>
+            </div>
+            <div class="time-badge">11:15 - 12:00</div>
+          </div>
+        </div>
+
+        <!-- Right: Tasks & Rollover -->
+        <div class="panel">
+          <div class="panel-title">
+            <span>Tareas & Rollover Antiestrés</span>
+            <span>3 Pendientes</span>
+          </div>
+
+          <div class="task-item">
+            <div class="check-btn checked">✓</div>
+            <div class="task-text done">Definir paleta personal de autor</div>
+          </div>
+
+          <div class="task-item">
+            <div class="check-btn unchecked"></div>
+            <div class="task-text">Configurar selector de color en la app</div>
+            <div class="rollover-chip">De ayer</div>
+          </div>
+
+          <div class="task-item">
+            <div class="check-btn unchecked"></div>
+            <div class="task-text">Caminar 20 minutos sin pantallas</div>
+          </div>
+
+          <!-- Note quote card -->
+          <div style="margin-top: auto; padding: 12px 14px; border-radius: 10px; background: var(--bg-card); border: 1px dashed var(--border-subtle); font-size: 12px; color: var(--text-muted); font-style: italic;">
+            "La calma no es la ausencia de tareas, sino el orden armonioso de la mente."
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Comparison Cards Grid (All 5 at a glance) -->
+    <div class="section-title">Todas las 5 Opciones Disponibles</div>
+    <div class="variants-grid">
+
+      <!-- 1. Morado -->
+      <div class="variant-card" id="card-purple" onclick="setTheme('purple')">
+        <div class="variant-header">
+          <div class="variant-name">1. Morado</div>
+          <div class="variant-badge" style="background: rgba(154, 136, 200, 0.15); color: #9A88C8;">Murasaki</div>
+        </div>
+        <div class="variant-swatches">
+          <div style="background: #131217;"></div>
+          <div style="background: #1B1822;"></div>
+          <div style="background: #9A88C8;"></div>
+          <div style="background: #C89F77;"></div>
+        </div>
+        <p class="variant-desc">Creatividad, sosiego y reflexión para notas y diarios.</p>
+      </div>
+
+      <!-- 2. Rojo -->
+      <div class="variant-card" id="card-red" onclick="setTheme('red')">
+        <div class="variant-header">
+          <div class="variant-name">2. Rojo</div>
+          <div class="variant-badge" style="background: rgba(194, 84, 71, 0.15); color: #C25447;">Akane</div>
+        </div>
+        <div class="variant-swatches">
+          <div style="background: #151313;"></div>
+          <div style="background: #201A1A;"></div>
+          <div style="background: #C25447;"></div>
+          <div style="background: #D9A066;"></div>
+        </div>
+        <p class="variant-desc">Calidez viva, determinación artesanal y energía amable.</p>
+      </div>
+
+      <!-- 3. Azul -->
+      <div class="variant-card" id="card-blue" onclick="setTheme('blue')">
+        <div class="variant-header">
+          <div class="variant-name">3. Azul</div>
+          <div class="variant-badge" style="background: rgba(94, 133, 168, 0.15); color: #5E85A8;">Aizome</div>
+        </div>
+        <div class="variant-swatches">
+          <div style="background: #121417;"></div>
+          <div style="background: #181C22;"></div>
+          <div style="background: #5E85A8;"></div>
+          <div style="background: #8FAEC9;"></div>
+        </div>
+        <p class="variant-desc">Claridad mental, agua de río y concentración pura.</p>
+      </div>
+
+      <!-- 4. Negro -->
+      <div class="variant-card" id="card-black" onclick="setTheme('black')">
+        <div class="variant-header">
+          <div class="variant-name">4. Negro</div>
+          <div class="variant-badge" style="background: rgba(255, 255, 255, 0.12); color: #E8E6DF;">Sumi-e</div>
+        </div>
+        <div class="variant-swatches">
+          <div style="background: #101111;"></div>
+          <div style="background: #191B1A;"></div>
+          <div style="background: #D1D5DB;"></div>
+          <div style="background: #8E948F;"></div>
+        </div>
+        <p class="variant-desc">Minimalismo radical, pureza y elegancia editorial de autor.</p>
+      </div>
+
+      <!-- 5. Blanco Washi -->
+      <div class="variant-card" id="card-white" onclick="setTheme('white')">
+        <div class="variant-header">
+          <div class="variant-name">5. Blanco</div>
+          <div class="variant-badge" style="background: #E8E2D5; color: #5B5244;">Washi</div>
+        </div>
+        <div class="variant-swatches">
+          <div style="background: #FAF8F5;"></div>
+          <div style="background: #FFFFFF;"></div>
+          <div style="background: #4A6B5B;"></div>
+          <div style="background: #B47846;"></div>
+        </div>
+        <p class="variant-desc">Papel artesanal washi, tinta carbón y lino. Cero destello blanco duro.</p>
+      </div>
+
+    </div>
+
+    <!-- Feature implementation banner -->
+    <div class="feature-callout">
+      <div class="feature-icon">🎨</div>
+      <div class="feature-info">
+        <h4>¡Sí, podemos añadir el selector de color directamente en DayCraft!</h4>
+        <p>
+          En lugar de casarte con un solo color, podemos incluir un selector rápido en la app (con círculos de color). Tu elección se guarda automáticamente en el almacenamiento local para que la app se abra con tu tono favorito o puedas cambiarlo según tu estado de ánimo.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast" class="toast">Color copiado al portapapeles</div>
+
+  <script>
+    const themes = {
+      purple: {
+        title: "1. Morado Ciruela / Lavanda Ahumada (Zen Murasaki)",
+        desc: "Introspectivo, creativo y calmado. Un morado mineral desaturado con tintes de ciruela japonesa y humo.",
+        vars: {
+          '--bg-base': '#131217',
+          '--bg-card': '#191720',
+          '--bg-surface': '#201D2A',
+          '--bg-active': '#292536',
+          '--border-subtle': '#2B2638',
+          '--text-primary': '#EDEAF2',
+          '--text-muted': '#968FA3',
+          '--accent-main': '#9A88C8',
+          '--accent-subtle': 'rgba(154, 136, 200, 0.14)',
+          '--accent-glow': 'rgba(154, 136, 200, 0.25)',
+          '--accent-indicator': '#D45A4D',
+          '--accent-rollover': '#C89F77',
+          '--accent-rollover-subtle': 'rgba(200, 159, 119, 0.15)',
+        },
+        hexes: [
+          { name: 'Fondo', hex: '#131217' },
+          { name: 'Tarjeta', hex: '#191720' },
+          { name: 'Acento Morado', hex: '#9A88C8' },
+          { name: 'Texto Washi', hex: '#EDEAF2' },
+        ]
+      },
+      red: {
+        title: "2. Rojo Cinabrio / Laca Tradicional (Zen Akane)",
+        desc: "Calidez viva, energía terrenal y artesanía. Un rojo arcilla/cinabrio que motiva a actuar sin generar ansiedad.",
+        vars: {
+          '--bg-base': '#141212',
+          '--bg-card': '#1C1818',
+          '--bg-surface': '#241E1E',
+          '--bg-active': '#302626',
+          '--border-subtle': '#342929',
+          '--text-primary': '#EFECE9',
+          '--text-muted': '#A39493',
+          '--accent-main': '#C25447',
+          '--accent-subtle': 'rgba(194, 84, 71, 0.15)',
+          '--accent-glow': 'rgba(194, 84, 71, 0.3)',
+          '--accent-indicator': '#E06D53',
+          '--accent-rollover': '#D4A373',
+          '--accent-rollover-subtle': 'rgba(212, 163, 115, 0.15)',
+        },
+        hexes: [
+          { name: 'Fondo', hex: '#141212' },
+          { name: 'Tarjeta', hex: '#1C1818' },
+          { name: 'Acento Rojo', hex: '#C25447' },
+          { name: 'Texto Washi', hex: '#EFECE9' },
+        ]
+      },
+      blue: {
+        title: "3. Azul Índigo Natural / Niebla de Río (Zen Aizome)",
+        desc: "Claridad mental, frescura y serenidad ejecutiva. Inspirado en el teñido índigo artesanal japonés y el agua mineral.",
+        vars: {
+          '--bg-base': '#111316',
+          '--bg-card': '#171B20',
+          '--bg-surface': '#1E232B',
+          '--bg-active': '#262D38',
+          '--border-subtle': '#28313D',
+          '--text-primary': '#E8ECF0',
+          '--text-muted': '#8E9AA8',
+          '--accent-main': '#5E85A8',
+          '--accent-subtle': 'rgba(94, 133, 168, 0.15)',
+          '--accent-glow': 'rgba(94, 133, 168, 0.28)',
+          '--accent-indicator': '#B96A59',
+          '--accent-rollover': '#C89F77',
+          '--accent-rollover-subtle': 'rgba(200, 159, 119, 0.15)',
+        },
+        hexes: [
+          { name: 'Fondo', hex: '#111316' },
+          { name: 'Tarjeta', hex: '#171B20' },
+          { name: 'Acento Índigo', hex: '#5E85A8' },
+          { name: 'Texto Washi', hex: '#E8ECF0' },
+        ]
+      },
+      black: {
+        title: "4. Tinta China & Plata Mineral (Sumi-e Puro)",
+        desc: "Minimalismo silencioso de altísima gama. Carbón puro mate, papel pergamino y acentos de plata satinada sin saturación.",
+        vars: {
+          '--bg-base': '#101111',
+          '--bg-card': '#181A1A',
+          '--bg-surface': '#202322',
+          '--bg-active': '#2B2F2E',
+          '--border-subtle': '#2B302F',
+          '--text-primary': '#EAE8E3',
+          '--text-muted': '#8E9491',
+          '--accent-main': '#D1D5DB',
+          '--accent-subtle': 'rgba(255, 255, 255, 0.08)',
+          '--accent-glow': 'rgba(255, 255, 255, 0.15)',
+          '--accent-indicator': '#B96A59',
+          '--accent-rollover': '#A8B0AD',
+          '--accent-rollover-subtle': 'rgba(168, 176, 173, 0.12)',
+        },
+        hexes: [
+          { name: 'Fondo', hex: '#101111' },
+          { name: 'Tarjeta', hex: '#181A1A' },
+          { name: 'Plata Sumi', hex: '#D1D5DB' },
+          { name: 'Texto Washi', hex: '#EAE8E3' },
+        ]
+      },
+      white: {
+        title: "5. Blanco Papel Washi & Lino Natural (Shiro-Zen)",
+        desc: "Luz cálida y textura de libreta artesanal. Un blanco crema marfil suave que no cansa la vista bajo la luz del sol.",
+        vars: {
+          '--bg-base': '#FAF8F5',
+          '--bg-card': '#FFFFFF',
+          '--bg-surface': '#F2EDE4',
+          '--bg-active': '#E8E1D5',
+          '--border-subtle': '#E5DFD4',
+          '--text-primary': '#211F1D',
+          '--text-muted': '#7A756D',
+          '--accent-main': '#4A6B5B',
+          '--accent-subtle': 'rgba(74, 107, 91, 0.12)',
+          '--accent-glow': 'rgba(74, 107, 91, 0.25)',
+          '--accent-indicator': '#C25447',
+          '--accent-rollover': '#B47846',
+          '--accent-rollover-subtle': 'rgba(180, 120, 70, 0.14)',
+        },
+        hexes: [
+          { name: 'Fondo Washi', hex: '#FAF8F5' },
+          { name: 'Tarjeta Nieve', hex: '#FFFFFF' },
+          { name: 'Acento Matcha', hex: '#4A6B5B' },
+          { name: 'Tinta Carbón', hex: '#211F1D' },
+        ]
+      }
+    };
+
+    function setTheme(key) {
+      const theme = themes[key];
+      if (!theme) return;
+
+      const root = document.documentElement;
+      for (const [v, val] of Object.entries(theme.vars)) {
+        root.style.setProperty(v, val);
+      }
+
+      document.getElementById('currentThemeTitle').textContent = theme.title;
+      document.getElementById('currentThemeDesc').textContent = theme.desc;
+
+      const hexRow = document.getElementById('hexRow');
+      hexRow.innerHTML = '';
+      theme.hexes.forEach(h => {
+        const pill = document.createElement('div');
+        pill.className = 'hex-pill';
+        pill.onclick = () => copyText(h.hex);
+        pill.innerHTML = `<span class="hex-pill-dot" style="background: ${h.hex};"></span><span>${h.name}: <strong>${h.hex}</strong></span>`;
+        hexRow.appendChild(pill);
+      });
+
+      const buttons = document.querySelectorAll('.theme-btn');
+      buttons.forEach(b => b.classList.remove('active'));
+      const activeIdx = ['purple', 'red', 'blue', 'black', 'white'].indexOf(key);
+      if (buttons[activeIdx]) {
+        buttons[activeIdx].classList.add('active');
+      }
+
+      ['purple', 'red', 'blue', 'black', 'white'].forEach(k => {
+        const c = document.getElementById('card-' + k);
+        if (c) c.classList.toggle('current', k === key);
+      });
+    }
+
+    function copyText(txt) {
+      navigator.clipboard.writeText(txt);
+      const t = document.getElementById('toast');
+      t.textContent = 'Copiado ' + txt + ' al portapapeles';
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 1600);
+    }
+
+    // Default to purple
+    setTheme('purple');
+  </script>
+</body>
+</html>

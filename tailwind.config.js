@@ -1,4 +1,6 @@
 /** @type {import('tailwindcss').Config} */
+const token = (name) => `rgb(var(--c-${name}) / <alpha-value>)`;
+
 module.exports = {
   content: [
     "./app/**/*.{js,jsx,ts,tsx}",
@@ -8,17 +10,23 @@ module.exports = {
   darkMode: "class",
   theme: {
     extend: {
+      // Tokens semánticos del sistema de temas Kuro-Zen (ver constants/themes.ts).
       colors: {
-        daycraft: {
-          bg: "#0d1117",
-          header: "#12151d",
-          card: "#161922",
-          accent: "#1f2430",
-          border: "#2d3345",
-          borderSubtle: "#262b3a",
-          muted: "#8b949e",
-          text: "#e6edf3"
-        }
+        canvas: token("canvas"),
+        header: token("header"),
+        card: token("card"),
+        raised: token("raised"),
+        line: token("line"),
+        "line-subtle": token("line-subtle"),
+        ink: token("ink"),
+        muted: token("muted"),
+        accent: token("accent"),
+        "accent-soft": token("accent-soft"),
+        "on-accent": token("on-accent"),
+        ok: token("ok"),
+        warm: token("warm"),
+        info: token("info"),
+        now: token("now")
       },
       fontFamily: {
         sans: ["Inter", "System"],

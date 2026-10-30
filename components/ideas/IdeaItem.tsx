@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { IdeaItemData } from '@/services/db/sqlite';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 interface IdeaItemProps {
   idea: IdeaItemData;
@@ -19,36 +20,37 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
   onScheduleStep,
   onOpenMarkdown,
 }) => {
+  const { colors } = useTheme();
   return (
     <Pressable
       onPress={() => onOpenMarkdown?.(idea)}
-      className="bg-[#161922] border border-[#2d3345] active:border-white rounded-xl p-3 gap-1.5"
+      className="bg-card border border-line active:border-ink rounded-xl p-3 gap-1.5"
     >
       <View className="flex-row items-start justify-between gap-2">
         <View className="flex-row items-center gap-1.5 flex-1 min-w-0">
           <Text
             numberOfLines={1}
-            className="font-semibold text-xs text-white flex-shrink"
+            className="font-semibold text-xs text-ink flex-shrink"
           >
             {idea.title}
           </Text>
-          <View className="px-1.5 py-0.2 rounded bg-[#1f2430] border border-[#2d3345] flex-shrink-0">
-            <Text className="text-[9px] font-mono text-indigo-400">.md</Text>
+          <View className="px-1.5 py-0.2 rounded bg-raised border border-line flex-shrink-0">
+            <Text className="text-[9px] font-mono text-accent-soft">.md</Text>
           </View>
         </View>
-        <Text className="text-[9px] font-mono text-[#8b949e] flex-shrink-0">
+        <Text className="text-[9px] font-mono text-muted flex-shrink-0">
           {idea.createdAtLabel}
         </Text>
       </View>
 
-      <Text numberOfLines={2} className="text-[11px] text-[#8b949e] leading-relaxed">
+      <Text numberOfLines={2} className="text-[11px] text-muted leading-relaxed">
         {idea.desc}
       </Text>
 
-      <View className="flex-row items-center justify-between pt-2 mt-0.5 border-t border-[#262b3a]">
+      <View className="flex-row items-center justify-between pt-2 mt-0.5 border-t border-line-subtle">
         <Text
           numberOfLines={1}
-          className="text-[10px] text-indigo-300/80 flex-1 mr-2"
+          className="text-[10px] text-accent-soft/80 flex-1 mr-2"
         >
           Abrir nota .md o agendar paso →
         </Text>
@@ -58,10 +60,10 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
             e.stopPropagation?.();
             onScheduleStep(idea);
           }}
-          className="flex-row items-center gap-1 px-2.5 py-1 rounded-lg bg-white active:opacity-85 flex-shrink-0"
+          className="flex-row items-center gap-1 px-2.5 py-1 rounded-lg bg-ink active:opacity-85 flex-shrink-0"
         >
-          <NotionIcon name="clock" size={11} color="#000000" />
-          <Text className="text-[10px] font-bold text-black">Agendar paso</Text>
+          <NotionIcon name="clock" size={11} color={colors.canvas} />
+          <Text className="text-[10px] font-bold text-canvas">Agendar paso</Text>
         </Pressable>
       </View>
     </Pressable>

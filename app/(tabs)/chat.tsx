@@ -3,11 +3,13 @@ import { View, Text, ScrollView, useWindowDimensions } from 'react-native';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { LAYOUT } from '@/constants/theme';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 /**
  * Tab 1: Asistente IA (Feed Conversacional y Tarjetas de Clasificación Estructurada)
  */
 export default function ChatScreen() {
+  const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
 
@@ -15,7 +17,7 @@ export default function ChatScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#0d1117' }}
+      style={{ flex: 1, backgroundColor: colors.canvas }}
       contentContainerStyle={{
         padding: 16,
         paddingBottom: isDesktop ? 32 : 96,
@@ -23,22 +25,22 @@ export default function ChatScreen() {
       }}
     >
       {/* Encabezado del Feed IA */}
-      <View className="p-3 rounded-2xl bg-[#161922] border border-[#262b3a] flex-row items-center justify-between">
+      <View className="p-3 rounded-2xl bg-card border border-line-subtle flex-row items-center justify-between">
         <View className="flex-row items-center gap-2.5">
-          <View className="w-7 h-7 rounded-xl bg-indigo-500/15 border border-indigo-500/30 items-center justify-center">
-            <NotionIcon name="sparkle" size={14} color="#818cf8" />
+          <View className="w-7 h-7 rounded-xl bg-accent/15 border border-accent/30 items-center justify-center">
+            <NotionIcon name="sparkle" size={14} color={colors.accentSoft} />
           </View>
           <View>
-            <Text className="font-bold text-xs text-white">
+            <Text className="font-bold text-xs text-ink">
               Cerebro IA Gemini · Smart Intake
             </Text>
-            <Text className="text-[10px] text-[#8b949e]">
+            <Text className="text-[10px] text-muted">
               Separa automáticamente bloques, recordatorios, pendientes e ideas
             </Text>
           </View>
         </View>
-        <View className="px-2 py-0.5 rounded-full bg-[#1f2430] border border-[#2d3345]">
-          <Text className="text-[9px] font-mono text-emerald-400">Listo</Text>
+        <View className="px-2 py-0.5 rounded-full bg-raised border border-line">
+          <Text className="text-[9px] font-mono text-ok">Listo</Text>
         </View>
       </View>
 
@@ -50,8 +52,8 @@ export default function ChatScreen() {
           if (isUser) {
             return (
               <View key={msg.id} className="flex-row justify-end">
-                <View className="bg-white px-3.5 py-2.5 rounded-2xl rounded-tr-sm max-w-[85%]">
-                  <Text className="text-xs font-medium text-black leading-relaxed">
+                <View className="bg-ink px-3.5 py-2.5 rounded-2xl rounded-tr-sm max-w-[85%]">
+                  <Text className="text-xs font-medium text-canvas leading-relaxed">
                     "{msg.text}"
                   </Text>
                 </View>
@@ -61,12 +63,12 @@ export default function ChatScreen() {
 
           return (
             <View key={msg.id} className="flex-row items-start gap-2.5">
-              <View className="w-7 h-7 rounded-full bg-[#1f2430] border border-[#2d3345] items-center justify-center flex-shrink-0 mt-0.5">
-                <NotionIcon name="sparkle" size={13} color="#ffffff" />
+              <View className="w-7 h-7 rounded-full bg-raised border border-line items-center justify-center flex-shrink-0 mt-0.5">
+                <NotionIcon name="sparkle" size={13} color={colors.ink} />
               </View>
 
-              <View className="bg-[#1f2430] border border-[#2d3345] p-3 rounded-2xl rounded-tl-sm flex-1 max-w-[88%] gap-2">
-                <Text className="text-xs text-[#e6edf3] leading-relaxed">
+              <View className="bg-raised border border-line p-3 rounded-2xl rounded-tl-sm flex-1 max-w-[88%] gap-2">
+                <Text className="text-xs text-ink leading-relaxed">
                   {msg.text}
                 </Text>
 
@@ -78,12 +80,12 @@ export default function ChatScreen() {
                       const isIdea = item.type === 'idea';
 
                       const accentText = isReminder
-                        ? 'text-sky-400'
+                        ? 'text-info'
                         : isEvent
-                        ? 'text-indigo-400'
+                        ? 'text-accent-soft'
                         : isIdea
-                        ? 'text-amber-400'
-                        : 'text-[#8b949e]';
+                        ? 'text-warm'
+                        : 'text-muted';
 
                       const labelType = isReminder
                         ? 'Recordatorio Puntual'
@@ -96,7 +98,7 @@ export default function ChatScreen() {
                       return (
                         <View
                           key={`${msg.id}-item-${idx}`}
-                          className="bg-[#161922] border border-[#2d3345] rounded-xl p-2.5 gap-1"
+                          className="bg-card border border-line rounded-xl p-2.5 gap-1"
                         >
                           <View className="flex-row items-center justify-between">
                             <View className="flex-row items-center gap-1.5">
@@ -111,12 +113,12 @@ export default function ChatScreen() {
                                 size={12}
                                 color={
                                   isReminder
-                                    ? '#38bdf8'
+                                    ? colors.info
                                     : isEvent
-                                    ? '#818cf8'
+                                    ? colors.accentSoft
                                     : isIdea
-                                    ? '#fbbf24'
-                                    : '#8b949e'
+                                    ? colors.warm
+                                    : colors.muted
                                 }
                               />
                               <Text className={`text-[10px] font-bold ${accentText}`}>
@@ -128,7 +130,7 @@ export default function ChatScreen() {
                             </Text>
                           </View>
 
-                          <Text className="font-semibold text-xs text-white">
+                          <Text className="font-semibold text-xs text-ink">
                             {item.title}
                           </Text>
                         </View>

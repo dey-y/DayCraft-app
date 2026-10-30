@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { PendingTask } from '@/services/db/sqlite';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 interface PendingItemProps {
   task: PendingTask;
@@ -19,9 +20,10 @@ export const PendingItem: React.FC<PendingItemProps> = ({
   onToggle,
   onAssignTime,
 }) => {
+  const { colors } = useTheme();
   return (
     <View
-      className={`bg-[#1f2430] border border-[#2d3345] rounded-xl p-3 flex-row items-center justify-between gap-2.5 ${
+      className={`bg-raised border border-line rounded-xl p-3 flex-row items-center justify-between gap-2.5 ${
         task.completed ? 'opacity-50' : ''
       }`}
     >
@@ -32,12 +34,12 @@ export const PendingItem: React.FC<PendingItemProps> = ({
         <View
           className={`w-4 h-4 rounded border items-center justify-center flex-shrink-0 ${
             task.completed
-              ? 'bg-white border-white'
-              : 'bg-[#161922] border-[#2d3345]'
+              ? 'bg-ink border-ink'
+              : 'bg-card border-line'
           }`}
         >
           {task.completed ? (
-            <NotionIcon name="check" size={11} color="#000000" strokeWidth={2.5} />
+            <NotionIcon name="check" size={11} color={colors.canvas} strokeWidth={2.5} />
           ) : null}
         </View>
 
@@ -45,17 +47,17 @@ export const PendingItem: React.FC<PendingItemProps> = ({
           <Text
             numberOfLines={1}
             className={`text-xs font-medium flex-shrink ${
-              task.completed ? 'line-through text-[#8b949e]' : 'text-white'
+              task.completed ? 'line-through text-muted' : 'text-ink'
             }`}
           >
             {task.title}
           </Text>
 
           {task.isFromYesterday ? (
-            <View className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/25 flex-shrink-0">
+            <View className="px-2 py-0.5 rounded-full bg-warm/10 border border-warm/25 flex-shrink-0">
               <Text
                 numberOfLines={1}
-                className="text-[9px] font-mono font-semibold text-amber-400"
+                className="text-[9px] font-mono font-semibold text-warm"
               >
                 De ayer
               </Text>
@@ -66,10 +68,10 @@ export const PendingItem: React.FC<PendingItemProps> = ({
 
       <Pressable
         onPress={() => onAssignTime(task)}
-        className="flex-row items-center gap-1 px-2.5 py-1 rounded-lg bg-[#161922] border border-[#2d3345] active:border-white flex-shrink-0"
+        className="flex-row items-center gap-1 px-2.5 py-1 rounded-lg bg-card border border-line active:border-ink flex-shrink-0"
       >
-        <NotionIcon name="clock" size={11} color="#8b949e" />
-        <Text className="text-[10px] font-medium text-[#8b949e]">Fijar hora</Text>
+        <NotionIcon name="clock" size={11} color={colors.muted} />
+        <Text className="text-[10px] font-medium text-muted">Fijar hora</Text>
       </Pressable>
     </View>
   );

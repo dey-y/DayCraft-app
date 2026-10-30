@@ -6,6 +6,7 @@ import { LAYOUT } from '@/constants/theme';
 import { DayStrip } from '@/components/timeline/DayStrip';
 import { Rail24h } from '@/components/timeline/Rail24h';
 import { NotionIcon } from '@/components/ui/NotionIcon';
+import { useTheme } from '@/store/useThemeStore';
 
 /**
  * Tab 4 (Index Heroico): Timeline 24h + DayStrip Infinito Multimes
@@ -13,6 +14,7 @@ import { NotionIcon } from '@/components/ui/NotionIcon';
  *   píldora rápida de pendientes y botón de salto rápido al Mes Siguiente o Hoy.
  */
 export default function TimelineScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const { width } = useWindowDimensions();
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
@@ -38,25 +40,25 @@ export default function TimelineScreen() {
   return (
     <View
       style={{ paddingBottom: isDesktop ? 16 : 74 }}
-      className="flex-1 bg-[#0d1117] px-4 pt-3 gap-3"
+      className="flex-1 bg-canvas px-4 pt-3 gap-3"
     >
       {/* Cabecera Superior del Lienzo (Estilo Cockpit v9) */}
-      <View className="bg-[#12151d] border border-[#262b3a] rounded-2xl px-3.5 py-2.5 flex-row items-center justify-between gap-2">
+      <View className="bg-header border border-line-subtle rounded-2xl px-3.5 py-2.5 flex-row items-center justify-between gap-2">
         <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
           <View
             className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
-              activeDay?.isToday ? 'bg-emerald-400' : 'bg-indigo-400'
+              activeDay?.isToday ? 'bg-ok' : 'bg-accent'
             }`}
           />
           <Text
             numberOfLines={1}
-            className="font-bold text-xs sm:text-sm text-white flex-shrink"
+            className="font-bold text-xs sm:text-sm text-ink flex-shrink"
           >
             {activeDay?.fullTitle}
           </Text>
 
-          <View className="px-2 py-0.5 rounded-full bg-[#1f2430] border border-[#2d3345] flex-shrink-0">
-            <Text className="text-[10px] font-mono text-[#8b949e]">
+          <View className="px-2 py-0.5 rounded-full bg-raised border border-line flex-shrink-0">
+            <Text className="text-[10px] font-mono text-muted">
               {dayEventsCount === 0
                 ? 'Día despejado'
                 : `${dayEventsCount} ${
@@ -70,9 +72,9 @@ export default function TimelineScreen() {
           {!isDesktop && pendingCount > 0 ? (
             <Pressable
               onPress={() => router.push('/pending')}
-              className="px-2.5 py-1 rounded-lg bg-amber-500/15 border border-amber-500/30 flex-row items-center gap-1"
+              className="px-2.5 py-1 rounded-lg bg-warm/15 border border-warm/30 flex-row items-center gap-1"
             >
-              <Text className="text-[10px] font-semibold text-amber-400">
+              <Text className="text-[10px] font-semibold text-warm">
                 {pendingCount} pend. →
               </Text>
             </Pressable>
@@ -81,10 +83,10 @@ export default function TimelineScreen() {
           {nextMonthFirstDay && isDesktop ? (
             <Pressable
               onPress={() => setSelectedDayKey(nextMonthFirstDay.key)}
-              className="px-2.5 py-1 rounded-lg bg-[#161922] border border-[#2d3345] flex-row items-center gap-1 active:border-white"
+              className="px-2.5 py-1 rounded-lg bg-card border border-line flex-row items-center gap-1 active:border-ink"
             >
-              <NotionIcon name="calendar" size={11} color="#818cf8" />
-              <Text className="text-[10px] font-mono font-semibold text-indigo-300">
+              <NotionIcon name="calendar" size={11} color={colors.accentSoft} />
+              <Text className="text-[10px] font-mono font-semibold text-accent-soft">
                 Ir a {nextMonthFirstDay.monthShort}
               </Text>
             </Pressable>
@@ -94,11 +96,11 @@ export default function TimelineScreen() {
             onPress={() => setSelectedDayKey('27')}
             className={`px-2.5 py-1 rounded-lg border ${
               activeDay?.isToday
-                ? 'bg-indigo-600 border-indigo-400'
-                : 'bg-[#1f2430] border-[#2d3345]'
+                ? 'bg-accent/20 border-accent'
+                : 'bg-raised border-line'
             }`}
           >
-            <Text className="text-[10px] font-bold text-white">Hoy</Text>
+            <Text className="text-[10px] font-bold text-ink">Hoy</Text>
           </Pressable>
         </View>
       </View>
