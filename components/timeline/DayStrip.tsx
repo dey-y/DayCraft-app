@@ -7,6 +7,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
   useWindowDimensions,
+  Platform,
 } from 'react-native';
 import { useDayCraftStore, doesEventApplyToDay } from '@/store/useDayCraftStore';
 import { LAYOUT } from '@/constants/theme';
@@ -39,7 +40,16 @@ export const DayStrip: React.FC = () => {
     if (idx === -1) return;
     const offset = Math.max(0, (idx - 2) * (cardWidth + 8));
     const timer = setTimeout(() => {
-      scrollRef.current?.scrollTo({ x: offset, animated: true });
+      if (Platform.OS === 'web') {
+        const node = (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
+        if (node?.scrollTo) {
+          node.scrollTo({ left: offset, behavior: 'smooth' });
+        } else {
+          scrollRef.current?.scrollTo({ x: offset, animated: true });
+        }
+      } else {
+        scrollRef.current?.scrollTo({ x: offset, animated: true });
+      }
     }, 60);
     return () => clearTimeout(timer);
   }, [selectedDayKey, cardWidth]);
@@ -185,9 +195,9 @@ export const DayStrip: React.FC = () => {
         })}
       </ScrollView>
 
-      {/* Botón Siguiente (Avanza 5 días para explorar rápido el mes siguiente) */}
+      {/* Botón Siguiente (Avanza 1 día) */}
       <Pressable
-        onPress={() => shiftDay(isDesktop ? 5 : 1)}
+        onPress={() => shiftDay(1)}
         className="w-8 h-12 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
         <NotionIcon name="chevron-right" size={14} color={colors.muted} />
