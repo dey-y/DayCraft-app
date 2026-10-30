@@ -112,6 +112,22 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     };
   }, [isDragging, dragStartQ, dragCurrentQ, onRequestSlotPicker, openSlotPicker]);
 
+  // Prevenir que el navegador haga scroll táctil mientras se está estirando un bloque con long-press
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !isDragging) return;
+
+    const preventTouchScroll = (e: TouchEvent) => {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('touchmove', preventTouchScroll, { passive: false });
+    return () => {
+      window.removeEventListener('touchmove', preventTouchScroll);
+    };
+  }, [isDragging]);
+
   const handleTouchStart = (e: any) => {
     const touch = e.touches?.[0] || e.nativeEvent?.touches?.[0];
     if (!touch) return;
@@ -164,7 +180,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     }
 
     // Si ya se activó el long-press, ahora sí estiramos el bloque fantasma
-    const targetElement = e.currentTarget || e.target;
+    const targetElement = (gridContainerRef.current as any) || e.currentTarget || e.target;
     const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
     if (rect) {
       const relY = touch.clientY - rect.top;
@@ -266,6 +282,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
 
       <ScrollView
         ref={scrollRef}
+        scrollEnabled={!isDragging}
         className="flex-1"
         showsVerticalScrollIndicator={false}
       >
@@ -341,6 +358,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
               left: hourColumnWidth + 1,
               right: 0,
               height: totalCanvasHeight,
+              touchAction: (isDragging ? 'none' : 'pan-y') as any,
             }}
           >
             {Array.from({ length: 96 }, (_, q) => {
