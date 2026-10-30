@@ -2,7 +2,7 @@
 
 > **Fecha**: 30 de Octubre de 2026  
 > **Rol Evaluador**: Senior Lead UX / Product Designer (Especialista en Productividad Minimalista)  
-> **Archivos Evaluados**: `mockup-web-semanal.html` (v8) vs. `mockup-web-v9.html` (v9) | `mockup-mobile.html` (v8) vs. `mockup-mobile-v9.html` (v9)
+> **Archivos Evaluados**: `docs/mockups/mockup-web-semanal.html` (v8) vs. `docs/mockups/mockup-web-v9.html` (v9) | `docs/mockups/mockup-mobile.html` (v8) vs. `docs/mockups/mockup-mobile-v9.html` (v9)
 
 ---
 

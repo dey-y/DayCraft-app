@@ -73,13 +73,13 @@ En lugar de interactuar con botones complejos, en DayCraft **simplemente hablas 
 Puedes probar los prototipos interactivos ejecutables directamente en tu navegador:
 
 ### 🌟 Versión Definitiva v9 (Post-Auditoría Senior):
-* 💻 **Web / Escritorio v9**: [`mockup-web-v9.html`](mockup-web-v9.html) *(Timeline 24h heroico 100% limpio en reposo con time-blocking por cuartos de hora, sidebar colapsable `Ctrl+B`, cero duplicidad en "Hoy", Toast flotante interactivo y Smart Slot Modal).*
-* 📱 **Móvil v9**: [`mockup-mobile-v9.html`](mockup-mobile-v9.html) *(4 pestañas dedicadas, raíl 24h interactivo con tapping directo, punto de entrada único sin inputs duplicados, Toast flotante de captura y Bottom Sheet de 1 toque).*
+* 💻 **Web / Escritorio v9**: [`docs/mockups/mockup-web-v9.html`](docs/mockups/mockup-web-v9.html) *(Timeline 24h heroico 100% limpio en reposo con time-blocking por cuartos de hora, sidebar colapsable `Ctrl+B`, cero duplicidad en "Hoy", Toast flotante interactivo y Smart Slot Modal).*
+* 📱 **Móvil v9**: [`docs/mockups/mockup-mobile-v9.html`](docs/mockups/mockup-mobile-v9.html) *(4 pestañas dedicadas, raíl 24h interactivo con tapping directo, punto de entrada único sin inputs duplicados, Toast flotante de captura y Bottom Sheet de 1 toque).*
 
 ### 📂 Prototipos Previos de Referencia:
-* 📱 **Móvil v8**: [`mockup-mobile.html`](mockup-mobile.html) *(Experiencia en 4 pestañas y raíl de 24h)*.
-* 💻 **Web Cockpit v8**: [`mockup-web-semanal.html`](mockup-web-semanal.html) *(Cockpit de 3 paneles con separador arrastrable y tira horizontal deslizable de días)*.
-* 💻 **Web v1**: [`mockup-web.html`](mockup-web.html) *(Primer prototipo estático de 3 columnas)*.
+* 📱 **Móvil v8**: [`docs/mockups/mockup-mobile.html`](docs/mockups/mockup-mobile.html) *(Experiencia en 4 pestañas y raíl de 24h)*.
+* 💻 **Web Cockpit v8**: [`docs/mockups/mockup-web-semanal.html`](docs/mockups/mockup-web-semanal.html) *(Cockpit de 3 paneles con separador arrastrable y tira horizontal deslizable de días)*.
+* 💻 **Web v1**: [`docs/mockups/mockup-web.html`](docs/mockups/mockup-web.html) *(Primer prototipo estático de 3 columnas)*.
 
 *(Compatible con cualquier navegador en PC o móvil. Puedes cambiar entre días del calendario, probar los checkboxes, desplegar la campana y simular dictado por voz).*
 
