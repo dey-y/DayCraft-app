@@ -313,7 +313,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   style={{ width: hourColumnWidth }}
                   className="items-end pr-3 -mt-2"
                 >
-                  <Text className="font-mono text-[11px] font-medium text-muted">
+                  <Text className="font-mono text-xs font-medium text-muted">
                     {hourStr}
                   </Text>
                 </View>
@@ -396,7 +396,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   {/* Indicador ultra-sutil al pasar el ratón por un cuarto de hora libre */}
                   {isHovered ? (
                     <View className="flex-1 bg-accent/10 border-l-2 border-l-accent/60 px-2.5 justify-center">
-                      <Text className="text-[10px] font-mono text-accent-soft/90">
+                      <Text className="text-xs font-mono text-accent-soft/90">
                         {formatQuarterToTime(q)}
                       </Text>
                     </View>
@@ -419,7 +419,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                 }}
                 className="bg-accent/20 border border-accent/60 border-l-[3px] border-l-accent rounded-xl px-3 py-1.5 items-start justify-start overflow-hidden"
               >
-                <Text className="text-[11px] font-mono font-bold text-accent-soft">
+                <Text className="text-xs font-mono font-bold text-accent-soft">
                   {formatQuarterToTime(ghostStartQ)} –{' '}
                   {formatQuarterToTime(ghostStartQ + ghostQuarters)}
                 </Text>

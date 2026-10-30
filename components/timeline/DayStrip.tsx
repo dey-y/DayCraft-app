@@ -113,7 +113,7 @@ export const DayStrip: React.FC = () => {
                 {/* Fila Superior: Día de la Semana + Punto de Carga / Hoy */}
                 <View className="flex-row items-center justify-center gap-1">
                   <Text
-                    className={`text-[11px] uppercase font-bold tracking-wider ${
+                    className={`text-[11px] font-mono tracking-wider font-bold ${
                       isSelected
                         ? 'text-accent-soft'
                         : d.isToday
@@ -141,7 +141,7 @@ export const DayStrip: React.FC = () => {
                 {/* Número del Día + Mes Abreviado en formato compacto */}
                 <View className="flex-row items-baseline justify-center gap-1 my-0.5">
                   <Text
-                    className={`font-mono font-bold text-sm ${
+                    className={`font-serif font-bold text-base ${
                       isSelected ? 'text-ink' : 'text-ink'
                     }`}
                   >

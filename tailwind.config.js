@@ -29,8 +29,9 @@ module.exports = {
         now: token("now")
       },
       fontFamily: {
-        sans: ["Inter", "System"],
-        mono: ["monospace"]
+        sans: ["PlusJakartaSans", "Plus Jakarta Sans", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        mono: ["JetBrainsMono", "JetBrains Mono", "monospace"],
+        serif: ["Fraunces", "serif"]
       }
     }
   },

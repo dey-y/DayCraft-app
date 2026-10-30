@@ -4,6 +4,26 @@ import { vars } from 'nativewind';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+import {
+  PlusJakartaSans_400Regular,
+  PlusJakartaSans_500Medium,
+  PlusJakartaSans_600SemiBold,
+  PlusJakartaSans_700Bold,
+} from '@expo-google-fonts/plus-jakarta-sans';
+import {
+  JetBrainsMono_400Regular,
+  JetBrainsMono_500Medium,
+  JetBrainsMono_600SemiBold,
+  JetBrainsMono_700Bold,
+} from '@expo-google-fonts/jetbrains-mono';
+import {
+  Fraunces_400Regular,
+  Fraunces_600SemiBold,
+  Fraunces_700Bold,
+} from '@expo-google-fonts/fraunces';
+
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { FloatingToast } from '@/components/ui/FloatingToast';
 import { IdeaNoteModal } from '@/components/ideas/IdeaNoteModal';
@@ -12,16 +32,39 @@ import '../global.css';
 import { useTheme, useThemeStore } from '@/store/useThemeStore';
 import { themeCssVars } from '@/constants/themes';
 
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 /**
  * Root Layout Global (_layout.tsx)
+ * - Carga y publica las fuentes tipográficas del sistema Japandi (Plus Jakarta Sans, JetBrains Mono, Fraunces).
  * - Hidrata automáticamente la base de datos SQLite Offline (`expo-sqlite`).
  * - Monta el Toast Flotante Efímero y el Bottom Sheet de 1-Tap Time Blocking en raíz.
  */
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    PlusJakartaSans: PlusJakartaSans_400Regular,
+    'PlusJakartaSans-Medium': PlusJakartaSans_500Medium,
+    'PlusJakartaSans-SemiBold': PlusJakartaSans_600SemiBold,
+    'PlusJakartaSans-Bold': PlusJakartaSans_700Bold,
+    JetBrainsMono: JetBrainsMono_400Regular,
+    'JetBrainsMono-Medium': JetBrainsMono_500Medium,
+    'JetBrainsMono-SemiBold': JetBrainsMono_600SemiBold,
+    'JetBrainsMono-Bold': JetBrainsMono_700Bold,
+    Fraunces: Fraunces_400Regular,
+    'Fraunces-SemiBold': Fraunces_600SemiBold,
+    'Fraunces-Bold': Fraunces_700Bold,
+  });
+
   const { theme, colors, isDark } = useTheme();
   const hydrateTheme = useThemeStore((s) => s.hydrateTheme);
   const hydrateFromSQLite = useDayCraftStore((s) => s.hydrateFromSQLite);
   const slotPickerTarget = useDayCraftStore((s) => s.slotPickerTarget);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded, fontError]);
 
   // Tras abrir la base de datos (la abre hydrateFromSQLite) se recupera el tema guardado.
   useEffect(() => {
@@ -38,6 +81,10 @@ export default function RootLayout() {
     Object.entries(cssVars).forEach(([k, v]) => root.style.setProperty(k, v));
     root.style.colorScheme = isDark ? 'dark' : 'light';
   }, [cssVars, isDark]);
+
+  if (!fontsLoaded && !fontError && Platform.OS !== 'web') {
+    return null;
+  }
 
   return (
     <View style={[{ flex: 1 }, themeStyle]}>

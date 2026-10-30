@@ -394,6 +394,17 @@ Pendiente, en este orden:
 
 ---
 
+5. **Auditoría de Diseño — Punto 2: Tipografía Japandi (Plus Jakarta Sans, JetBrains Mono, Fraunces)**:
+   - Se erradicó la fuente genérica del sistema. Se instalaron e integraron los paquetes de @expo-google-fonts:
+     * **Plus Jakarta Sans** (font-sans): Fuente principal de interfaz limpia, geométrica y de alta legibilidad en pantallas táctiles.
+     * **JetBrains Mono** (font-mono): Para horas (11:30 - 12:00), cifras tabulares en la cuadrícula de 24h y bloques de código Markdown.
+     * **Fraunces** (font-serif): Serif cálida y artesanal para fechas destacadas (números en DayStrip) y títulos editoriales de notas .md (IdeaNoteModal).
+   - **Carga optimizada**: Integración en app/_layout.tsx mediante useFonts() y expo-splash-screen, evitando saltos o parpadeos de fuente (FOUT).
+   - **Respaldo Web**: Inyección de Google Fonts CDN en global.css para renderizado inmediato en navegadores de escritorio y móviles.
+   - **Mapeo Tailwind**: Clases font-sans, font-mono y font-serif configuradas en tailwind.config.js.
+
+---
+
 ### Tarea crítica pendiente para la próxima sesión: Migración a Expo SDK 58
 * **Diagnóstico confirmado**: La app Expo Go instalada en el móvil de Deimar cuenta con **Expo SDK 58** (lanzado en octubre de 2026), mientras que el proyecto DayCraft fue inicializado en **Expo SDK 52**. Dado que Expo Go en Google Play / App Store solo soporta la versión mayor más reciente, rechaza abrir proyectos en SDK 52 con el error *"Algo ha salido mal"*.
 * **Plan de acción para la siguiente sesión**:
