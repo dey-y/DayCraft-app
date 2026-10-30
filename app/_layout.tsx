@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { FloatingToast } from '@/components/ui/FloatingToast';
+import { IdeaNoteModal } from '@/components/ideas/IdeaNoteModal';
 import { SlotPickerSheetContent } from './modal/slot-picker';
 import '../global.css';
 
@@ -60,6 +61,9 @@ export default function RootLayout() {
               <SlotPickerSheetContent />
             </View>
           ) : null}
+
+          {/* Visor y Editor de Notas Markdown (.md) */}
+          <IdeaNoteModal />
 
           {/* Toast Flotante Efímero Global (4.2s) */}
           <FloatingToast />

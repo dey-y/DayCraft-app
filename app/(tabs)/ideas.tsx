@@ -1,14 +1,20 @@
 import React from 'react';
-import { View, Text, ScrollView, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  Pressable,
+  useWindowDimensions,
+} from 'react-native';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { LAYOUT } from '@/constants/theme';
 import { NotionIcon } from '@/components/ui/NotionIcon';
 import { IdeaGroupCard } from '@/components/ideas/IdeaGroupCard';
 
 /**
- * Tab 2: Cajón de Ideas Auto-Agrupado por IA
- * - Carpetas de proyecto temáticas con iconografía Notion Icons.
- * - Botón directo `[ Agendar paso ]` para llevar cualquier idea al Timeline 24h.
+ * Tab 2: Cajón de Ideas Auto-Agrupado por IA + Notas Markdown (.md)
+ * - Al tocar cualquier idea se abre el Editor/Visor Markdown (.md) con descarga directa.
+ * - También permite crear una nueva nota `.md` en cualquier carpeta de proyecto con 1 clic.
  */
 export default function IdeasScreen() {
   const { width } = useWindowDimensions();
@@ -16,6 +22,22 @@ export default function IdeasScreen() {
 
   const ideaGroups = useDayCraftStore((s) => s.ideaGroups);
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
+  const setActiveIdeaId = useDayCraftStore((s) => s.setActiveIdeaId);
+  const addIdeaToGroup = useDayCraftStore((s) => s.addIdeaToGroup);
+
+  const handleCreateNewMarkdownNote = (groupId: string) => {
+    addIdeaToGroup(
+      groupId,
+      'Nueva nota de proyecto',
+      'Haz clic para editar el documento Markdown (.md) completo.'
+    );
+    const updatedGroup = useDayCraftStore
+      .getState()
+      .ideaGroups.find((g) => g.id === groupId);
+    if (updatedGroup && updatedGroup.items[0]) {
+      setActiveIdeaId(updatedGroup.items[0].id);
+    }
+  };
 
   return (
     <ScrollView
@@ -34,20 +56,22 @@ export default function IdeasScreen() {
             <Text className="font-bold text-sm text-white">Cajón de Ideas</Text>
             <View className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25">
               <Text className="text-[9px] font-mono text-emerald-400">
-                Auto-agrupado por IA
+                Notas .md + Auto-IA
               </Text>
             </View>
           </View>
           <Text className="text-[11px] text-[#8b949e] mt-0.5">
-            Tus ocurrencias nunca mueren: conviértelas en bloques de acción en 1 toque
+            Toca cualquier tarjeta para abrir/descargar su archivo .md o dicta en la barra inferior
           </Text>
         </View>
 
-        <View className="px-2.5 py-1 rounded-full bg-[#1f2430] border border-[#2d3345]">
-          <Text className="text-[10px] font-mono text-[#8b949e]">
-            {ideaGroups.length} Grupos
-          </Text>
-        </View>
+        <Pressable
+          onPress={() => handleCreateNewMarkdownNote('grp-app')}
+          className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white active:opacity-85"
+        >
+          <NotionIcon name="plus" size={12} color="#000000" />
+          <Text className="text-xs font-bold text-black">Nueva Nota .md</Text>
+        </Pressable>
       </View>
 
       {/* Grid adaptativo de Grupos de Proyecto */}
@@ -63,6 +87,8 @@ export default function IdeasScreen() {
                 title: idea.suggestedAction || idea.title,
               })
             }
+            onOpenMarkdown={(idea) => setActiveIdeaId(idea.id)}
+            onCreateIdeaInGroup={handleCreateNewMarkdownNote}
           />
         ))}
       </View>

@@ -1,9 +1,17 @@
-import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
+import type * as SQLite from 'expo-sqlite';
+
+export type RecurrenceFrequency = 'none' | 'daily' | 'weekly' | 'monthly';
+
+export interface EventRecurrenceRule {
+  frequency: RecurrenceFrequency;
+  daysOfWeek?: string[]; // ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'] cuando frequency === 'weekly'
+  dayNumOfMonth?: string; // '27', '01', etc. cuando frequency === 'monthly'
+}
 
 export interface TimelineEvent {
   id: string;
-  dayKey: string;         // ej. '27', '28', '30'
+  dayKey: string;         // ej. '27', '28', '30' o fecha ISO '2026-11-03'
   title: string;
   desc?: string;
   startQ: number;         // Cuarto de hora inicial (0..95). Ej: 11:30 = 11*4 + 2 = 46
@@ -11,6 +19,7 @@ export interface TimelineEvent {
   type: 'task' | 'reminder';
   tag?: string;
   completed?: boolean;
+  recurrence?: EventRecurrenceRule;
 }
 
 export interface PendingTask {
@@ -27,6 +36,7 @@ export interface IdeaItemData {
   groupId: string;
   title: string;
   desc: string;
+  markdownContent?: string; // Documento completo .md editable y exportable
   createdAtLabel: string;
   daysInactive: number;
   suggestedAction?: string;
@@ -131,6 +141,7 @@ export const SEED_IDEA_GROUPS: IdeaGroup[] = [
         groupId: 'grp-app',
         title: 'App sin fricción para organizar el día',
         desc: 'Eliminar la pereza inicial: dictas por voz y la IA separa tareas agendadas, pendientes e ideas.',
+        markdownContent: `# App sin fricción para organizar el día\n\n## Objetivo Principal\nEliminar la pereza de rellenar formularios complejos al agendar el día.\n\n## Puntos Clave\n- [x] Captura única omnidireccional (Smart Intake)\n- [x] Clasificación automática por IA (Gemini)\n- [ ] Widget nativo de captura rápida por voz\n\n## Notas Técnicas\nUsar \`expo-sqlite\` para persistencia local y exportación directa a Markdown \`.md\`.`,
         createdAtLabel: 'Hace 2 días',
         daysInactive: 2,
         suggestedAction: 'Definir wireframes entrada por voz',
@@ -140,6 +151,7 @@ export const SEED_IDEA_GROUPS: IdeaGroup[] = [
         groupId: 'grp-app',
         title: 'Sincronización Offline con SQLite',
         desc: 'Poder registrar notas y bloques en el metro sin cobertura móvil.',
+        markdownContent: `# Sincronización Offline con SQLite\n\n## Arquitectura Local-First\n1. Guardar cada cambio inmediatamente en SQLite (\`daycraft_v9.db\`).\n2. Encolar mutaciones cuando no haya red.\n3. Permitir exportar cualquier idea como archivo \`.md\` independiente.`,
         createdAtLabel: 'Hoy',
         daysInactive: 0,
         suggestedAction: 'Configurar tablas expo-sqlite',
@@ -149,6 +161,7 @@ export const SEED_IDEA_GROUPS: IdeaGroup[] = [
         groupId: 'grp-app',
         title: 'Iconografía 100% Notion Icons',
         desc: 'Cero emojis estridentes. Trazos vectoriales limpios (stroke 1.8) en toda la interfaz.',
+        markdownContent: `# Iconografía 100% Notion Icons\n\n- Trazo uniforme \`strokeWidth: 1.8\`\n- Paleta monocroma oscura (\`#0d1117\`, \`#161922\`, \`#1f2430\`)\n- Sin iconos multicolores que generen fatiga visual.`,
         createdAtLabel: 'Hace 10m',
         daysInactive: 0,
         suggestedAction: 'Revisar catálogo NotionIcons',
@@ -256,7 +269,9 @@ export async function initDatabase(): Promise<void> {
     return;
   }
   try {
-    dbInstance = await SQLite.openDatabaseAsync('daycraft_v9.db');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const SQLiteModule = require('expo-sqlite') as typeof SQLite;
+    dbInstance = await SQLiteModule.openDatabaseAsync('daycraft_v9.db');
     await dbInstance.execAsync(`
       PRAGMA journal_mode = WAL;
       CREATE TABLE IF NOT EXISTS kv_store (

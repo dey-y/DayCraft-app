@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import {
   TimelineEvent,
+  EventRecurrenceRule,
   PendingTask,
   IdeaGroup,
   ChatMessage,
@@ -14,7 +15,7 @@ import {
   loadPersistedState,
   savePersistedState,
 } from '@/services/db/sqlite';
-import { INITIAL_DAYS, DayInfo } from '@/constants/theme';
+import { INITIAL_DAYS, DayInfo, createDayInfoFromDate } from '@/constants/theme';
 import { evaluateDailyRollover, movePendingToIdeaGroups } from '@/services/rollover/rolloverEngine';
 import { processSmartIntake } from '@/services/ai/geminiClient';
 
@@ -33,6 +34,7 @@ export interface SlotPickerTarget {
   id?: string;
   title: string;
   defaultStartQ?: number;
+  defaultQuarters?: number;
 }
 
 interface DayCraftState {
@@ -53,15 +55,22 @@ interface DayCraftState {
   // Modales y Feedback Efímero (Toast)
   activeToast: ToastPayload | null;
   slotPickerTarget: SlotPickerTarget | null;
+  activeIdeaId: string | null; // Idea abierta en el Editor/Visor Markdown (.md)
   isHydrated: boolean;
 
   // Acciones
   hydrateFromSQLite: () => Promise<void>;
   setSelectedDayKey: (dayKey: string) => void;
   shiftDay: (delta: number) => void;
+  extendFutureDays: (extraDays?: number) => void;
   toggleSidebar: () => void;
   setBellDropdownOpen: (open: boolean) => void;
   setDesktopSideTab: (tab: 'agenda' | 'ai') => void;
+  setActiveIdeaId: (ideaId: string | null) => void;
+  updateIdeaMarkdown: (
+    ideaId: string,
+    updates: { title: string; desc: string; markdownContent: string }
+  ) => void;
 
   // Toast Flotante Efímero
   showToast: (payload: Omit<ToastPayload, 'id'>) => void;
@@ -70,7 +79,12 @@ interface DayCraftState {
   // Modal 1-Tap Time Blocking
   openSlotPicker: (target: SlotPickerTarget) => void;
   closeSlotPicker: () => void;
-  assignSlotFromPicker: (startQ: number, quarters?: number, customTitle?: string) => void;
+  assignSlotFromPicker: (
+    startQ: number,
+    quarters?: number,
+    customTitle?: string,
+    recurrence?: EventRecurrenceRule
+  ) => void;
 
   // Timeline 24h (Snapping 15 min)
   addTimelineEvent: (event: Omit<TimelineEvent, 'id'>) => TimelineEvent;
@@ -114,6 +128,25 @@ export function formatQuartersToDuration(quarters: number): string {
   return rem === 0 ? `${h}h` : `${h}h ${rem}m`;
 }
 
+/**
+ * Determina si un evento (puntual o recurrente) aplica en un día específico (`DayInfo`).
+ */
+export function doesEventApplyToDay(event: TimelineEvent, day: DayInfo): boolean {
+  if (event.dayKey === day.key) return true;
+  if (!event.recurrence || event.recurrence.frequency === 'none') return false;
+
+  if (event.recurrence.frequency === 'daily') {
+    return true;
+  }
+  if (event.recurrence.frequency === 'weekly') {
+    return Boolean(event.recurrence.daysOfWeek?.includes(day.dayName));
+  }
+  if (event.recurrence.frequency === 'monthly') {
+    return event.recurrence.dayNumOfMonth === day.dayNum;
+  }
+  return false;
+}
+
 export const useDayCraftStore = create<DayCraftState>((set, get) => ({
   days: INITIAL_DAYS,
   selectedDayKey: '27',
@@ -129,6 +162,7 @@ export const useDayCraftStore = create<DayCraftState>((set, get) => ({
 
   activeToast: null,
   slotPickerTarget: null,
+  activeIdeaId: null,
   isHydrated: false,
 
   hydrateFromSQLite: async () => {
@@ -155,13 +189,56 @@ export const useDayCraftStore = create<DayCraftState>((set, get) => ({
     const { days, selectedDayKey } = get();
     const idx = days.findIndex((d) => d.key === selectedDayKey);
     if (idx === -1) return;
-    const nextIdx = Math.max(0, Math.min(days.length - 1, idx + delta));
-    set({ selectedDayKey: days[nextIdx].key });
+    if (idx + delta >= days.length - 5) {
+      get().extendFutureDays(30);
+    }
+    const updatedDays = get().days;
+    const nextIdx = Math.max(0, Math.min(updatedDays.length - 1, idx + delta));
+    set({ selectedDayKey: updatedDays[nextIdx].key });
+  },
+
+  extendFutureDays: (extraDays = 30) => {
+    const { days } = get();
+    if (days.length === 0) return;
+    const lastDay = days[days.length - 1];
+    const [y, m, d] = lastDay.isoDate.split('-').map(Number);
+    const additional: DayInfo[] = [];
+    for (let i = 1; i <= extraDays; i++) {
+      const nextDate = new Date(y, m - 1, d + i, 12, 0, 0);
+      additional.push(createDayInfoFromDate(nextDate));
+    }
+    set({ days: [...days, ...additional] });
   },
 
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
   setBellDropdownOpen: (open) => set({ bellDropdownOpen: open }),
   setDesktopSideTab: (tab) => set({ desktopSideTab: tab }),
+  setActiveIdeaId: (ideaId) => set({ activeIdeaId: ideaId }),
+
+  updateIdeaMarkdown: (ideaId, updates) => {
+    set((state) => {
+      const updatedGroups = state.ideaGroups.map((group) => ({
+        ...group,
+        items: group.items.map((item) =>
+          item.id === ideaId
+            ? {
+                ...item,
+                title: updates.title,
+                desc: updates.desc,
+                markdownContent: updates.markdownContent,
+                createdAtLabel: 'Editado ahora',
+              }
+            : item
+        ),
+      }));
+      savePersistedState('ideas_v9', updatedGroups);
+      return { ideaGroups: updatedGroups };
+    });
+    get().showToast({
+      title: 'Nota .md guardada',
+      description: `"${updates.title}" actualizada en SQLite`,
+    });
+  },
 
   showToast: (payload) => {
     set({
@@ -177,7 +254,7 @@ export const useDayCraftStore = create<DayCraftState>((set, get) => ({
   openSlotPicker: (target) => set({ slotPickerTarget: target }),
   closeSlotPicker: () => set({ slotPickerTarget: null }),
 
-  assignSlotFromPicker: (startQ, quarters = 2, customTitle) => {
+  assignSlotFromPicker: (startQ, quarters = 2, customTitle, recurrence) => {
     const { slotPickerTarget, selectedDayKey, pendingTasks } = get();
     const title = customTitle || slotPickerTarget?.title || 'Bloque enfocado';
     const dayKey = selectedDayKey || '27';
@@ -195,6 +272,8 @@ export const useDayCraftStore = create<DayCraftState>((set, get) => ({
       quarters,
       type: 'task',
       tag: slotPickerTarget?.type === 'idea' ? 'Idea en acción' : 'Enfoque',
+      recurrence:
+        recurrence && recurrence.frequency !== 'none' ? recurrence : undefined,
     });
 
     // Si provenía de un pendiente sin hora, lo removemos de Pendientes
@@ -349,12 +428,15 @@ export const useDayCraftStore = create<DayCraftState>((set, get) => ({
   },
 
   addIdeaToGroup: (groupId, title, desc = 'Idea capturada con IA y auto-agrupada.') => {
+    const newId = `idea-${Date.now()}`;
+    const defaultMd = `# ${title}\n\n${desc}\n\n## Pasos Siguientes\n- [ ] Definir primer bloque de enfoque en el Timeline 24h\n- [ ] Anotar recursos y referencias\n`;
     set((state) => {
       const newIdea = {
-        id: `idea-${Date.now()}`,
+        id: newId,
         groupId,
         title,
         desc,
+        markdownContent: defaultMd,
         createdAtLabel: 'Ahora',
         daysInactive: 0,
         suggestedAction: `Explorar: ${title}`,

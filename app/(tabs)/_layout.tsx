@@ -1,5 +1,12 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable, Platform, useWindowDimensions } from 'react-native';
+import {
+  View,
+  Text,
+  Pressable,
+  ScrollView,
+  Platform,
+  useWindowDimensions,
+} from 'react-native';
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { LAYOUT } from '@/constants/theme';
@@ -27,7 +34,9 @@ export default function TabsLayout() {
   const alerts = useDayCraftStore((s) => s.alerts);
   const pendingTasks = useDayCraftStore((s) => s.pendingTasks);
   const togglePendingTask = useDayCraftStore((s) => s.togglePendingTask);
-  const simulateAllPendingDone = useDayCraftStore((s) => s.simulateAllPendingDone);
+  const simulateAllPendingDone = useDayCraftStore(
+    (s) => s.simulateAllPendingDone
+  );
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
   const ideaGroups = useDayCraftStore((s) => s.ideaGroups);
   const desktopSideTab = useDayCraftStore((s) => s.desktopSideTab);
@@ -96,6 +105,22 @@ export default function TabsLayout() {
             </View>
           </View>
 
+          {/* Barra Omni de Estado Central */}
+          <Pressable
+            onPress={() => setDesktopSideTab('ai')}
+            className="flex-1 max-w-md mx-6 bg-[#161922] border border-[#262b3a] rounded-xl px-3.5 py-2 flex-row items-center justify-between"
+          >
+            <View className="flex-row items-center gap-2">
+              <NotionIcon name="search" size={14} color="#8b949e" />
+              <Text className="text-xs text-[#8b949e]">
+                Usa la barra Smart Intake inferior para dictar o agendar...
+              </Text>
+            </View>
+            <View className="px-1.5 py-0.5 rounded bg-[#1f2430] border border-[#2d3345]">
+              <Text className="text-[9px] font-mono text-[#8b949e]">Ctrl+B</Text>
+            </View>
+          </Pressable>
+
           {/* Acciones Derecha Header */}
           <View className="flex-row items-center gap-3">
             <View className="flex-row items-center gap-2 px-2.5 py-1 rounded-lg bg-[#161922] border border-[#262b3a]">
@@ -140,13 +165,16 @@ export default function TabsLayout() {
         <View className="flex-1 flex-row overflow-hidden">
           {/* PANEL 1: SIDEBAR COLAPSABLE (Ctrl+B) */}
           {sidebarOpen ? (
-            <View className="w-56 border-r border-[#262b3a] bg-[#161922] p-3 justify-between">
-              <View className="gap-4">
+            <View className="w-60 border-r border-[#262b3a] bg-[#161922] p-3.5 justify-between">
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ gap: 20 }}
+              >
                 <View>
-                  <Text className="text-[10px] uppercase tracking-wider text-[#8b949e] font-bold px-2 mb-1.5">
+                  <Text className="text-[10px] uppercase tracking-wider text-[#8b949e] font-bold px-2 mb-2">
                     Vistas Principales
                   </Text>
-                  <View className="gap-1">
+                  <View className="gap-1.5">
                     {(
                       [
                         {
@@ -154,7 +182,7 @@ export default function TabsLayout() {
                           href: '/',
                           icon: 'clock' as NotionIconName,
                           active: pathname === '/' || pathname === '/index',
-                          badge: 'Heroico',
+                          badge: 'Principal',
                         },
                         {
                           label: 'Pendientes de Hoy',
@@ -184,27 +212,43 @@ export default function TabsLayout() {
                       <Pressable
                         key={navItem.href}
                         onPress={() => router.push(navItem.href)}
-                        className={`flex-row items-center justify-between px-2.5 py-2 rounded-xl ${
-                          navItem.active ? 'bg-[#1f2430]' : 'bg-transparent'
+                        className={`flex-row items-center justify-between px-3 py-2 rounded-xl border ${
+                          navItem.active
+                            ? 'bg-[#1f2430] border-[#2d3345]'
+                            : 'bg-transparent border-transparent'
                         }`}
                       >
-                        <View className="flex-row items-center gap-2">
+                        <View className="flex-row items-center gap-2.5">
                           <NotionIcon
                             name={navItem.icon}
                             size={15}
                             color={navItem.active ? '#818cf8' : '#8b949e'}
                           />
                           <Text
-                            className={`text-xs font-medium ${
-                              navItem.active ? 'text-white font-semibold' : 'text-[#8b949e]'
+                            className={`text-xs ${
+                              navItem.active
+                                ? 'text-white font-semibold'
+                                : 'text-[#8b949e] font-medium'
                             }`}
                           >
                             {navItem.label}
                           </Text>
                         </View>
                         {navItem.badge ? (
-                          <View className="px-1.5 py-0.5 rounded bg-[#0d1117] border border-[#2d3345]">
-                            <Text className="text-[9px] font-mono text-[#8b949e]">
+                          <View
+                            className={`px-1.5 py-0.5 rounded ${
+                              navItem.active
+                                ? 'bg-indigo-500/20 border border-indigo-500/30'
+                                : 'bg-[#0d1117] border border-[#2d3345]'
+                            }`}
+                          >
+                            <Text
+                              className={`text-[9px] font-mono ${
+                                navItem.active
+                                  ? 'text-indigo-300'
+                                  : 'text-[#8b949e]'
+                              }`}
+                            >
                               {navItem.badge}
                             </Text>
                           </View>
@@ -216,35 +260,37 @@ export default function TabsLayout() {
 
                 {/* Proyectos Activos Auto-Agrupados */}
                 <View>
-                  <View className="flex-row items-center justify-between px-2 mb-1.5">
+                  <View className="flex-row items-center justify-between px-2 mb-2">
                     <Text className="text-[10px] uppercase tracking-wider text-[#8b949e] font-bold">
-                      Proyectos
+                      Proyectos Activos
                     </Text>
                     <Text className="text-[9px] font-mono text-emerald-400">
                       Auto-IA
                     </Text>
                   </View>
 
-                  <View className="gap-1.5">
+                  <View className="gap-2">
                     {ideaGroups.map((grp) => (
                       <Pressable
                         key={grp.id}
                         onPress={() => router.push('/ideas')}
-                        className="p-2.5 rounded-xl bg-[#1f2430]/70 border border-[#2d3345] active:border-white"
+                        className="p-2.5 rounded-xl bg-[#1f2430]/75 border border-[#2d3345] active:border-white"
                       >
                         <View className="flex-row items-center justify-between">
                           <View className="flex-row items-center gap-2 flex-1 min-w-0">
-                            <NotionIcon
-                              name={grp.icon}
-                              size={14}
-                              color={
-                                grp.accentColor === 'indigo'
-                                  ? '#818cf8'
-                                  : grp.accentColor === 'emerald'
-                                  ? '#34d399'
-                                  : '#fbbf24'
-                              }
-                            />
+                            <View className="w-6 h-6 rounded-lg bg-[#161922] border border-[#2d3345] items-center justify-center">
+                              <NotionIcon
+                                name={grp.icon}
+                                size={13}
+                                color={
+                                  grp.accentColor === 'indigo'
+                                    ? '#818cf8'
+                                    : grp.accentColor === 'emerald'
+                                    ? '#34d399'
+                                    : '#fbbf24'
+                                }
+                              />
+                            </View>
                             <Text
                               numberOfLines={1}
                               className="font-bold text-xs text-white flex-1"
@@ -253,7 +299,7 @@ export default function TabsLayout() {
                             </Text>
                           </View>
                           <Text className="text-[10px] font-mono text-[#8b949e]">
-                            {grp.items.length}
+                            {grp.items.length} ideas
                           </Text>
                         </View>
                         <Text
@@ -266,19 +312,22 @@ export default function TabsLayout() {
                     ))}
                   </View>
                 </View>
-              </View>
+              </ScrollView>
 
               <View className="pt-3 border-t border-[#262b3a] flex-row items-center justify-between px-1">
-                <Text className="text-[10px] text-[#8b949e]">Ctrl+B Sidebar</Text>
+                <View className="flex-row items-center gap-1.5">
+                  <NotionIcon name="zap" size={12} color="#8b949e" />
+                  <Text className="text-[10px] text-[#8b949e]">Notion Icons</Text>
+                </View>
                 <Text className="text-[10px] font-mono text-emerald-400">
-                  Notion Icons
+                  Ctrl+B
                 </Text>
               </View>
             </View>
           ) : null}
 
           {/* PANEL 2: PANEL MULTIFUNCIÓN (AGENDA HOY + ASISTENTE IA) */}
-          <View className="w-[330px] border-r border-[#262b3a] bg-[#12151d] p-3.5 justify-between">
+          <View className="w-[340px] border-r border-[#262b3a] bg-[#12151d] p-3.5 justify-between">
             <View className="flex-1 min-h-0">
               {/* Switch Segmentado: Agenda Hoy vs Asistente IA */}
               <View className="bg-[#161922] p-1 rounded-xl border border-[#262b3a] flex-row items-center gap-1 mb-3">
@@ -325,118 +374,141 @@ export default function TabsLayout() {
                 </Pressable>
               </View>
 
-              {desktopSideTab === 'agenda' ? (
-                <View className="flex-1 gap-3">
-                  {/* Cápsula Compacta de Foco (Cero Duplicidad con el Timeline Central) */}
-                  <View className="bg-[#161922] border border-indigo-500/30 rounded-xl p-3 flex-row items-center justify-between">
-                    <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
-                      <View className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 items-center justify-center">
-                        <NotionIcon name="clock" size={14} color="#818cf8" />
-                      </View>
-                      <View className="flex-1 min-w-0">
-                        <Text className="font-bold text-xs text-white">
-                          {todayEvents.length}{' '}
-                          {todayEvents.length === 1
-                            ? 'bloque hoy'
-                            : 'bloques hoy'}
-                        </Text>
-                        <Text
-                          numberOfLines={1}
-                          className="text-[10px] text-emerald-400 mt-0.5"
-                        >
-                          Tarde libre disponible
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                className="flex-1"
+                contentContainerStyle={{ gap: 12, paddingBottom: 12 }}
+              >
+                {desktopSideTab === 'agenda' ? (
+                  <>
+                    {/*Sub-cabecera Hoy */}
+                    <View className="flex-row items-center justify-between pb-2 border-b border-[#262b3a]">
+                      <View className="flex-row items-center gap-2">
+                        <View className="w-2 h-2 rounded-full bg-emerald-400" />
+                        <Text className="font-bold text-xs uppercase tracking-wider text-white">
+                          Hoy · Martes 27 Oct
                         </Text>
                       </View>
+                      <Pressable
+                        onPress={simulateAllPendingDone}
+                        className="px-2 py-0.5 rounded bg-[#161922] border border-[#262b3a]"
+                      >
+                        <Text className="text-[10px] text-[#8b949e]">
+                          Simular: Todo Hecho
+                        </Text>
+                      </Pressable>
                     </View>
-                    <Pressable
-                      onPress={() => {
-                        setSelectedDayKey('27');
-                        router.push('/');
-                      }}
-                      className="px-2.5 py-1 rounded-lg bg-[#1f2430] border border-[#2d3345]"
-                    >
-                      <Text className="text-[10px] font-semibold text-white">
-                        Ver
-                      </Text>
-                    </Pressable>
-                  </View>
 
-                  {/* Cabecera Pendientes */}
-                  <View className="flex-row items-center justify-between px-1">
-                    <View className="flex-row items-center gap-1.5">
-                      <NotionIcon name="reminder" size={13} color="#fbbf24" />
-                      <Text className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
-                        Pendientes sin hora
-                      </Text>
+                    {/* Cápsula Compacta de Foco (Cero Duplicidad con el Timeline Central) */}
+                    <View className="bg-[#161922] border border-indigo-500/30 rounded-xl p-3 flex-row items-center justify-between">
+                      <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
+                        <View className="w-7 h-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 items-center justify-center">
+                          <NotionIcon name="clock" size={14} color="#818cf8" />
+                        </View>
+                        <View className="flex-1 min-w-0">
+                          <Text className="font-bold text-xs text-white">
+                            {todayEvents.length}{' '}
+                            {todayEvents.length === 1
+                              ? 'bloque agendado'
+                              : 'bloques agendados'}
+                          </Text>
+                          <Text
+                            numberOfLines={1}
+                            className="text-[10px] text-emerald-400 mt-0.5"
+                          >
+                            Tarde 100% libre desde las 12:00
+                          </Text>
+                        </View>
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          setSelectedDayKey('27');
+                          router.push('/');
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#1f2430] border border-[#2d3345]"
+                      >
+                        <Text className="text-[10px] font-semibold text-white">
+                          Ver
+                        </Text>
+                      </Pressable>
                     </View>
-                    <Pressable onPress={simulateAllPendingDone}>
-                      <Text className="text-[10px] text-[#8b949e] underline">
-                        Simular Todo Hecho
-                      </Text>
-                    </Pressable>
-                  </View>
 
-                  {/* Lista de Pendientes o Celebración */}
-                  <View className="gap-2">
-                    {pendingIncompleteCount === 0 ? (
-                      <EmptyCelebration />
-                    ) : (
-                      pendingTasks.map((task) => (
-                        <PendingItem
-                          key={task.id}
-                          task={task}
-                          onToggle={togglePendingTask}
-                          onAssignTime={(t) =>
-                            openSlotPicker({
-                              type: 'pending',
-                              id: t.id,
-                              title: t.title,
-                            })
-                          }
-                        />
-                      ))
-                    )}
-                  </View>
-                </View>
-              ) : (
-                <View className="flex-1 gap-2.5">
-                  <View className="p-3 rounded-xl bg-[#1f2430] border border-[#2d3345] gap-1.5">
-                    <View className="flex-row items-center justify-between">
-                      <Text className="text-xs font-bold text-white">
-                        Briefing de Jornada
-                      </Text>
-                      <Text className="text-[10px] font-mono text-emerald-400">
-                        Activo
+                    {/* Cabecera Pendientes */}
+                    <View className="flex-row items-center justify-between px-1 pt-1">
+                      <View className="flex-row items-center gap-1.5">
+                        <NotionIcon name="reminder" size={13} color="#fbbf24" />
+                        <Text className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+                          Pendientes
+                        </Text>
+                      </View>
+                      <Text className="text-[10px] font-mono text-[#8b949e]">
+                        {pendingIncompleteCount}{' '}
+                        {pendingIncompleteCount === 1 ? 'tarea' : 'tareas'}
                       </Text>
                     </View>
-                    <Text className="text-xs text-[#8b949e] leading-relaxed">
-                      Tienes {todayEvents.length} bloque agendado hoy y{' '}
-                      {pendingIncompleteCount} pendientes sin hora fija.
-                    </Text>
-                  </View>
 
-                  {chatMessages.slice(-3).map((m) => (
-                    <View
-                      key={m.id}
-                      className={`p-2.5 rounded-xl border ${
-                        m.role === 'user'
-                          ? 'bg-white border-white self-end'
-                          : 'bg-[#161922] border-[#2d3345]'
-                      }`}
-                    >
-                      <Text
-                        className={`text-xs ${
+                    {/* Lista de Pendientes o Celebración */}
+                    <View className="gap-2">
+                      {pendingIncompleteCount === 0 ? (
+                        <EmptyCelebration />
+                      ) : (
+                        pendingTasks.map((task) => (
+                          <PendingItem
+                            key={task.id}
+                            task={task}
+                            onToggle={togglePendingTask}
+                            onAssignTime={(t) =>
+                              openSlotPicker({
+                                type: 'pending',
+                                id: t.id,
+                                title: t.title,
+                              })
+                            }
+                          />
+                        ))
+                      )}
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <View className="p-3 rounded-xl bg-[#1f2430] border border-[#2d3345] gap-1.5">
+                      <View className="flex-row items-center justify-between">
+                        <Text className="text-xs font-bold text-white">
+                          Briefing de Jornada
+                        </Text>
+                        <Text className="text-[10px] font-mono text-emerald-400">
+                          Activo
+                        </Text>
+                      </View>
+                      <Text className="text-xs text-[#8b949e] leading-relaxed">
+                        Tienes {todayEvents.length} bloque agendado hoy y{' '}
+                        {pendingIncompleteCount} pendientes sin hora fija.
+                      </Text>
+                    </View>
+
+                    {chatMessages.slice(-4).map((m) => (
+                      <View
+                        key={m.id}
+                        className={`p-3 rounded-xl border ${
                           m.role === 'user'
-                            ? 'text-black font-medium'
-                            : 'text-[#e6edf3]'
+                            ? 'bg-white border-white self-end max-w-[90%]'
+                            : 'bg-[#161922] border-[#2d3345]'
                         }`}
                       >
-                        {m.text}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
+                        <Text
+                          className={`text-xs ${
+                            m.role === 'user'
+                              ? 'text-black font-medium'
+                              : 'text-[#e6edf3]'
+                          }`}
+                        >
+                          {m.text}
+                        </Text>
+                      </View>
+                    ))}
+                  </>
+                )}
+              </ScrollView>
             </View>
 
             {/* Punto de Entrada Universal Único en el pie del panel */}
