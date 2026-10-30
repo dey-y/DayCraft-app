@@ -66,12 +66,36 @@ export default function RootLayout() {
   const cssVars = useMemo(() => themeCssVars(theme), [theme]);
   const themeStyle = useMemo(() => vars(cssVars), [cssVars]);
 
-  // En web los Modal/portales viven fuera del árbol raíz: publicamos las variables en <html>.
+  // En web los Modal/portales viven fuera del árbol raíz: publicamos las variables en <html>
+  // e inyectamos Plus Jakarta Sans y JetBrains Mono prevaleciendo sobre system-ui de React Native Web.
   useEffect(() => {
     if (Platform.OS !== 'web' || typeof document === 'undefined') return;
     const root = document.documentElement;
     Object.entries(cssVars).forEach(([k, v]) => root.style.setProperty(k, v));
     root.style.colorScheme = isDark ? 'dark' : 'light';
+
+    if (!document.getElementById('daycraft-google-fonts')) {
+      const link = document.createElement('link');
+      link.id = 'daycraft-google-fonts';
+      link.rel = 'stylesheet';
+      link.href =
+        'https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap';
+      document.head.appendChild(link);
+    }
+
+    if (!document.getElementById('daycraft-font-override')) {
+      const style = document.createElement('style');
+      style.id = 'daycraft-font-override';
+      style.innerHTML = `
+        body, [dir="auto"], [dir="ltr"], [dir="rtl"], input, textarea, button {
+          font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+        }
+        .font-mono {
+          font-family: 'JetBrains Mono', monospace !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
   }, [cssVars, isDark]);
 
   if (!fontsLoaded && !fontError && Platform.OS !== 'web') {
