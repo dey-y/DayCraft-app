@@ -370,3 +370,21 @@ Pendiente, en este orden:
 6. **Modo automático**: Shiro de día y el último tema oscuro elegido de noche, opción en Ajustes.
 7. **Contraste**: verificar con un script WCAG AA (≥ 4.5:1) todos los pares texto/fondo de los 5 temas; los valores de Shiro, Sumi-e y Akane se ajustaron a ojo.
 8. Limpiar la constante `COLORS` heredada de [`constants/theme.ts`](constants/theme.ts) (ya sin uso) y los mockups HTML antiguos de la raíz.
+
+### Pendiente: errores reportados por Deimar en la versión móvil (2026-10-30)
+Detectados probando la app en el navegador del móvil. **Aún sin corregir**, por orden de prioridad:
+
+1. **Calendario: no funciona seleccionar un rango de horas arrastrando.**
+   * Causa probable: en [`components/timeline/Rail24h.tsx`](components/timeline/Rail24h.tsx) el arrastre solo existe para ratón (`onMouseDown` / `onMouseEnter` / `mouseup`, solo con `Platform.OS === 'web'`). En pantalla táctil esos eventos no se disparan y solo funciona el toque simple, que crea un bloque fijo de 30 min.
+   * Solución propuesta: arrastre táctil con `react-native-gesture-handler` (ya instalado, `Gesture.Pan` + `runOnJS`) o `PanResponder`, con *snap* cada 15 min (`quarterHeight`), bloque fantasma en vivo y bloqueo del scroll del raíl mientras se arrastra (pulsación larga para iniciar la selección y no pelear con el scroll vertical).
+2. **Ideas → nota `.md` abierta: el botón "Guardar" se sale del panel y el título del `.md` queda por detrás del botón "Descargar .md".**
+   * Archivo: [`components/ideas/IdeaNoteModal.tsx`](components/ideas/IdeaNoteModal.tsx).
+   * Comportamiento deseado por Deimar: si el título no cabe, mostrar **puntos suspensivos** en vez de solaparse.
+   * Solución propuesta: título en `numberOfLines={1}` con `flex-1 min-w-0` (y `ellipsizeMode="tail"`), botones con `flex-shrink-0`, y la fila de acciones con `flex-wrap` o iconos compactos en pantallas estrechas, para que "Guardar" quede siempre dentro del panel.
+3. **Barra inferior móvil: las etiquetas siguen viéndose "partidas".**
+   * El ajuste de altura de la v10 (`mobileTabBarHeight`) no lo resolvió del todo. Hipótesis: etiquetas largas ("Timeline 24h", "Pendientes") que se parten en dos líneas por el ancho de cada pestaña; puede ser exclusivo del navegador del móvil.
+   * Solución propuesta: etiqueta de una sola línea (`numberOfLines={1}` mediante `tabBarLabel` personalizado) y/o acortar a "Timeline"; verificar también en Expo Go para descartar que sea un efecto del navegador.
+4. **Expo Go en el móvil: incompatibilidad de SDK.**
+   * El móvil de Deimar tiene Expo Go con **SDK 58**; el proyecto usa **SDK 52**, por eso Expo Go falla con "Algo ha salido mal".
+   * Solución pendiente: **subir el proyecto al SDK 58** (`npx expo install expo@latest`, `npx expo install --fix`, `npx expo-doctor`) y revisar compatibilidad de `react-native-reanimated`, `nativewind`, `expo-router`, `react-native-svg`, `react-native-gesture-handler` y `expo-sqlite`; después `npm run typecheck`, `npx expo start --clear` y probar en el móvil. Hacerlo en una rama aparte por el riesgo de romper dependencias.
+   * Alternativa sin migrar: probar desde el navegador del móvil (`http://<IP-del-PC>:8081`, ver guía de arriba).
