@@ -32,61 +32,52 @@ export const DayStrip: React.FC = () => {
   const { width } = useWindowDimensions();
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
   const scrollRef = useRef<ScrollView>(null);
-  const cardWidth = isDesktop ? 76 : 62;
 
-  // Auto-scroll suave para mantener centrado el día activo al cambiar con botones o "Hoy"
+  const scrollToDay = (idx: number, animated = true) => {
+    if (idx < 0) return;
+    const targetOffset = Math.max(0, idx * 86 - (isDesktop ? 180 : 80));
+    scrollRef.current?.scrollTo({ x: targetOffset, y: 0, animated });
+    if (Platform.OS === 'web') {
+      const el =
+        (scrollRef.current as any)?._nativeRef ||
+        (scrollRef.current as any)?.getScrollableNode?.();
+      if (el && typeof el.scrollTo === 'function') {
+        el.scrollTo({ left: targetOffset, behavior: animated ? 'smooth' : 'auto' });
+      }
+    }
+  };
+
+  // Auto-scroll suave para centrar el día seleccionado
   useEffect(() => {
     const idx = days.findIndex((d) => d.key === selectedDayKey);
     if (idx === -1) return;
-    const offset = Math.max(0, (idx - 2) * (cardWidth + 8));
     const timer = setTimeout(() => {
-      if (Platform.OS === 'web') {
-        const node = (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
-        if (node && typeof node.scrollTo === 'function') {
-          node.scrollTo({ left: offset, behavior: 'smooth' });
-          return;
-        }
-      }
-      scrollRef.current?.scrollTo({ x: offset, animated: true });
-    }, 60);
+      scrollToDay(idx, true);
+    }, 50);
     return () => clearTimeout(timer);
-  }, [selectedDayKey, cardWidth]);
+  }, [selectedDayKey, isDesktop]);
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
     const distanceFromEnd =
       contentSize.width - (layoutMeasurement.width + contentOffset.x);
-    if (distanceFromEnd < 320) {
-      extendFutureDays(30);
+    if (distanceFromEnd < 500) {
+      extendFutureDays(60);
     }
   };
 
   const handleScrollRight = () => {
+    const currentIdx = days.findIndex((d) => d.key === selectedDayKey);
+    const nextIdx = Math.min(days.length - 1, (currentIdx === -1 ? 7 : currentIdx) + 1);
     shiftDay(1);
-    if (Platform.OS === 'web') {
-      const node = (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
-      if (node && typeof node.scrollBy === 'function') {
-        node.scrollBy({ left: 180, behavior: 'smooth' });
-        return;
-      }
-    }
-    const idx = days.findIndex((d) => d.key === selectedDayKey);
-    const nextIdx = Math.min(days.length - 1, (idx === -1 ? 7 : idx) + 1);
-    scrollRef.current?.scrollTo({ x: nextIdx * 80, animated: true });
+    scrollToDay(nextIdx, true);
   };
 
   const handleScrollLeft = () => {
+    const currentIdx = days.findIndex((d) => d.key === selectedDayKey);
+    const prevIdx = Math.max(0, (currentIdx === -1 ? 7 : currentIdx) - 1);
     shiftDay(-1);
-    if (Platform.OS === 'web') {
-      const node = (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
-      if (node && typeof node.scrollBy === 'function') {
-        node.scrollBy({ left: -180, behavior: 'smooth' });
-        return;
-      }
-    }
-    const idx = days.findIndex((d) => d.key === selectedDayKey);
-    const prevIdx = Math.max(0, (idx === -1 ? 7 : idx) - 1);
-    scrollRef.current?.scrollTo({ x: prevIdx * 80, animated: true });
+    scrollToDay(prevIdx, true);
   };
 
   const webWheelProps =
@@ -95,10 +86,11 @@ export const DayStrip: React.FC = () => {
           onWheel: (e: any) => {
             const delta = e.deltaY || e.deltaX;
             if (!delta) return;
-            const node =
-              (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
-            if (node) {
-              node.scrollLeft += delta;
+            const el =
+              (scrollRef.current as any)?._nativeRef ||
+              (scrollRef.current as any)?.getScrollableNode?.();
+            if (el && 'scrollLeft' in el) {
+              el.scrollLeft += delta;
             }
           },
         }
@@ -106,7 +98,7 @@ export const DayStrip: React.FC = () => {
 
   return (
     <View className="w-full bg-header border border-line-subtle px-2 py-1.5 rounded-2xl flex-row items-center gap-2">
-      {/* Botón Anterior */}
+      {/* Botón Anterior (Retrocede 1 día y desliza la tira) */}
       <Pressable
         onPress={handleScrollLeft}
         hitSlop={8}
@@ -151,7 +143,10 @@ export const DayStrip: React.FC = () => {
 
               {/* Pastilla del Día */}
               <Pressable
-                onPress={() => setSelectedDayKey(d.key)}
+                onPress={() => {
+                  setSelectedDayKey(d.key);
+                  scrollToDay(index, true);
+                }}
                 className={`px-3.5 py-2 rounded-xl border flex-row items-center gap-1.5 flex-shrink-0 active:opacity-85 ${
                   isSelected
                     ? 'bg-accent/20 border-accent'

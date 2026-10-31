@@ -135,9 +135,9 @@ export function createDayInfoFromDate(date: Date): DayInfo {
 
 /**
  * Genera un rango continuo de días desde `startOffset` hasta `endOffset` respecto al día de Hoy,
- * abarcando Octubre, Noviembre, Diciembre y permitiendo cargar más meses dinámicamente al hacer scroll.
+ * abarcando un año completo (365+ días) para permitir scroll multimes libre y continuo.
  */
-export function generateDaysRange(startOffset = -7, endOffset = 65): DayInfo[] {
+export function generateDaysRange(startOffset = -14, endOffset = 365): DayInfo[] {
   const list: DayInfo[] = [];
   for (let offset = startOffset; offset <= endOffset; offset++) {
     const dt = new Date(
@@ -153,7 +153,7 @@ export function generateDaysRange(startOffset = -7, endOffset = 65): DayInfo[] {
   return list;
 }
 
-export const INITIAL_DAYS: DayInfo[] = generateDaysRange(-7, 65);
+export const INITIAL_DAYS: DayInfo[] = generateDaysRange(-14, 365);
 
 export const SMART_SLOTS_PRESETS = [
   { startTime: '12:00', endTime: '12:30', label: 'Tras reunión actual', startQ: 48, quarters: 2 },

@@ -30,13 +30,13 @@ export const EventCard: React.FC<EventCardProps> = ({
 
   return (
     <View
-      className={`w-full h-full border border-line-subtle/80 border-l-[3.5px] rounded-xl px-3 py-1.5 ${
+      className={`w-full h-full border border-line-subtle/80 border-l-[3.5px] rounded-xl px-3 pt-2 pb-1.5 ${
         isReminder
           ? 'bg-info/15 border-l-info'
           : 'bg-card border-l-accent'
-      } flex-row items-center justify-between gap-2 overflow-hidden shadow-sm`}
+      } flex-row items-start justify-between gap-2 overflow-hidden shadow-sm`}
     >
-      <View className="flex-1 min-w-0 justify-center">
+      <View className="flex-1 min-w-0 justify-start">
         <View className="flex-row items-center gap-1.5">
           <Text
             numberOfLines={1}
@@ -56,7 +56,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         ) : null}
       </View>
 
-      <View className="flex-row items-center gap-1.5 flex-shrink-0">
+      <View className="flex-row items-center gap-1.5 flex-shrink-0 mt-0.5">
         <View className="px-2 py-0.5 rounded-md bg-raised border border-line-subtle">
           <Text
             className={`font-mono text-xs font-semibold ${

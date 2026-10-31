@@ -413,12 +413,11 @@ Pendiente, en este orden:
 
 ---
 
-7. **Tema Granate Zen (`granate` / Enji) y Desplazamiento Fluido de Días**:
+7. **Tema Granate Zen (`granate` / Enji), Scroll Multimes y Alineación Superior de Bloques**:
    - **Nuevo tema Granate**: Se incorporó el 6º tema del sistema Kuro-Zen: fondo ébano caoba (`#130F11`), tarjetas vino oscuro (`#1A1417`), acento rojo granate profundo (`#A82236`), texto marfil washi (`#F4ECEE`) y detalles dorados (`#D4A373`). Cero tonos rosados. Se configuró como tema por defecto activo.
-   - **Corrección de flechas y scroll en tira de días (`DayStrip.tsx`)**:
-     * Botones `<` y `>` ahora desplazan físicamente la tira horizontalmente en saltos de 180 px con animación suave, además de seleccionar el día adyacente.
-     * Soporte de rueda de ratón (`onWheel` en Web) para desplazamiento horizontal instantáneo sin necesidad de pulsar Shift.
-     * Prevención de bloqueo en flexbox con `minWidth: 0` para permitir desplazamiento táctil y de ratón en navegadores móviles y de escritorio.
+   - **Scroll multimes libre (365+ días)**: Se amplió `INITIAL_DAYS` de 65 a 365 días en `constants/theme.ts`, permitiendo navegar y scrollear libremente por todos los meses del año (noviembre, diciembre, enero...) de forma continua.
+   - **Auto-scroll y flechas en `DayStrip.tsx`**: Función `scrollToDay` unificada con llamada React Native `{ x, y, animated }` y fallback DOM web `{ left, behavior }`. Tanto pulsar las flechas `<` / `>` como hacer clic en una pastilla centra visualmente el día seleccionado en pantalla.
+   - **Alineación superior estricta en eventos (`EventCard.tsx`)**: Se corrigió `items-center` por `items-start pt-2 pb-1.5`. Los títulos y horas quedan siempre anclados arriba, sin flotar en medio de la tarjeta cuando el bloque dura 1h o 2h+.
 
 ---
 
