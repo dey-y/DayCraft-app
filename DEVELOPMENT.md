@@ -436,11 +436,10 @@ Pendiente, en este orden:
 
 ---
 
-10. **Restauración del lienzo del raíl 24h y corrección definitiva de etiquetas inferiores (`_layout.tsx`, `index.tsx`, `Rail24h.tsx`)**:
-   - **Restauración del raíl 24h**: Se revirtió el `paddingBottom: 140` en `index.tsx` que aplastaba verticalmente el lienzo de horas, devolviendo su holgura natural (`paddingBottom: 60` para convivencia con `SmartIntakeBar`).
-   - **Eliminación de interferencia de transición CSS**: Se removió la regla universal de transición sobre `div` en `global.css` que provocaba desfase en el seguimiento de puntero y gestos en la cuadrícula de horas.
-   - **Etiquetas de barra inferior nativas sin recorte**: Se sustituyeron las funciones de renderizado de texto personalizadas en `_layout.tsx` por las cadenas nativas de React Navigation (`tabBarLabel: 'Asistente'`, `'Ideas'`, etc.) y `tabBarLabelStyle: { fontSize: 10.5, fontWeight: '600' }`. Esto elimina el recorte de letras con descendente (`p`, `y`, `j`) que producía el `overflow: hidden` del contenedor.
-   - **Scroll inicial a horas matutinas en Web**: Asignación directa de `scrollTop` a las 08:00–09:00 en el montaje del raíl 24h para situar la vista directamente en la jornada diurna.
+10. **Restauración del lienzo del raíl 24h y barra inferior móvil Flexbox sin recorte (`_layout.tsx`, `index.tsx`, `Rail24h.tsx`)**:
+   - **Diagnóstico del recorte en React Navigation v7**: El componente interno `TabBarIcon` de `@react-navigation/bottom-tabs` reserva una caja rígida de `28px` (`ICON_SIZE_TALL = 28`) más `10px` de padding interno en `tabVerticalUiKit`, consumiendo `48px` antes de renderizar la etiqueta y dejando solo `8px` verticales para el texto en una barra de `56px`.
+   - **Barra de navegación inferior móvil Flexbox propia**: Se ocultó el `BottomTabBar` nativo en móvil (`tabBarStyle: { display: 'none' }`) y se implementó una barra inferior Flexbox personalizada en `app/(tabs)/_layout.tsx` con iconos en contenedor de `24px`, textos con `lineHeight: 16` y holgura vertical completa (`paddingTop: 8`, `paddingBottom: Math.max(insets.bottom + 6, 12)`), garantizando cero recorte de letras o descendentes (`p`, `g`, `j`, `y`).
+   - **Alineación exacta del `Rail24h` sobre `SmartIntakeBar`**: Se integró `SmartIntakeBar` en el flujo Flexbox normal de la columna móvil (eliminando `position: 'absolute'`) con `paddingBottom: 12` en `app/(tabs)/index.tsx` y `quarterHeight = isDesktop ? 14 : 13` en `Rail24h.tsx`, de modo que el raíl de 24 horas nunca se aplasta ni se estira contra la barra inferior.
 
 ---
 
