@@ -28,9 +28,8 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  // Barra inferior móvil: 68px de contenido (icono + etiqueta holgada con line-height limpio) + área segura del dispositivo.
-  // El Smart Intake se ancla a esta misma altura para no solaparse nunca con las etiquetas.
-  const mobileTabBarHeight = 68 + insets.bottom;
+  // Barra inferior móvil: 56px estándar de altura ergonómica + área segura del dispositivo.
+  const mobileTabBarHeight = 56 + insets.bottom;
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
   const pathname = usePathname();
   const router = useRouter();
@@ -587,16 +586,22 @@ export default function TabsLayout() {
         <Tabs
           screenOptions={{
             headerShown: false,
+            tabBarActiveTintColor: colors.ink,
+            tabBarInactiveTintColor: colors.muted,
             tabBarStyle: {
               backgroundColor: colors.card,
               borderTopColor: colors.lineSubtle,
               height: mobileTabBarHeight,
-              paddingTop: 6,
-              paddingBottom: Math.max(insets.bottom, 10),
+              paddingTop: 4,
+              paddingBottom: Math.max(insets.bottom, 4),
             },
-            tabBarItemStyle: { paddingVertical: 2 },
-            tabBarActiveTintColor: colors.ink,
-            tabBarInactiveTintColor: colors.muted,
+            tabBarLabelStyle: {
+              fontSize: 10.5,
+              fontWeight: '600',
+            },
+            tabBarIconStyle: {
+              marginTop: 2,
+            },
             tabBarAllowFontScaling: false,
           }}
         >
@@ -605,22 +610,7 @@ export default function TabsLayout() {
             name="chat"
             options={{
               title: 'Asistente',
-              tabBarLabel: ({ color, focused }) => (
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color,
-                    fontSize: 11,
-                    lineHeight: 16,
-                    fontWeight: focused ? '700' : '500',
-                    textAlign: 'center',
-                    marginTop: 2,
-                    paddingBottom: 2,
-                  }}
-                >
-                  Asistente
-                </Text>
-              ),
+              tabBarLabel: 'Asistente',
               tabBarIcon: ({ color }) => (
                 <NotionIcon name="chat" size={17} color={color} />
               ),
@@ -632,22 +622,7 @@ export default function TabsLayout() {
             name="ideas"
             options={{
               title: 'Ideas',
-              tabBarLabel: ({ color, focused }) => (
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color,
-                    fontSize: 11,
-                    lineHeight: 16,
-                    fontWeight: focused ? '700' : '500',
-                    textAlign: 'center',
-                    marginTop: 2,
-                    paddingBottom: 2,
-                  }}
-                >
-                  Ideas
-                </Text>
-              ),
+              tabBarLabel: 'Ideas',
               tabBarIcon: ({ color }) => (
                 <NotionIcon name="lightbulb" size={17} color={color} />
               ),
@@ -659,22 +634,7 @@ export default function TabsLayout() {
             name="pending"
             options={{
               title: 'Pendientes',
-              tabBarLabel: ({ color, focused }) => (
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color,
-                    fontSize: 11,
-                    lineHeight: 16,
-                    fontWeight: focused ? '700' : '500',
-                    textAlign: 'center',
-                    marginTop: 2,
-                    paddingBottom: 2,
-                  }}
-                >
-                  Pendientes
-                </Text>
-              ),
+              tabBarLabel: 'Pendientes',
               tabBarBadge:
                 pendingIncompleteCount > 0 ? pendingIncompleteCount : undefined,
               tabBarBadgeStyle: {
@@ -694,22 +654,7 @@ export default function TabsLayout() {
             name="index"
             options={{
               title: 'Timeline',
-              tabBarLabel: ({ color, focused }) => (
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color,
-                    fontSize: 11,
-                    lineHeight: 16,
-                    fontWeight: focused ? '700' : '500',
-                    textAlign: 'center',
-                    marginTop: 2,
-                    paddingBottom: 2,
-                  }}
-                >
-                  Timeline
-                </Text>
-              ),
+              tabBarLabel: 'Timeline',
               tabBarIcon: ({ color }) => (
                 <NotionIcon name="clock" size={17} color={color} />
               ),

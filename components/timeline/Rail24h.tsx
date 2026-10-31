@@ -87,6 +87,13 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     const targetY = Math.max(0, (firstHour - 1) * hourHeight);
     const timer = setTimeout(() => {
       scrollRef.current?.scrollTo({ y: targetY, animated: true });
+      if (Platform.OS === 'web') {
+        const anyRef = scrollRef.current as any;
+        const el = anyRef?.getScrollableNode?.() || anyRef?._scrollNodeRef || anyRef;
+        if (el && 'scrollTop' in el && el.scrollTop === 0) {
+          el.scrollTop = targetY;
+        }
+      }
     }, 80);
     return () => clearTimeout(timer);
   }, [selectedDayKey, hourHeight]);

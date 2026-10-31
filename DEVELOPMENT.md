@@ -431,9 +431,16 @@ Pendiente, en este orden:
 
 9. **Auditoría de Diseño — Puntos 4 & 6: Microinteracciones, Transición Suave y Contraste WCAG**:
    - **Menú visual de 6 paletas (`ThemePicker.tsx`)**: Se reemplazó el selector simple por un popover en cuadrícula táctil con las 6 atmósferas requeridas: **Granate** (*Enji*), **Murasaki** (*Murasaki*), **Sumi** (*Sumi-e*), **Índigo** (*Aizome*), **Bosque** (*Koke*) y **Nieve** (*Shiro*). Cada pastilla incluye kanji japonés, descripción poética, muestrario de 3 tonos y confirmación con persistencia SQLite.
-   - **Transición suave entre temas (`global.css`)**: Inyección de regla CSS con curva cubic-bezier suave (0.28s) para que al conmutar entre paletas todas las superficies, bordes y tipografías muten armónicamente sin saltos bruscos.
    - **Microinteracciones táctiles en tareas (`PendingItem.tsx` & `slot-picker.tsx`)**: Checkbox con rebote elástico spring al completar tareas (`checkScale`), tachado con atenuación y botones de time-blocking con micro-escala (`active:scale-95`).
    - **Auditoría de contraste WCAG**: Cálculo matemático de luminancia relativa y ratios de contraste en los 6 temas. Se corrigió `accentSoft` en Granate (`#DE5D71`, ratio 5.11:1 sobre card), `onAccent` en Bosque (`#FFFFFF`, ratio 5.22:1 sobre accent) e `ink` en todos los temas superando 14.2:1 (excediendo ampliamente WCAG AAA).
+
+---
+
+10. **Restauración del lienzo del raíl 24h y corrección definitiva de etiquetas inferiores (`_layout.tsx`, `index.tsx`, `Rail24h.tsx`)**:
+   - **Restauración del raíl 24h**: Se revirtió el `paddingBottom: 140` en `index.tsx` que aplastaba verticalmente el lienzo de horas, devolviendo su holgura natural (`paddingBottom: 60` para convivencia con `SmartIntakeBar`).
+   - **Eliminación de interferencia de transición CSS**: Se removió la regla universal de transición sobre `div` en `global.css` que provocaba desfase en el seguimiento de puntero y gestos en la cuadrícula de horas.
+   - **Etiquetas de barra inferior nativas sin recorte**: Se sustituyeron las funciones de renderizado de texto personalizadas en `_layout.tsx` por las cadenas nativas de React Navigation (`tabBarLabel: 'Asistente'`, `'Ideas'`, etc.) y `tabBarLabelStyle: { fontSize: 10.5, fontWeight: '600' }`. Esto elimina el recorte de letras con descendente (`p`, `y`, `j`) que producía el `overflow: hidden` del contenedor.
+   - **Scroll inicial a horas matutinas en Web**: Asignación directa de `scrollTop` a las 08:00–09:00 en el montaje del raíl 24h para situar la vista directamente en la jornada diurna.
 
 ---
 

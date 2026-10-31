@@ -39,7 +39,7 @@ export default function TimelineScreen() {
 
   return (
     <View
-      style={{ paddingBottom: isDesktop ? 16 : 140 }}
+      style={{ paddingBottom: isDesktop ? 16 : 60 }}
       className="flex-1 bg-canvas px-4 pt-3 gap-3"
     >
       {/* Cabecera Superior del Lienzo (Estilo Cockpit v9) */}
