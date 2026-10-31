@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Modal, Pressable, Text, View } from 'react-native';
+import { Modal, Pressable, Text, View, ScrollView } from 'react-native';
 import { vars } from 'nativewind';
 import { THEMES, THEME_ORDER, ThemeName, themeCssVars } from '@/constants/themes';
 import { useTheme, useThemeStore } from '@/store/useThemeStore';
@@ -15,6 +15,7 @@ import { NotionIcon } from '@/components/ui/NotionIcon';
  * - Nieve (Shiro)
  *
  * Muestra tarjetas táctiles con previsualización de 3 tonos, kanji, descripción y selección viva.
+ * Con ScrollView responsivo para garantizar que ningún texto quede cortado en pantallas pequeñas o móviles.
  */
 export const ThemePickerButton: React.FC = () => {
   const { theme, colors } = useTheme();
@@ -63,15 +64,16 @@ export const ThemePickerButton: React.FC = () => {
         <Pressable
           onPress={() => setOpen(false)}
           style={themeStyle}
-          className="flex-1 bg-black/65 items-center justify-center p-4"
+          className="flex-1 bg-black/65 items-center justify-center p-3 sm:p-4"
         >
-          {/* Tarjeta Modal Popover */}
+          {/* Tarjeta Modal con ScrollView para asegurar que nunca se corte abajo */}
           <Pressable
             onPress={(e) => e.stopPropagation()}
-            className="w-full max-w-md bg-card border border-line rounded-2xl p-5 shadow-2xl gap-3.5"
+            style={{ maxHeight: '90%' }}
+            className="w-full max-w-md bg-card border border-line rounded-2xl p-4 sm:p-5 shadow-2xl flex-col"
           >
             {/* Cabecera */}
-            <View className="flex-row items-center justify-between pb-2.5 border-b border-line-subtle">
+            <View className="flex-row items-center justify-between pb-3 border-b border-line-subtle flex-shrink-0">
               <View className="flex-row items-center gap-2.5">
                 <View
                   style={{ backgroundColor: colors.accent }}
@@ -98,81 +100,91 @@ export const ThemePickerButton: React.FC = () => {
               </Pressable>
             </View>
 
-            {/* Cuadrícula de 6 Paletas (2 columnas) */}
-            <View className="flex-row flex-wrap gap-2.5 justify-between">
-              {THEME_ORDER.map((name) => {
-                const t = THEMES[name];
-                const selected = t.name === theme.name;
+            {/* Contenido scrolleable para móviles */}
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingVertical: 12 }}
+            >
+              <View className="flex-row flex-wrap gap-2.5 justify-between">
+                {THEME_ORDER.map((name) => {
+                  const t = THEMES[name];
+                  const selected = t.name === theme.name;
 
-                return (
-                  <Pressable
-                    key={name}
-                    onPress={() => choose(name)}
-                    style={{ width: '48%' }}
-                    className={`p-3 rounded-xl border flex-col justify-between gap-2 active:scale-[0.98] ${
-                      selected
-                        ? 'bg-accent/15 border-accent'
-                        : 'bg-raised/70 border-line-subtle'
-                    }`}
-                  >
-                    {/* Fila superior: Nombre, Kanji y Badge */}
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-row items-baseline gap-1.5 flex-1 min-w-0">
-                        <Text
-                          numberOfLines={1}
-                          className={`text-xs font-bold ${
-                            selected ? 'text-ink' : 'text-ink/90'
-                          }`}
-                        >
-                          {t.label}
-                        </Text>
-                        <Text className="text-[10px] font-mono text-muted">
-                          {t.kanji}
-                        </Text>
+                  return (
+                    <Pressable
+                      key={name}
+                      onPress={() => choose(name)}
+                      style={{ width: '48%', minHeight: 105 }}
+                      className={`p-3 rounded-xl border flex-col justify-between gap-1.5 active:scale-[0.98] ${
+                        selected
+                          ? 'bg-accent/15 border-accent'
+                          : 'bg-raised/70 border-line-subtle'
+                      }`}
+                    >
+                      {/* Fila superior: Nombre, Kanji y Badge */}
+                      <View className="flex-row items-center justify-between">
+                        <View className="flex-row items-baseline gap-1.5 flex-1 min-w-0">
+                          <Text
+                            numberOfLines={1}
+                            style={{ lineHeight: 16 }}
+                            className={`text-xs font-bold ${
+                              selected ? 'text-ink' : 'text-ink/90'
+                            }`}
+                          >
+                            {t.label}
+                          </Text>
+                          <Text
+                            style={{ lineHeight: 14 }}
+                            className="text-[10px] font-mono text-muted"
+                          >
+                            {t.kanji}
+                          </Text>
+                        </View>
+
+                        {selected ? (
+                          <View className="w-4 h-4 rounded-full bg-accent items-center justify-center flex-shrink-0">
+                            <NotionIcon name="check" size={10} color={t.colors.onAccent} strokeWidth={2.5} />
+                          </View>
+                        ) : null}
                       </View>
 
-                      {selected ? (
-                        <View className="w-4 h-4 rounded-full bg-accent items-center justify-center">
-                          <NotionIcon name="check" size={10} color={t.colors.onAccent} strokeWidth={2.5} />
-                        </View>
-                      ) : null}
-                    </View>
+                      {/* Descripción con line-height amplio para no cortar letras con descendente */}
+                      <Text
+                        numberOfLines={2}
+                        style={{ fontSize: 11, lineHeight: 15 }}
+                        className="text-muted"
+                      >
+                        {t.description}
+                      </Text>
 
-                    {/* Descripción poética breve */}
-                    <Text
-                      numberOfLines={2}
-                      className="text-[11px] text-muted leading-tight"
-                    >
-                      {t.description}
-                    </Text>
+                      {/* Muestrario de los 3 tonos característicos */}
+                      <View className="flex-row items-center gap-1.5 pt-0.5">
+                        <View
+                          style={{ backgroundColor: t.colors.canvas }}
+                          className="w-3.5 h-3.5 rounded-full border border-line"
+                        />
+                        <View
+                          style={{ backgroundColor: t.colors.card }}
+                          className="w-3.5 h-3.5 rounded-full border border-line"
+                        />
+                        <View
+                          style={{ backgroundColor: t.colors.accent }}
+                          className="w-3.5 h-3.5 rounded-full border border-line"
+                        />
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </ScrollView>
 
-                    {/* Muestrario de los 3 tonos característicos */}
-                    <View className="flex-row items-center gap-1.5 pt-1">
-                      <View
-                        style={{ backgroundColor: t.colors.canvas }}
-                        className="w-4 h-4 rounded-full border border-line"
-                      />
-                      <View
-                        style={{ backgroundColor: t.colors.card }}
-                        className="w-4 h-4 rounded-full border border-line"
-                      />
-                      <View
-                        style={{ backgroundColor: t.colors.accent }}
-                        className="w-4 h-4 rounded-full border border-line"
-                      />
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {/* Pie de confirmación */}
-            <View className="pt-2 border-t border-line-subtle flex-row items-center justify-between">
-              <Text className="text-[11px] text-muted">
+            {/* Pie de confirmación siempre visible y sin cortes */}
+            <View className="pt-2.5 border-t border-line-subtle flex-row items-center justify-between flex-shrink-0">
+              <Text style={{ fontSize: 11, lineHeight: 16 }} className="text-muted flex-1 min-w-0">
                 Tema activo: <Text className="font-bold text-accent-soft">{theme.label} ({theme.kanji})</Text>
               </Text>
-              <Text className="text-[10px] font-mono text-muted">
-                Persistido en SQLite
+              <Text style={{ fontSize: 10, lineHeight: 14 }} className="font-mono text-muted flex-shrink-0">
+                Guardado en SQLite
               </Text>
             </View>
           </Pressable>

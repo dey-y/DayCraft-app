@@ -28,9 +28,9 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  // Barra inferior móvil: 64px de contenido (icono + etiqueta con aire) + área segura del dispositivo.
+  // Barra inferior móvil: 68px de contenido (icono + etiqueta holgada con line-height limpio) + área segura del dispositivo.
   // El Smart Intake se ancla a esta misma altura para no solaparse nunca con las etiquetas.
-  const mobileTabBarHeight = 64 + insets.bottom;
+  const mobileTabBarHeight = 68 + insets.bottom;
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
   const pathname = usePathname();
   const router = useRouter();
@@ -592,7 +592,7 @@ export default function TabsLayout() {
               borderTopColor: colors.lineSubtle,
               height: mobileTabBarHeight,
               paddingTop: 6,
-              paddingBottom: Math.max(insets.bottom, 6),
+              paddingBottom: Math.max(insets.bottom, 10),
             },
             tabBarItemStyle: { paddingVertical: 2 },
             tabBarActiveTintColor: colors.ink,
@@ -610,10 +610,12 @@ export default function TabsLayout() {
                   numberOfLines={1}
                   style={{
                     color,
-                    fontSize: 10.5,
+                    fontSize: 11,
+                    lineHeight: 16,
                     fontWeight: focused ? '700' : '500',
                     textAlign: 'center',
                     marginTop: 2,
+                    paddingBottom: 2,
                   }}
                 >
                   Asistente
@@ -635,10 +637,12 @@ export default function TabsLayout() {
                   numberOfLines={1}
                   style={{
                     color,
-                    fontSize: 10.5,
+                    fontSize: 11,
+                    lineHeight: 16,
                     fontWeight: focused ? '700' : '500',
                     textAlign: 'center',
                     marginTop: 2,
+                    paddingBottom: 2,
                   }}
                 >
                   Ideas
@@ -660,10 +664,12 @@ export default function TabsLayout() {
                   numberOfLines={1}
                   style={{
                     color,
-                    fontSize: 10.5,
+                    fontSize: 11,
+                    lineHeight: 16,
                     fontWeight: focused ? '700' : '500',
                     textAlign: 'center',
                     marginTop: 2,
+                    paddingBottom: 2,
                   }}
                 >
                   Pendientes
@@ -693,10 +699,12 @@ export default function TabsLayout() {
                   numberOfLines={1}
                   style={{
                     color,
-                    fontSize: 10.5,
+                    fontSize: 11,
+                    lineHeight: 16,
                     fontWeight: focused ? '700' : '500',
                     textAlign: 'center',
                     marginTop: 2,
+                    paddingBottom: 2,
                   }}
                 >
                   Timeline
