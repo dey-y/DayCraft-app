@@ -32,7 +32,7 @@ export const DayStrip: React.FC = () => {
 
   const { width } = useWindowDimensions();
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   // Obtiene el elemento HTMLDivElement real subyacente en React Native Web
   const getDomScrollElement = (): HTMLElement | null => {

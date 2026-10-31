@@ -443,13 +443,12 @@ Pendiente, en este orden:
 
 ---
 
-### Tarea crítica pendiente para la próxima sesión: Migración a Expo SDK 58
-* **Diagnóstico confirmado**: La app Expo Go instalada en el móvil de Deimar cuenta con **Expo SDK 58** (lanzado en octubre de 2026), mientras que el proyecto DayCraft fue inicializado en **Expo SDK 52**. Dado que Expo Go en Google Play / App Store solo soporta la versión mayor más reciente, rechaza abrir proyectos en SDK 52 con el error *"Algo ha salido mal"*.
-* **Plan de acción para la siguiente sesión**:
-  1. Crear una rama de migración: `git checkout -b chore/upgrade-expo-sdk-58`.
-  2. Ejecutar `npx expo install expo@^58.0.0` y alinear dependencias: `npx expo install --fix`.
-  3. Actualizar React Native (a 0.88), React (19), NativeWind v4/v5, Reanimated y SQLite a sus versiones compatibles con SDK 58.
-  4. Ejecutar `npm run typecheck` y verificar que los bundlers de Metro y Tailwind compilen limpiamente.
-  5. Probar la apertura nativa directa en Expo Go desde el móvil.
-* **Alternativa inmediata mientras se realiza la migración**:
-  - Seguir probando la app en el móvil a través de su navegador web abriendo `http://192.168.1.130:8081` (misma red Wi-Fi y puerto 8081 habilitado).
+### 11. Migración completada a Expo SDK 58 (React 19.3 + React Native 0.88.1)
+* **Objetivo**: Hacer compatible el proyecto de forma nativa con la app **Expo Go (SDK 58)** instalada en iOS/Android sin perder soporte Web ni NativeWind v4.
+* **Actualizaciones realizadas (`package.json`, `metro.config.js`, `app/_layout.tsx`, `DayStrip.tsx`, `Rail24h.tsx`)**:
+  1. **Core SDK 58**: Actualización de `expo` a `~58.0.21`, `react` y `react-dom` a `19.3.0`, `react-native` a `0.88.1` y `react-native-web` a `~0.21.4`.
+  2. **Módulos nativos Expo SDK 58**: `expo-router ~58.0.28`, `expo-sqlite ~58.0.14`, `expo-font ~58.0.11`, `expo-constants ~58.0.14`, `expo-linking ~58.0.15`, `expo-splash-screen ~58.0.12`, `expo-status-bar ~58.0.4`, `expo-system-ui ~58.0.7`, `@expo/vector-icons ^15.0.2`.
+  3. **Gestos, Animaciones y Nueva Arquitectura**: `react-native-reanimated 4.7.1`, `react-native-worklets 0.13.0`, `react-native-gesture-handler ~3.3.0`, `react-native-safe-area-context ~5.10.1`, `react-native-screens ~4.30.0`, `react-native-svg 15.16.0`.
+  4. **Soporte WebAssembly (`wa-sqlite.wasm`) en Metro**: Se añadió `config.resolver.assetExts.push("wasm")` en `metro.config.js` para resolver el motor WebAssembly de `expo-sqlite` en SDK 58 Web.
+  5. **Tipado estricto React 19 / RN 0.88**: Migración de `useRef<ScrollView>` y `useRef<View>` a `useRef<React.ComponentRef<typeof ScrollView>>` / `typeof View` y ajuste de `StatusBar` edge-to-edge en `app/_layout.tsx` (`npm run typecheck` con `0` errores).
+  6. **Verificación de Bundlers**: Confirmada la compilación limpia (`HTTP 200 OK`) tanto del bundle Web (`5.15 MB`) como del bundle bytecode nativo Android Hermes (`9.05 MB`) con `runtimeVersion: exposdk:58.0.0`.

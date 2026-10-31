@@ -106,7 +106,7 @@ export default function RootLayout() {
     <View style={[{ flex: 1 }, themeStyle]}>
     <SafeAreaProvider>
       <SafeAreaView className="flex-1 bg-canvas" edges={['top', 'left', 'right']}>
-        <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={colors.canvas} />
+        <StatusBar style={isDark ? 'light' : 'dark'} />
 
         <View className="flex-1 bg-canvas">
           <Stack

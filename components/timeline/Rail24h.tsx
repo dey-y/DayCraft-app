@@ -42,8 +42,8 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const removeTimelineEvent = useDayCraftStore((s) => s.removeTimelineEvent);
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
 
-  const scrollRef = useRef<ScrollView>(null);
-  const gridContainerRef = useRef<View>(null);
+  const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const gridContainerRef = useRef<React.ComponentRef<typeof View>>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartClientY = useRef<number | null>(null);
   const touchStartClientX = useRef<number | null>(null);
