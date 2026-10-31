@@ -416,8 +416,16 @@ Pendiente, en este orden:
 7. **Tema Granate Zen (`granate` / Enji), Scroll Multimes y Alineación Superior de Bloques**:
    - **Nuevo tema Granate**: Se incorporó el 6º tema del sistema Kuro-Zen: fondo ébano caoba (`#130F11`), tarjetas vino oscuro (`#1A1417`), acento rojo granate profundo (`#A82236`), texto marfil washi (`#F4ECEE`) y detalles dorados (`#D4A373`). Cero tonos rosados. Se configuró como tema por defecto activo.
    - **Scroll multimes libre (365+ días)**: Se amplió `INITIAL_DAYS` de 65 a 365 días en `constants/theme.ts`, permitiendo navegar y scrollear libremente por todos los meses del año (noviembre, diciembre, enero...) de forma continua.
-   - **Auto-scroll y flechas en `DayStrip.tsx`**: Función `scrollToDay` unificada con llamada React Native `{ x, y, animated }` y fallback DOM web `{ left, behavior }`. Tanto pulsar las flechas `<` / `>` como hacer clic en una pastilla centra visualmente el día seleccionado en pantalla.
+   - **Auto-scroll y flechas en `DayStrip.tsx`**: Función `scrollToDay` unificada. Tanto pulsar las flechas `<` / `>` como hacer clic en una pastilla centra visualmente el día seleccionado en pantalla.
    - **Alineación superior estricta en eventos (`EventCard.tsx`)**: Se corrigió `items-center` por `items-start pt-2 pb-1.5`. Los títulos y horas quedan siempre anclados arriba, sin flotar en medio de la tarjeta cuando el bloque dura 1h o 2h+.
+
+---
+
+8. **Solución definitiva al scroll físico de días y alineación de bloques (`DayStrip.tsx` + `EventCard.tsx`)**:
+   - **Diagnóstico del scroll en React Native Web**: RNW sobrescribe el método `.scrollTo` del nodo HTML subyacente para forzar su interfaz `{ x, y, animated }`. Al pasar `{ left: targetOffset }`, el desestructurador de RNW interpretaba `x = undefined`, forzando `scrollLeft` a `0` en cada invocación. Se resolvió invocando directamente el prototipo nativo del navegador `(HTMLElement.prototype.scrollTo as any).call(el, { left: targetOffset, behavior: 'smooth' })` con fallback síncrono a `el.scrollLeft = targetOffset`.
+   - **Navegación multimes con ratón (Drag-to-Scroll + Rueda horizontal)**: Se incorporó en Web el desplazamiento horizontal con la rueda del ratón (`wheel` listener con `{ passive: false }`), arrastre táctil de escritorio (clic y arrastre estilo Figma / Google Maps con cambio de cursor a `grab`/`grabbing`) y supresión de `click` accidental tras arrastrar.
+   - **Scroll infinito multimes ininterrumpido**: Conexión de detectores automáticos que inyectan 60 días adicionales cada vez que el usuario se aproxima a los últimos 600 px del lienzo.
+   - **Alineación indestructible en `EventCard.tsx`**: Inclusión de estilos en línea explícitos (`alignItems: 'flex-start'`, `justifyContent: 'flex-start'`, `textAlign: 'left'`) en la tarjeta y títulos para evitar que clases de flex o Tailwind puedan centrar verticalmente el contenido en bloques de 1h o 2h+.
 
 ---
 

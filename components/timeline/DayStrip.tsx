@@ -15,10 +15,11 @@ import { NotionIcon } from '@/components/ui/NotionIcon';
 import { useTheme } from '@/store/useThemeStore';
 
 /**
- * DayStrip — Tira Horizontal Infinita de Días con Tarjetas Compactas (LUN · 27 · OCT)
- * - Rellena el 100% de la barra sin dejar huecos muertos.
- * - Muestra separadores visuales de mes cuando termina el mes actual y empieza el siguiente (ej. NOV, DIC).
- * - Soporta scroll infinito hacia adelante: al acercarse al final, genera dinámicamente el siguiente mes.
+ * DayStrip — Tira Horizontal de Días Multimes (Estilo Kuro-Zen / Japandi)
+ * - Navegación fluida por días y meses continuos (scroll infinito con extensiones dinámicas de 60 días).
+ * - Flechas `<` y `>` que avanzan/retroceden el día y deslizan físicamente la tira.
+ * - Soporte completo en Web para rueda de ratón (scroll vertical convertido a horizontal) y arrastre con ratón (drag-to-scroll).
+ * - Separadores visuales sutiles entre meses (`NOV`, `DIC`, `ENE`).
  */
 export const DayStrip: React.FC = () => {
   const { colors } = useTheme();
@@ -33,68 +34,166 @@ export const DayStrip: React.FC = () => {
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
   const scrollRef = useRef<ScrollView>(null);
 
+  // Obtiene el elemento HTMLDivElement real subyacente en React Native Web
+  const getDomScrollElement = (): HTMLElement | null => {
+    if (Platform.OS !== 'web' || !scrollRef.current) return null;
+    const anyRef = scrollRef.current as any;
+    const node =
+      anyRef.getScrollableNode?.() ||
+      anyRef._scrollNodeRef ||
+      anyRef._nativeRef ||
+      anyRef;
+    return node instanceof HTMLElement ? node : null;
+  };
+
+  // Función de scroll centrada que funciona tanto en Web como en móvil nativo
   const scrollToDay = (idx: number, animated = true) => {
     if (idx < 0) return;
-    const targetOffset = Math.max(0, idx * 86 - (isDesktop ? 180 : 80));
+    const targetOffset = Math.max(0, idx * 88 - (isDesktop ? 220 : 100));
+
+    // Llamada nativa React Native
     scrollRef.current?.scrollTo({ x: targetOffset, y: 0, animated });
+
+    // Llamada nativa Web DOM sin verse afectada por el polyfill de React Native Web
     if (Platform.OS === 'web') {
-      const el =
-        (scrollRef.current as any)?._nativeRef ||
-        (scrollRef.current as any)?.getScrollableNode?.();
-      if (el && typeof el.scrollTo === 'function') {
-        el.scrollTo({ left: targetOffset, behavior: animated ? 'smooth' : 'auto' });
+      const el = getDomScrollElement();
+      if (el) {
+        if (typeof HTMLElement.prototype.scrollTo === 'function') {
+          try {
+            (HTMLElement.prototype.scrollTo as any).call(el, {
+              left: targetOffset,
+              top: 0,
+              behavior: animated ? 'smooth' : 'auto',
+            });
+          } catch {
+            el.scrollLeft = targetOffset;
+          }
+        } else {
+          el.scrollLeft = targetOffset;
+        }
       }
     }
   };
 
-  // Auto-scroll suave para centrar el día seleccionado
+  // Auto-scroll para centrar el día seleccionado
   useEffect(() => {
     const idx = days.findIndex((d) => d.key === selectedDayKey);
     if (idx === -1) return;
     const timer = setTimeout(() => {
       scrollToDay(idx, true);
-    }, 50);
+    }, 40);
     return () => clearTimeout(timer);
   }, [selectedDayKey, isDesktop]);
 
-  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  // Soporte de rueda de ratón, drag-to-scroll y scroll infinito en escritorio Web
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const el = getDomScrollElement();
+    if (!el) return;
+
+    // 1. Rueda de ratón: desplazamiento horizontal suave
+    const handleWheel = (e: WheelEvent) => {
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (delta !== 0) {
+        e.preventDefault();
+        el.scrollLeft += delta;
+      }
+    };
+
+    // 2. Drag-to-scroll con ratón (hacer clic y arrastrar para mover libremente los días)
+    let isDragging = false;
+    let startX = 0;
+    let scrollStart = 0;
+    let hasMoved = false;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (e.button !== 0) return;
+      isDragging = true;
+      hasMoved = false;
+      startX = e.pageX;
+      scrollStart = el.scrollLeft;
+      el.style.cursor = 'grabbing';
+      el.style.userSelect = 'none';
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      const dx = e.pageX - startX;
+      if (Math.abs(dx) > 4) {
+        hasMoved = true;
+      }
+      el.scrollLeft = scrollStart - dx;
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging) {
+        isDragging = false;
+        el.style.cursor = 'grab';
+        el.style.removeProperty('user-select');
+      }
+    };
+
+    const handleClickCapture = (e: MouseEvent) => {
+      if (hasMoved) {
+        e.stopPropagation();
+        e.preventDefault();
+        hasMoved = false;
+      }
+    };
+
+    // 3. Scroll infinito: cargar dinámicamente futuros meses
+    const handleScrollWeb = () => {
+      if (el.scrollWidth - (el.scrollLeft + el.clientWidth) < 600) {
+        extendFutureDays(60);
+      }
+    };
+
+    el.style.cursor = 'grab';
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    el.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    el.addEventListener('click', handleClickCapture, true);
+    el.addEventListener('scroll', handleScrollWeb, { passive: true });
+
+    return () => {
+      el.removeEventListener('wheel', handleWheel);
+      el.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      el.removeEventListener('click', handleClickCapture, true);
+      el.removeEventListener('scroll', handleScrollWeb);
+    };
+  }, [days.length, extendFutureDays]);
+
+  // Manejador de scroll nativo para móviles (iOS / Android)
+  const handleScrollNative = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
     const distanceFromEnd =
       contentSize.width - (layoutMeasurement.width + contentOffset.x);
-    if (distanceFromEnd < 500) {
+    if (distanceFromEnd < 600) {
       extendFutureDays(60);
     }
   };
 
   const handleScrollRight = () => {
     const currentIdx = days.findIndex((d) => d.key === selectedDayKey);
-    const nextIdx = Math.min(days.length - 1, (currentIdx === -1 ? 7 : currentIdx) + 1);
+    const safeIdx = currentIdx === -1 ? 0 : currentIdx;
+    if (safeIdx >= days.length - 10) {
+      extendFutureDays(60);
+    }
+    const nextIdx = Math.min(days.length - 1, safeIdx + 1);
     shiftDay(1);
     scrollToDay(nextIdx, true);
   };
 
   const handleScrollLeft = () => {
     const currentIdx = days.findIndex((d) => d.key === selectedDayKey);
-    const prevIdx = Math.max(0, (currentIdx === -1 ? 7 : currentIdx) - 1);
+    const safeIdx = currentIdx === -1 ? 0 : currentIdx;
+    const prevIdx = Math.max(0, safeIdx - 1);
     shiftDay(-1);
     scrollToDay(prevIdx, true);
   };
-
-  const webWheelProps =
-    Platform.OS === 'web'
-      ? {
-          onWheel: (e: any) => {
-            const delta = e.deltaY || e.deltaX;
-            if (!delta) return;
-            const el =
-              (scrollRef.current as any)?._nativeRef ||
-              (scrollRef.current as any)?.getScrollableNode?.();
-            if (el && 'scrollLeft' in el) {
-              el.scrollLeft += delta;
-            }
-          },
-        }
-      : {};
 
   return (
     <View className="w-full bg-header border border-line-subtle px-2 py-1.5 rounded-2xl flex-row items-center gap-2">
@@ -107,12 +206,12 @@ export const DayStrip: React.FC = () => {
         <NotionIcon name="chevron-left" size={14} color={colors.muted} />
       </Pressable>
 
-      {/* Tira Horizontal Deslizable Continua (Pastillas / Pills estilo Kuro-Zen) */}
+      {/* Tira Horizontal Deslizable Continua (Pastillas estilo Kuro-Zen) */}
       <ScrollView
         ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
+        onScroll={handleScrollNative}
         scrollEventThrottle={32}
         style={{ flex: 1, minWidth: 0 }}
         contentContainerStyle={{
@@ -120,7 +219,6 @@ export const DayStrip: React.FC = () => {
           paddingHorizontal: 2,
           alignItems: 'center',
         }}
-        {...(webWheelProps as object)}
       >
         {days.map((d, index) => {
           const isSelected = d.key === selectedDayKey;
