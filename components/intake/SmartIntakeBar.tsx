@@ -70,7 +70,8 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
             placeholderTextColor={colors.muted}
             onSubmitEditing={handleSubmit}
             returnKeyType="send"
-            className="flex-1 text-sm text-ink py-0.5 outline-none"
+            style={{ lineHeight: 18, paddingVertical: 2 }}
+            className="flex-1 text-sm text-ink outline-none"
           />
           {text.trim().length > 0 && !isRecording ? (
             <Pressable

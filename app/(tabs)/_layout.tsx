@@ -28,8 +28,6 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  // Barra inferior móvil: 56px estándar de altura ergonómica + área segura del dispositivo.
-  const mobileTabBarHeight = 56 + insets.bottom;
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
   const pathname = usePathname();
   const router = useRouter();
@@ -581,91 +579,121 @@ export default function TabsLayout() {
 
       <BellDropdown />
 
-      {/* Cuerpo de las 4 Pestañas con Barra de Entrada Universal siempre accesible */}
-      <View className="flex-1">
+      {/* Cuerpo de las 4 Pestañas (ocupa exactamente el espacio libre sobre SmartIntakeBar) */}
+      <View className="flex-1 min-h-0">
         <Tabs
           screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: colors.ink,
-            tabBarInactiveTintColor: colors.muted,
-            tabBarStyle: {
-              backgroundColor: colors.card,
-              borderTopColor: colors.lineSubtle,
-              height: mobileTabBarHeight,
-              paddingTop: 4,
-              paddingBottom: Math.max(insets.bottom, 4),
-            },
-            tabBarLabelStyle: {
-              fontSize: 10.5,
-              fontWeight: '600',
-            },
-            tabBarIconStyle: {
-              marginTop: 2,
-            },
-            tabBarAllowFontScaling: false,
+            tabBarStyle: { display: 'none' },
           }}
         >
-          {/* Tab 1: Asistente IA */}
-          <Tabs.Screen
-            name="chat"
-            options={{
-              title: 'Asistente',
-              tabBarLabel: 'Asistente',
-              tabBarIcon: ({ color }) => (
-                <NotionIcon name="chat" size={17} color={color} />
-              ),
-            }}
-          />
-
-          {/* Tab 2: Cajón de Ideas */}
-          <Tabs.Screen
-            name="ideas"
-            options={{
-              title: 'Ideas',
-              tabBarLabel: 'Ideas',
-              tabBarIcon: ({ color }) => (
-                <NotionIcon name="lightbulb" size={17} color={color} />
-              ),
-            }}
-          />
-
-          {/* Tab 3: Pendientes de Hoy */}
-          <Tabs.Screen
-            name="pending"
-            options={{
-              title: 'Pendientes',
-              tabBarLabel: 'Pendientes',
-              tabBarBadge:
-                pendingIncompleteCount > 0 ? pendingIncompleteCount : undefined,
-              tabBarBadgeStyle: {
-                backgroundColor: colors.ink,
-                color: colors.canvas,
-                fontSize: 9,
-                fontWeight: 'bold',
-              },
-              tabBarIcon: ({ color }) => (
-                <NotionIcon name="checkbox-checked" size={17} color={color} />
-              ),
-            }}
-          />
-
-          {/* Tab 4: Timeline (Pantalla inicial heroica) */}
-          <Tabs.Screen
-            name="index"
-            options={{
-              title: 'Timeline',
-              tabBarLabel: 'Timeline',
-              tabBarIcon: ({ color }) => (
-                <NotionIcon name="clock" size={17} color={color} />
-              ),
-            }}
-          />
+          <Tabs.Screen name="chat" />
+          <Tabs.Screen name="ideas" />
+          <Tabs.Screen name="pending" />
+          <Tabs.Screen name="index" />
         </Tabs>
       </View>
 
-      {/* Punto de Entrada Universal Único sobre la barra de navegación móvil */}
-      <View style={{ position: 'absolute', bottom: mobileTabBarHeight, left: 0, right: 0 }}>
-        <SmartIntakeBar isOnChatScreen={isOnChatScreen} />
+      {/* Punto de Entrada Universal Único en flujo normal (nunca solapa ni estira el Rail24h) */}
+      <SmartIntakeBar isOnChatScreen={isOnChatScreen} />
+
+      {/* Barra de Navegación Inferior Móvil Custom (Cero recorte de letras garantizado) */}
+      <View
+        style={{
+          backgroundColor: colors.card,
+          borderTopWidth: 1,
+          borderTopColor: colors.lineSubtle,
+          paddingTop: 8,
+          paddingBottom: Math.max(insets.bottom + 6, 12),
+        }}
+        className="flex-row items-center justify-around px-2"
+      >
+        {(
+          [
+            {
+              key: 'chat',
+              label: 'Asistente',
+              href: '/chat',
+              icon: 'chat' as NotionIconName,
+              active: pathname.includes('/chat'),
+              badge: 0,
+            },
+            {
+              key: 'ideas',
+              label: 'Ideas',
+              href: '/ideas',
+              icon: 'lightbulb' as NotionIconName,
+              active: pathname.includes('/ideas'),
+              badge: 0,
+            },
+            {
+              key: 'pending',
+              label: 'Pendientes',
+              href: '/pending',
+              icon: 'checkbox-checked' as NotionIconName,
+              active: pathname.includes('/pending'),
+              badge: pendingIncompleteCount,
+            },
+            {
+              key: 'index',
+              label: 'Timeline',
+              href: '/',
+              icon: 'clock' as NotionIconName,
+              active:
+                pathname === '/' ||
+                pathname === '/index' ||
+                (!pathname.includes('/chat') &&
+                  !pathname.includes('/ideas') &&
+                  !pathname.includes('/pending')),
+              badge: 0,
+            },
+          ] as const
+        ).map((tab) => {
+          const tintColor = tab.active ? colors.ink : colors.muted;
+          return (
+            <Pressable
+              key={tab.key}
+              onPress={() => router.push(tab.href)}
+              className="flex-1 items-center justify-center py-1"
+            >
+              <View className="h-6 items-center justify-center relative px-2">
+                <NotionIcon name={tab.icon} size={18} color={tintColor} />
+                {tab.badge > 0 ? (
+                  <View
+                    style={{
+                      position: 'absolute',
+                      top: -3,
+                      right: -4,
+                      backgroundColor: colors.ink,
+                      minWidth: 15,
+                      height: 15,
+                    }}
+                    className="rounded-full px-1 items-center justify-center"
+                  >
+                    <Text
+                      style={{ color: colors.canvas, fontSize: 9, lineHeight: 11 }}
+                      className="font-bold"
+                    >
+                      {tab.badge}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+              <Text
+                numberOfLines={1}
+                style={{
+                  color: tintColor,
+                  fontSize: 11,
+                  lineHeight: 16,
+                  marginTop: 2,
+                }}
+                className={tab.active ? 'font-bold' : 'font-semibold'}
+              >
+                {tab.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );

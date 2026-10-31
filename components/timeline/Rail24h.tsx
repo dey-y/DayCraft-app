@@ -285,13 +285,13 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
       {/* Banner sutil superior cuando el día está libre */}
       {dayEvents.length === 0 ? (
         <View className="px-4 py-2.5 bg-header border-b border-line-subtle flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
+          <View className="flex-row items-center gap-2 flex-1">
             <NotionIcon
               name={activeDay?.isToday ? 'cup' : 'clock'}
               size={14}
               color={activeDay?.isToday ? colors.ok : colors.accentSoft}
             />
-            <Text className="text-xs text-muted">
+            <Text className="text-xs text-muted flex-1">
               {activeDay?.isToday
                 ? 'Día despejado · Haz clic o arrastra sobre cualquier cuarto de hora en la cuadrícula para crear un bloque.'
                 : `Sin bloques para el ${activeDay?.dayNum} ${activeDay?.monthShort} · Haz clic o arrastra en la rejilla para agendar.`}

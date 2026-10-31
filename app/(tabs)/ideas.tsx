@@ -46,7 +46,7 @@ export default function IdeasScreen() {
       style={{ flex: 1, backgroundColor: colors.canvas }}
       contentContainerStyle={{
         padding: 16,
-        paddingBottom: isDesktop ? 32 : 96,
+        paddingBottom: isDesktop ? 32 : 24,
         gap: 14,
       }}
     >
