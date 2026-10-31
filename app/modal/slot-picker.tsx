@@ -242,7 +242,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
 
           <Pressable
             onPress={() => handleSelectSlot(startQ, quarters)}
-            className="px-4 py-2.5 rounded-xl bg-ink active:opacity-85"
+            className="px-4 py-2.5 rounded-xl bg-ink active:opacity-85 active:scale-95 transition-transform"
           >
             <Text className="text-sm font-bold text-canvas">Guardar</Text>
           </Pressable>
@@ -282,7 +282,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
             key={slot.startTime}
             onPress={() => handleSelectSlot(slot.startQ, 2)}
             style={{ width: '48%' }}
-            className="p-3.5 rounded-xl bg-raised border border-line active:border-ink"
+            className="p-3.5 rounded-xl bg-raised border border-line active:border-ink active:scale-95 transition-transform"
           >
             <Text className="font-mono font-bold text-sm text-accent-soft">
               {slot.startTime}
@@ -296,7 +296,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
         <Pressable
           onPress={() => setShowCustomInput((v) => !v)}
           style={{ width: '48%' }}
-          className="p-3.5 rounded-xl bg-raised border border-dashed border-line active:border-ink"
+          className="p-3.5 rounded-xl bg-raised border border-dashed border-line active:border-ink active:scale-95 transition-transform"
         >
           <Text className="font-mono font-bold text-sm text-ink">Manual</Text>
           <Text className="text-xs text-muted mt-0.5">Elegir HH:MM</Text>

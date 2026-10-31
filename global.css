@@ -37,6 +37,12 @@ body, [dir="auto"], [dir="ltr"], [dir="rtl"], input, textarea, button {
   body {
     background-color: rgb(var(--c-canvas));
     color: rgb(var(--c-ink));
-    transition: background-color 0.35s ease, color 0.35s ease;
+  }
+
+  /* Transición fluida estilo Japandi entre paletas de color */
+  body, div, header, nav, main, aside, section, article {
+    transition: background-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                color 0.2s ease;
   }
 }

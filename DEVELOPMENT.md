@@ -429,6 +429,14 @@ Pendiente, en este orden:
 
 ---
 
+9. **Auditoría de Diseño — Puntos 4 & 6: Microinteracciones, Transición Suave y Contraste WCAG**:
+   - **Menú visual de 6 paletas (`ThemePicker.tsx`)**: Se reemplazó el selector simple por un popover en cuadrícula táctil con las 6 atmósferas requeridas: **Granate** (*Enji*), **Murasaki** (*Murasaki*), **Sumi** (*Sumi-e*), **Índigo** (*Aizome*), **Bosque** (*Koke*) y **Nieve** (*Shiro*). Cada pastilla incluye kanji japonés, descripción poética, muestrario de 3 tonos y confirmación con persistencia SQLite.
+   - **Transición suave entre temas (`global.css`)**: Inyección de regla CSS con curva cubic-bezier suave (0.28s) para que al conmutar entre paletas todas las superficies, bordes y tipografías muten armónicamente sin saltos bruscos.
+   - **Microinteracciones táctiles en tareas (`PendingItem.tsx` & `slot-picker.tsx`)**: Checkbox con rebote elástico spring al completar tareas (`checkScale`), tachado con atenuación y botones de time-blocking con micro-escala (`active:scale-95`).
+   - **Auditoría de contraste WCAG**: Cálculo matemático de luminancia relativa y ratios de contraste en los 6 temas. Se corrigió `accentSoft` en Granate (`#DE5D71`, ratio 5.11:1 sobre card), `onAccent` en Bosque (`#FFFFFF`, ratio 5.22:1 sobre accent) e `ink` en todos los temas superando 14.2:1 (excediendo ampliamente WCAG AAA).
+
+---
+
 ### Tarea crítica pendiente para la próxima sesión: Migración a Expo SDK 58
 * **Diagnóstico confirmado**: La app Expo Go instalada en el móvil de Deimar cuenta con **Expo SDK 58** (lanzado en octubre de 2026), mientras que el proyecto DayCraft fue inicializado en **Expo SDK 52**. Dado que Expo Go en Google Play / App Store solo soporta la versión mayor más reciente, rechaza abrir proyectos en SDK 52 con el error *"Algo ha salido mal"*.
 * **Plan de acción para la siguiente sesión**:

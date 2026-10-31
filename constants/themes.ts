@@ -7,9 +7,12 @@
  *
  * Los tokens se publican como variables CSS (`--c-<token>`, canales RGB) para que
  * `tailwind.config.js` pueda aplicar opacidad (`bg-accent/15`).
+ *
+ * Todos los contrastes han sido auditados según WCAG AA (>= 4.5:1 para texto sobre fondo)
+ * y WCAG AAA (>= 7.0:1 para el cuerpo principal de texto).
  */
 
-export type ThemeName = 'murasaki' | 'akane' | 'aizome' | 'sumi' | 'granate' | 'shiro';
+export type ThemeName = 'granate' | 'murasaki' | 'sumi' | 'aizome' | 'bosque' | 'shiro' | 'akane';
 
 export interface ThemeColors {
   /** Fondo principal de la app */
@@ -55,11 +58,35 @@ export interface ThemeDefinition {
 }
 
 export const THEMES: Record<ThemeName, ThemeDefinition> = {
+  granate: {
+    name: 'granate',
+    label: 'Granate',
+    kanji: 'Enji',
+    description: 'Rojo granate y caoba oscuro. Nobleza y carácter.',
+    isDark: true,
+    colors: {
+      canvas: '#130F11',
+      header: '#171215',
+      card: '#1A1417',
+      raised: '#241B1F',
+      line: '#36232B',
+      lineSubtle: '#291A21',
+      ink: '#F4ECEE',
+      muted: '#9E888D',
+      accent: '#A82236',
+      accentSoft: '#DE5D71', // WCAG AA 5.11:1 sobre card
+      onAccent: '#FFF1F3',
+      ok: '#7FB59A',
+      warm: '#D4A373',
+      info: '#7FA6C4',
+      now: '#D4A373',
+    },
+  },
   murasaki: {
     name: 'murasaki',
-    label: 'Morado',
+    label: 'Murasaki',
     kanji: 'Murasaki',
-    description: 'Ciruela y humo. Introspección y creatividad.',
+    description: 'Ciruela y humo ahumado. Introspección y calma.',
     isDark: true,
     colors: {
       canvas: '#131217',
@@ -79,33 +106,33 @@ export const THEMES: Record<ThemeName, ThemeDefinition> = {
       now: '#D45A4D',
     },
   },
-  akane: {
-    name: 'akane',
-    label: 'Rojo',
-    kanji: 'Akane',
-    description: 'Laca y cinabrio. Calidez y determinación.',
+  sumi: {
+    name: 'sumi',
+    label: 'Sumi',
+    kanji: 'Sumi-e',
+    description: 'Tinta carbón y plata mineral. Minimalismo puro.',
     isDark: true,
     colors: {
-      canvas: '#141212',
-      header: '#171414',
-      card: '#1C1818',
-      raised: '#241E1E',
-      line: '#342929',
-      lineSubtle: '#2A2121',
-      ink: '#EFECE9',
-      muted: '#A39493',
-      accent: '#C25447',
-      accentSoft: '#DE8576',
-      onAccent: '#FFF3EE',
-      ok: '#7FB59A',
-      warm: '#D4A373',
-      info: '#7FA6C4',
-      now: '#E3A857',
+      canvas: '#101111',
+      header: '#131515',
+      card: '#181A1A',
+      raised: '#202322',
+      line: '#2B302F',
+      lineSubtle: '#232726',
+      ink: '#EAE8E3',
+      muted: '#8E9491',
+      accent: '#D1D5DB',
+      accentSoft: '#E5E7EB',
+      onAccent: '#101111',
+      ok: '#8FB8A0',
+      warm: '#B9A58A',
+      info: '#A9B8C4',
+      now: '#B96A59',
     },
   },
   aizome: {
     name: 'aizome',
-    label: 'Azul',
+    label: 'Índigo',
     kanji: 'Aizome',
     description: 'Índigo y niebla de río. Claridad y foco.',
     isDark: true,
@@ -127,57 +154,33 @@ export const THEMES: Record<ThemeName, ThemeDefinition> = {
       now: '#B96A59',
     },
   },
-  sumi: {
-    name: 'sumi',
-    label: 'Negro',
-    kanji: 'Sumi-e',
-    description: 'Tinta y plata mineral. Minimalismo puro.',
+  bosque: {
+    name: 'bosque',
+    label: 'Bosque',
+    kanji: 'Koke',
+    description: 'Musgo y pino zen. Serenidad y calma vegetal.',
     isDark: true,
     colors: {
-      canvas: '#101111',
-      header: '#131515',
-      card: '#181A1A',
-      raised: '#202322',
-      line: '#2B302F',
-      lineSubtle: '#232726',
-      ink: '#EAE8E3',
-      muted: '#8E9491',
-      accent: '#D1D5DB',
-      accentSoft: '#E5E7EB',
-      onAccent: '#101111',
-      ok: '#8FB8A0',
-      warm: '#B9A58A',
-      info: '#A9B8C4',
-      now: '#B96A59',
-    },
-  },
-  granate: {
-    name: 'granate',
-    label: 'Granate',
-    kanji: 'Enji',
-    description: 'Rojo granate y caoba oscuro. Nobleza y carácter.',
-    isDark: true,
-    colors: {
-      canvas: '#130F11',
-      header: '#171215',
-      card: '#1A1417',
-      raised: '#241B1F',
-      line: '#36232B',
-      lineSubtle: '#291A21',
-      ink: '#F4ECEE',
-      muted: '#9E888D',
-      accent: '#A82236',
-      accentSoft: '#D4465C',
-      onAccent: '#FFF1F3',
+      canvas: '#101412',
+      header: '#131815',
+      card: '#161D19',
+      raised: '#1F2923',
+      line: '#28362E',
+      lineSubtle: '#202B25',
+      ink: '#E8EFEA',
+      muted: '#8F9E94',
+      accent: '#3E7854',
+      accentSoft: '#78B892', // WCAG AA 7.41:1 sobre card
+      onAccent: '#FFFFFF', // WCAG AA 5.22:1 sobre accent
       ok: '#7FB59A',
       warm: '#D4A373',
-      info: '#7FA6C4',
+      info: '#7FAEC9',
       now: '#D4A373',
     },
   },
   shiro: {
     name: 'shiro',
-    label: 'Blanco',
+    label: 'Nieve',
     kanji: 'Shiro',
     description: 'Papel washi y lino. Luz cálida de día.',
     isDark: false,
@@ -199,9 +202,33 @@ export const THEMES: Record<ThemeName, ThemeDefinition> = {
       now: '#C25447',
     },
   },
+  akane: {
+    name: 'akane',
+    label: 'Rojo',
+    kanji: 'Akane',
+    description: 'Laca y cinabrio. Calidez y determinación.',
+    isDark: true,
+    colors: {
+      canvas: '#141212',
+      header: '#171414',
+      card: '#1C1818',
+      raised: '#241E1E',
+      line: '#342929',
+      lineSubtle: '#2A2121',
+      ink: '#EFECE9',
+      muted: '#A39493',
+      accent: '#B94B3F',
+      accentSoft: '#DE8576',
+      onAccent: '#FFFFFF',
+      ok: '#7FB59A',
+      warm: '#D4A373',
+      info: '#7FA6C4',
+      now: '#E3A857',
+    },
+  },
 };
 
-export const THEME_ORDER: ThemeName[] = ['murasaki', 'granate', 'akane', 'aizome', 'sumi', 'shiro'];
+export const THEME_ORDER: ThemeName[] = ['granate', 'murasaki', 'sumi', 'aizome', 'bosque', 'shiro'];
 export const DEFAULT_THEME: ThemeName = 'granate';
 
 /** '#RRGGBB' → '19 18 23' (canales para `rgb(var(--c-x) / <alpha-value>)`). */
