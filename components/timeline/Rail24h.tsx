@@ -50,11 +50,11 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const touchStartQ = useRef<number | null>(null);
   const isTouchDragging = useRef<boolean>(false);
 
-  // Dimensiones holgadas y ergonómicas (Auditoría de diseño Punto 3 - Concepto "Ma")
-  const quarterHeight = isDesktop ? 18 : 17; // 15 min = 17-18px (1 hora = 68-72px, bloques de 30m = 34-36px)
+  // Dimensiones compactas y proporcionadas estilo Google Calendar / Time-Blocking
+  const quarterHeight = isDesktop ? 14 : 13; // 15 min = 14px (1 hora = 56px en desktop, 52px en móvil)
   const hourHeight = quarterHeight * 4;
   const totalCanvasHeight = 24 * hourHeight;
-  const hourColumnWidth = isDesktop ? 62 : 48;
+  const hourColumnWidth = isDesktop ? 58 : 46;
 
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartQ, setDragStartQ] = useState<number | null>(null);

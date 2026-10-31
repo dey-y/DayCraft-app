@@ -35,7 +35,9 @@ export const EventCard: React.FC<EventCardProps> = ({
         alignItems: 'flex-start',
         justifyContent: 'space-between',
       }}
-      className={`w-full h-full border border-line-subtle/80 border-l-[3.5px] rounded-xl px-3 pt-2 pb-1.5 ${
+      className={`w-full h-full border border-line-subtle/80 border-l-[3.5px] rounded-xl ${
+        compact ? 'px-2.5 py-1' : 'px-3 pt-2 pb-1.5'
+      } ${
         isReminder
           ? 'bg-info/15 border-l-info'
           : 'bg-card border-l-accent'
