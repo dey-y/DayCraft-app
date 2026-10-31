@@ -9,7 +9,7 @@
  * `tailwind.config.js` pueda aplicar opacidad (`bg-accent/15`).
  */
 
-export type ThemeName = 'murasaki' | 'akane' | 'aizome' | 'sumi' | 'shiro';
+export type ThemeName = 'murasaki' | 'akane' | 'aizome' | 'sumi' | 'granate' | 'shiro';
 
 export interface ThemeColors {
   /** Fondo principal de la app */
@@ -151,6 +151,30 @@ export const THEMES: Record<ThemeName, ThemeDefinition> = {
       now: '#B96A59',
     },
   },
+  granate: {
+    name: 'granate',
+    label: 'Granate',
+    kanji: 'Enji',
+    description: 'Rojo granate y caoba oscuro. Nobleza y carácter.',
+    isDark: true,
+    colors: {
+      canvas: '#130F11',
+      header: '#171215',
+      card: '#1A1417',
+      raised: '#241B1F',
+      line: '#36232B',
+      lineSubtle: '#291A21',
+      ink: '#F4ECEE',
+      muted: '#9E888D',
+      accent: '#A82236',
+      accentSoft: '#D4465C',
+      onAccent: '#FFF1F3',
+      ok: '#7FB59A',
+      warm: '#D4A373',
+      info: '#7FA6C4',
+      now: '#D4A373',
+    },
+  },
   shiro: {
     name: 'shiro',
     label: 'Blanco',
@@ -177,8 +201,8 @@ export const THEMES: Record<ThemeName, ThemeDefinition> = {
   },
 };
 
-export const THEME_ORDER: ThemeName[] = ['murasaki', 'akane', 'aizome', 'sumi', 'shiro'];
-export const DEFAULT_THEME: ThemeName = 'murasaki';
+export const THEME_ORDER: ThemeName[] = ['murasaki', 'granate', 'akane', 'aizome', 'sumi', 'shiro'];
+export const DEFAULT_THEME: ThemeName = 'granate';
 
 /** '#RRGGBB' → '19 18 23' (canales para `rgb(var(--c-x) / <alpha-value>)`). */
 export function hexToChannels(hex: string): string {

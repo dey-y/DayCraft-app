@@ -66,7 +66,7 @@ export const ThemePickerButton: React.FC = () => {
               Atmósfera
             </Text>
 
-            <View className="flex-row justify-between">
+            <View className="flex-row justify-between items-center">
               {THEME_ORDER.map((name) => {
                 const t = THEMES[name];
                 const selected = t.name === theme.name;
@@ -77,7 +77,7 @@ export const ThemePickerButton: React.FC = () => {
                     accessibilityRole="radio"
                     accessibilityState={{ selected }}
                     accessibilityLabel={`${t.label} (${t.kanji})`}
-                    className="items-center gap-1.5 w-[58px]"
+                    className="items-center gap-1 w-[46px]"
                   >
                     {/* Muestra del tema con SUS propios colores (no los del tema activo) */}
                     <View
@@ -86,21 +86,21 @@ export const ThemePickerButton: React.FC = () => {
                         borderColor: selected ? t.colors.accent : t.colors.line,
                         borderWidth: selected ? 2 : 1,
                       }}
-                      className="w-11 h-11 rounded-full items-center justify-center"
+                      className="w-10 h-10 rounded-full items-center justify-center"
                     >
                       <View
                         style={{ backgroundColor: t.colors.card, borderColor: t.colors.line }}
-                        className="w-7 h-7 rounded-full border items-center justify-center"
+                        className="w-6 h-6 rounded-full border items-center justify-center"
                       >
                         <View
                           style={{ backgroundColor: t.colors.accent }}
-                          className="w-3.5 h-3.5 rounded-full"
+                          className="w-2.5 h-2.5 rounded-full"
                         />
                       </View>
                     </View>
                     <Text
                       numberOfLines={1}
-                      className={`text-[12px] ${
+                      className={`text-[11px] ${
                         selected ? 'text-ink font-semibold' : 'text-muted'
                       }`}
                     >

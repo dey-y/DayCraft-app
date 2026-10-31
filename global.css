@@ -4,23 +4,23 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Valores por defecto (tema Murasaki) hasta que el layout raíz publique el tema activo. */
+/* Valores por defecto (tema Granate Zen) hasta que el layout raíz publique el tema activo. */
 :root {
-  --c-canvas: 19 18 23;
-  --c-header: 22 21 28;
-  --c-card: 25 23 32;
-  --c-raised: 32 29 42;
-  --c-line: 43 38 56;
-  --c-line-subtle: 35 31 46;
-  --c-ink: 237 234 242;
-  --c-muted: 150 143 163;
-  --c-accent: 154 136 200;
-  --c-accent-soft: 183 169 219;
-  --c-on-accent: 23 20 31;
+  --c-canvas: 19 15 17;
+  --c-header: 23 18 21;
+  --c-card: 26 20 23;
+  --c-raised: 36 27 31;
+  --c-line: 54 35 43;
+  --c-line-subtle: 41 26 33;
+  --c-ink: 244 236 238;
+  --c-muted: 158 136 141;
+  --c-accent: 168 34 54;
+  --c-accent-soft: 212 70 92;
+  --c-on-accent: 255 241 243;
   --c-ok: 127 181 154;
-  --c-warm: 200 159 119;
+  --c-warm: 212 163 115;
   --c-info: 127 166 196;
-  --c-now: 212 90 77;
+  --c-now: 212 163 115;
 }
 
 /* Forzar Plus Jakarta Sans en todos los textos de React Native Web (anula el system-ui por defecto) */

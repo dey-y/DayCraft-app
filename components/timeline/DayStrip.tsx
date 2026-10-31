@@ -42,14 +42,12 @@ export const DayStrip: React.FC = () => {
     const timer = setTimeout(() => {
       if (Platform.OS === 'web') {
         const node = (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
-        if (node?.scrollTo) {
+        if (node && typeof node.scrollTo === 'function') {
           node.scrollTo({ left: offset, behavior: 'smooth' });
-        } else {
-          scrollRef.current?.scrollTo({ x: offset, animated: true });
+          return;
         }
-      } else {
-        scrollRef.current?.scrollTo({ x: offset, animated: true });
       }
+      scrollRef.current?.scrollTo({ x: offset, animated: true });
     }, 60);
     return () => clearTimeout(timer);
   }, [selectedDayKey, cardWidth]);
@@ -63,11 +61,55 @@ export const DayStrip: React.FC = () => {
     }
   };
 
+  const handleScrollRight = () => {
+    shiftDay(1);
+    if (Platform.OS === 'web') {
+      const node = (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
+      if (node && typeof node.scrollBy === 'function') {
+        node.scrollBy({ left: 180, behavior: 'smooth' });
+        return;
+      }
+    }
+    const idx = days.findIndex((d) => d.key === selectedDayKey);
+    const nextIdx = Math.min(days.length - 1, (idx === -1 ? 7 : idx) + 1);
+    scrollRef.current?.scrollTo({ x: nextIdx * 80, animated: true });
+  };
+
+  const handleScrollLeft = () => {
+    shiftDay(-1);
+    if (Platform.OS === 'web') {
+      const node = (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
+      if (node && typeof node.scrollBy === 'function') {
+        node.scrollBy({ left: -180, behavior: 'smooth' });
+        return;
+      }
+    }
+    const idx = days.findIndex((d) => d.key === selectedDayKey);
+    const prevIdx = Math.max(0, (idx === -1 ? 7 : idx) - 1);
+    scrollRef.current?.scrollTo({ x: prevIdx * 80, animated: true });
+  };
+
+  const webWheelProps =
+    Platform.OS === 'web'
+      ? {
+          onWheel: (e: any) => {
+            const delta = e.deltaY || e.deltaX;
+            if (!delta) return;
+            const node =
+              (scrollRef.current as any)?.getScrollableNode?.() || scrollRef.current;
+            if (node) {
+              node.scrollLeft += delta;
+            }
+          },
+        }
+      : {};
+
   return (
     <View className="w-full bg-header border border-line-subtle px-2 py-1.5 rounded-2xl flex-row items-center gap-2">
       {/* Botón Anterior */}
       <Pressable
-        onPress={() => shiftDay(-1)}
+        onPress={handleScrollLeft}
+        hitSlop={8}
         className="w-8 h-9 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
         <NotionIcon name="chevron-left" size={14} color={colors.muted} />
@@ -80,12 +122,13 @@ export const DayStrip: React.FC = () => {
         showsHorizontalScrollIndicator={false}
         onScroll={handleScroll}
         scrollEventThrottle={32}
+        style={{ flex: 1, minWidth: 0 }}
         contentContainerStyle={{
           gap: 6,
           paddingHorizontal: 2,
           alignItems: 'center',
         }}
-        className="flex-1"
+        {...(webWheelProps as object)}
       >
         {days.map((d, index) => {
           const isSelected = d.key === selectedDayKey;
@@ -142,9 +185,10 @@ export const DayStrip: React.FC = () => {
         })}
       </ScrollView>
 
-      {/* Botón Siguiente (Avanza 1 día) */}
+      {/* Botón Siguiente (Avanza 1 día y desliza la tira) */}
       <Pressable
-        onPress={() => shiftDay(1)}
+        onPress={handleScrollRight}
+        hitSlop={8}
         className="w-8 h-9 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
         <NotionIcon name="chevron-right" size={14} color={colors.muted} />

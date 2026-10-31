@@ -18,7 +18,7 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  themeName: DEFAULT_THEME,
+  themeName: 'granate',
   setTheme: (name) => {
     if (!THEMES[name]) return;
     set({ themeName: name });
@@ -26,7 +26,12 @@ export const useThemeStore = create<ThemeState>((set) => ({
   },
   hydrateTheme: async () => {
     const saved = await loadPersistedState<ThemeName>(THEME_KEY);
-    if (saved && THEMES[saved]) set({ themeName: saved });
+    if (!saved || saved === 'murasaki') {
+      set({ themeName: 'granate' });
+      void savePersistedState(THEME_KEY, 'granate');
+    } else if (saved && THEMES[saved]) {
+      set({ themeName: saved });
+    }
   },
 }));
 

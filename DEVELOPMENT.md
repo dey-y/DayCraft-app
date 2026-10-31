@@ -413,6 +413,15 @@ Pendiente, en este orden:
 
 ---
 
+7. **Tema Granate Zen (`granate` / Enji) y Desplazamiento Fluido de Días**:
+   - **Nuevo tema Granate**: Se incorporó el 6º tema del sistema Kuro-Zen: fondo ébano caoba (`#130F11`), tarjetas vino oscuro (`#1A1417`), acento rojo granate profundo (`#A82236`), texto marfil washi (`#F4ECEE`) y detalles dorados (`#D4A373`). Cero tonos rosados. Se configuró como tema por defecto activo.
+   - **Corrección de flechas y scroll en tira de días (`DayStrip.tsx`)**:
+     * Botones `<` y `>` ahora desplazan físicamente la tira horizontalmente en saltos de 180 px con animación suave, además de seleccionar el día adyacente.
+     * Soporte de rueda de ratón (`onWheel` en Web) para desplazamiento horizontal instantáneo sin necesidad de pulsar Shift.
+     * Prevención de bloqueo en flexbox con `minWidth: 0` para permitir desplazamiento táctil y de ratón en navegadores móviles y de escritorio.
+
+---
+
 ### Tarea crítica pendiente para la próxima sesión: Migración a Expo SDK 58
 * **Diagnóstico confirmado**: La app Expo Go instalada en el móvil de Deimar cuenta con **Expo SDK 58** (lanzado en octubre de 2026), mientras que el proyecto DayCraft fue inicializado en **Expo SDK 52**. Dado que Expo Go en Google Play / App Store solo soporta la versión mayor más reciente, rechaza abrir proyectos en SDK 52 con el error *"Algo ha salido mal"*.
 * **Plan de acción para la siguiente sesión**:
