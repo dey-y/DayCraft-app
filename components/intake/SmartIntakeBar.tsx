@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, TextInput, Pressable, Text } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, TextInput, Pressable, Text, Platform } from 'react-native';
 import { NotionIcon } from '@/components/ui/NotionIcon';
 import { useDayCraftStore, SlotPickerTarget } from '@/store/useDayCraftStore';
 import { useTheme } from '@/store/useThemeStore';
@@ -10,17 +10,18 @@ interface SmartIntakeBarProps {
   onOpenSlotPicker?: (target: SlotPickerTarget) => void;
 }
 
-const VOICE_SAMPLES = [
+const VOICE_FALLBACK_SAMPLES = [
   'Comprar bombillas LED cuando pueda hoy',
   'Reunión de arquitectura el viernes a las 10:00',
   'Idea: Añadir widget de pantalla de bloqueo para móvil',
-  'Recuérdame hoy a las 18:30 revisar presupuesto',
+  'Recuérdame mañana a las 18:30 revisar presupuesto',
 ];
 
 /**
  * SmartIntakeBar — Punto de Entrada Universal Único (Principio Innegociable v9)
- * Barra omnidireccional de texto + dictado por voz.
- * Nunca duplica inputs en vistas secundarias; captura sin cambiar de pantalla y lanza Toast efímero.
+ * Barra omnidireccional de texto + dictado por voz real en Web (`SpeechRecognition` / `webkitSpeechRecognition` es-ES)
+ * con transcripción en vivo y envío automático al terminar, más fallback inteligente si el navegador no soporta voz
+ * o se deniega el permiso del micrófono.
  */
 export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
   isOnChatScreen = false,
@@ -30,27 +31,170 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
   const { colors } = useTheme();
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [liveTranscript, setLiveTranscript] = useState('');
   const [sampleIdx, setSampleIdx] = useState(0);
+
   const submitSmartIntake = useDayCraftStore((s) => s.submitSmartIntake);
+  const showToast = useDayCraftStore((s) => s.showToast);
+
+  const recognitionRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>('');
+  const hasSubmittedVoiceRef = useRef<boolean>(false);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort?.();
+        } catch {}
+      }
+      if (fallbackTimerRef.current) {
+        clearTimeout(fallbackTimerRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async () => {
     const val = text.trim();
     if (!val) return;
     setText('');
+    setLiveTranscript('');
     await submitSmartIntake(val, { isOnChatScreen, onOpenSlotPicker });
   };
 
-  const handleVoiceSimulate = () => {
-    if (isRecording) return;
-    setIsRecording(true);
-    const chosenSample = VOICE_SAMPLES[sampleIdx % VOICE_SAMPLES.length];
+  const runIntelligentFallback = (reason?: string) => {
+    const chosenSample =
+      VOICE_FALLBACK_SAMPLES[sampleIdx % VOICE_FALLBACK_SAMPLES.length];
     setSampleIdx((i) => i + 1);
+    setIsRecording(true);
+    setLiveTranscript(chosenSample);
 
-    setTimeout(async () => {
+    if (reason) {
+      showToast({
+        title: 'Dictado demostrativo activo',
+        description: reason,
+      });
+    }
+
+    fallbackTimerRef.current = setTimeout(async () => {
       setIsRecording(false);
+      setLiveTranscript('');
+      setText('');
       await submitSmartIntake(chosenSample, { isOnChatScreen, onOpenSlotPicker });
-    }, 850);
+    }, 900);
   };
+
+  const handleToggleVoiceDictation = () => {
+    // Si ya está grabando, detener el reconocimiento (lo cual disparará onend y enviará el texto capturado)
+    if (isRecording) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          setIsRecording(false);
+        }
+      } else {
+        setIsRecording(false);
+      }
+      return;
+    }
+
+    const SpeechRecognitionCtor =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition ||
+          (window as any).webkitSpeechRecognition
+        : null;
+
+    if (!SpeechRecognitionCtor) {
+      runIntelligentFallback(
+        'Tu navegador no soporta Web Speech API · usando muestra inteligente'
+      );
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognitionCtor();
+      recognitionRef.current = recognition;
+      latestTranscriptRef.current = '';
+      hasSubmittedVoiceRef.current = false;
+
+      recognition.lang = 'es-ES';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+      recognition.maxAlternatives = 1;
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setLiveTranscript('');
+      };
+
+      recognition.onresult = (event: any) => {
+        let interim = '';
+        let finalStr = '';
+        for (let i = 0; i < event.results.length; i++) {
+          const res = event.results[i];
+          const transcriptChunk = res[0]?.transcript || '';
+          if (res.isFinal) {
+            finalStr += transcriptChunk;
+          } else {
+            interim += transcriptChunk;
+          }
+        }
+        const combined = (finalStr || interim).trim();
+        latestTranscriptRef.current = combined;
+        setLiveTranscript(combined);
+        setText(combined);
+      };
+
+      recognition.onerror = (event: any) => {
+        const errCode = event?.error || 'unknown';
+        recognitionRef.current = null;
+        setIsRecording(false);
+        setLiveTranscript('');
+
+        if (errCode === 'not-allowed' || errCode === 'service-not-allowed') {
+          runIntelligentFallback(
+            'Permiso de micrófono denegado · usando entrada inteligente de respaldo'
+          );
+        } else if (errCode !== 'aborted' && errCode !== 'no-speech') {
+          runIntelligentFallback(
+            'Micrófono no disponible · usando entrada inteligente de respaldo'
+          );
+        }
+      };
+
+      recognition.onend = async () => {
+        recognitionRef.current = null;
+        setIsRecording(false);
+        const captured = latestTranscriptRef.current.trim();
+        if (captured && !hasSubmittedVoiceRef.current) {
+          hasSubmittedVoiceRef.current = true;
+          latestTranscriptRef.current = '';
+          setLiveTranscript('');
+          setText('');
+          await submitSmartIntake(captured, {
+            isOnChatScreen,
+            onOpenSlotPicker,
+          });
+        } else {
+          setLiveTranscript('');
+        }
+      };
+
+      recognition.start();
+    } catch {
+      runIntelligentFallback(
+        'Reconocimiento de voz no disponible · usando muestra inteligente'
+      );
+    }
+  };
+
+  const displayedValue = isRecording
+    ? liveTranscript
+      ? liveTranscript
+      : 'Escuchando en vivo (es-ES)... habla ahora'
+    : text;
 
   return (
     <View
@@ -61,9 +205,17 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
       }`}
     >
       <View className="flex-row items-center gap-2">
-        <View className="flex-1 bg-raised border border-line rounded-full px-4 py-2 flex-row items-center gap-2">
+        <View
+          className={`flex-1 bg-raised border rounded-full px-4 py-2 flex-row items-center gap-2 ${
+            isRecording ? 'border-now' : 'border-line'
+          }`}
+        >
+          {isRecording ? (
+            <View className="w-2 h-2 rounded-full bg-now flex-shrink-0" />
+          ) : null}
+
           <TextInput
-            value={isRecording ? 'Escuchando dictado por voz...' : text}
+            value={displayedValue}
             onChangeText={setText}
             editable={!isRecording}
             placeholder="Háblame o escribe una idea, tarea o recordatorio..."
@@ -71,7 +223,9 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
             onSubmitEditing={handleSubmit}
             returnKeyType="send"
             style={{ lineHeight: 18, paddingVertical: 2 }}
-            className="flex-1 text-sm text-ink outline-none"
+            className={`flex-1 text-sm outline-none ${
+              isRecording ? 'text-accent-soft font-medium' : 'text-ink'
+            }`}
           />
           {text.trim().length > 0 && !isRecording ? (
             <Pressable
@@ -85,7 +239,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
         </View>
 
         <Pressable
-          onPress={handleVoiceSimulate}
+          onPress={handleToggleVoiceDictation}
           hitSlop={6}
           className={`w-10 h-10 rounded-full items-center justify-center flex-shrink-0 ${
             isRecording
@@ -103,7 +257,9 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
 
       {compact ? (
         <Text className="text-xs text-muted text-center mt-1.5">
-          Gemini clasifica en Tarea con Horario, Pendiente o Idea.
+          {isRecording
+            ? 'Transcribiendo voz en vivo (es-ES) · Pulsa el micro para enviar ya'
+            : 'Gemini clasifica en Tarea con Horario, Pendiente o Idea.'}
         </Text>
       ) : null}
     </View>

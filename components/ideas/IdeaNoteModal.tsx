@@ -14,6 +14,7 @@ import { useTheme } from '@/store/useThemeStore';
 /**
  * IdeaNoteModal — Editor y Visor de Documentos Markdown (.md) para el Cajón de Ideas
  * - Permite editar el contenido completo de la nota en formato Markdown (.md) estilo Notion / Obsidian.
+ * - Permite mover la nota a otra carpeta de proyecto o eliminarla (con Deshacer en Toast).
  * - Genera automáticamente el archivo `.md` con Frontmatter YAML y permite descargarlo a disco en 1 clic.
  */
 export const IdeaNoteModal: React.FC = () => {
@@ -22,6 +23,8 @@ export const IdeaNoteModal: React.FC = () => {
   const setActiveIdeaId = useDayCraftStore((s) => s.setActiveIdeaId);
   const ideaGroups = useDayCraftStore((s) => s.ideaGroups);
   const updateIdeaMarkdown = useDayCraftStore((s) => s.updateIdeaMarkdown);
+  const removeIdea = useDayCraftStore((s) => s.removeIdea);
+  const moveIdeaToGroup = useDayCraftStore((s) => s.moveIdeaToGroup);
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
   const showToast = useDayCraftStore((s) => s.showToast);
 
@@ -29,12 +32,14 @@ export const IdeaNoteModal: React.FC = () => {
   let foundIdea = null as
     | (typeof ideaGroups)[number]['items'][number]
     | null;
+  let foundGroupId = 'grp-sparks';
   let foundGroupTitle = 'Chispazos Libres';
 
   for (const grp of ideaGroups) {
     const match = grp.items.find((it) => it.id === activeIdeaId);
     if (match) {
       foundIdea = match;
+      foundGroupId = grp.id;
       foundGroupTitle = grp.title;
       break;
     }
@@ -121,7 +126,7 @@ export const IdeaNoteModal: React.FC = () => {
         bottom: 0,
         zIndex: 96,
       }}
-      className="bg-black/80 justify-center items-center p-4"
+      className="bg-canvas/85 justify-center items-center p-4"
     >
       <View className="bg-card border border-line rounded-3xl w-full max-w-2xl max-h-[88%] overflow-hidden shadow-2xl">
         {/* Cabecera estilo Editor Notion / Obsidian */}
@@ -185,6 +190,42 @@ export const IdeaNoteModal: React.FC = () => {
             />
           </View>
 
+          {/* Selector de Carpeta / Proyecto para mover la idea */}
+          <View className="gap-1.5">
+            <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+              Carpeta de Proyecto (Mover a otro grupo)
+            </Text>
+            <View className="flex-row flex-wrap gap-1.5">
+              {ideaGroups.map((grp) => {
+                const isCurrent = grp.id === foundGroupId;
+                return (
+                  <Pressable
+                    key={grp.id}
+                    onPress={() => moveIdeaToGroup(foundIdea!.id, grp.id)}
+                    className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border ${
+                      isCurrent
+                        ? 'bg-accent/20 border-accent'
+                        : 'bg-raised border-line active:border-ink'
+                    }`}
+                  >
+                    <NotionIcon
+                      name={grp.icon}
+                      size={12}
+                      color={isCurrent ? colors.accentSoft : colors.muted}
+                    />
+                    <Text
+                      className={`text-xs font-semibold ${
+                        isCurrent ? 'text-ink' : 'text-muted'
+                      }`}
+                    >
+                      {grp.title.replace(/^Proyecto:\s*/i, '')}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
           <View className="gap-1.5">
             <View className="flex-row items-center justify-between">
               <Text className="text-xs uppercase tracking-wider font-bold text-muted">
@@ -202,7 +243,7 @@ export const IdeaNoteModal: React.FC = () => {
               textAlignVertical="top"
               placeholder="Escribe tus notas en Markdown..."
               placeholderTextColor={colors.muted}
-              style={{ minHeight: 240 }}
+              style={{ minHeight: 220 }}
               className="bg-canvas border border-line rounded-2xl p-4 text-sm font-mono text-ink leading-relaxed"
             />
           </View>
@@ -210,23 +251,33 @@ export const IdeaNoteModal: React.FC = () => {
 
         {/* Pie de Acciones adaptativo para móvil */}
         <View className="px-4 py-3 bg-header border-t border-line-subtle flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
-          <Pressable
-            onPress={() => {
-              const targetTitle = title.trim() || foundIdea!.title;
-              setActiveIdeaId(null);
-              openSlotPicker({
-                type: 'idea',
-                id: foundIdea!.id,
-                title: targetTitle,
-              });
-            }}
-            className="flex-row items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
-          >
-            <NotionIcon name="clock" size={13} color={colors.accentSoft} />
-            <Text className="text-xs font-semibold text-accent-soft">
-              Agendar en Timeline
-            </Text>
-          </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={() => {
+                const targetTitle = title.trim() || foundIdea!.title;
+                setActiveIdeaId(null);
+                openSlotPicker({
+                  type: 'idea',
+                  id: foundIdea!.id,
+                  title: targetTitle,
+                });
+              }}
+              className="flex-1 sm:flex-initial flex-row items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+            >
+              <NotionIcon name="clock" size={13} color={colors.accentSoft} />
+              <Text className="text-xs font-semibold text-accent-soft">
+                Agendar en Timeline
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => removeIdea(foundIdea!.id)}
+              className="flex-row items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+            >
+              <NotionIcon name="trash" size={13} color={colors.now} />
+              <Text className="text-xs font-semibold text-now">Eliminar</Text>
+            </Pressable>
+          </View>
 
           <View className="flex-row items-center justify-end gap-2">
             <Pressable

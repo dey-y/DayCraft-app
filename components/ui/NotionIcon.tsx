@@ -27,7 +27,11 @@ export type NotionIconName =
   | 'menu'
   | 'chat'
   | 'send'
-  | 'checkbox-checked';
+  | 'checkbox-checked'
+  | 'trash'
+  | 'edit'
+  | 'key'
+  | 'repeat';
 
 interface NotionIconProps {
   name: NotionIconName;
@@ -234,6 +238,41 @@ export const NotionIcon: React.FC<NotionIconProps> = ({
           <>
             <Line x1="22" y1="2" x2="11" y2="13" {...commonProps} />
             <Polygon points="22 2 15 22 11 13 2 9 22 2" {...commonProps} />
+          </>
+        );
+      case 'trash':
+        return (
+          <>
+            <Polyline points="3 6 5 6 21 6" {...commonProps} />
+            <Path
+              d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+              {...commonProps}
+            />
+          </>
+        );
+      case 'edit':
+        return (
+          <>
+            <Path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" {...commonProps} />
+            <Path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" {...commonProps} />
+          </>
+        );
+      case 'key':
+        return (
+          <>
+            <Path
+              d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"
+              {...commonProps}
+            />
+          </>
+        );
+      case 'repeat':
+        return (
+          <>
+            <Polyline points="17 1 21 5 17 9" {...commonProps} />
+            <Path d="M3 11V9a4 4 0 0 1 4-4h14" {...commonProps} />
+            <Polyline points="7 23 3 19 7 15" {...commonProps} />
+            <Path d="M21 13v2a4 4 0 0 1-4 4H3" {...commonProps} />
           </>
         );
     }

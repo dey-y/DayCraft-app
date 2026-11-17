@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import type * as SQLite from 'expo-sqlite';
+import { getDateKeyWithOffset, getTodayKey } from '@/constants/theme';
 
 export type RecurrenceFrequency = 'none' | 'daily' | 'weekly' | 'monthly';
 
@@ -11,7 +12,7 @@ export interface EventRecurrenceRule {
 
 export interface TimelineEvent {
   id: string;
-  dayKey: string;         // ej. '27', '28', '30' o fecha ISO '2026-11-03'
+  dayKey: string;         // Clave ISO 'YYYY-MM-DD'
   title: string;
   desc?: string;
   startQ: number;         // Cuarto de hora inicial (0..95). Ej: 11:30 = 11*4 + 2 = 46
@@ -72,11 +73,11 @@ export interface AppAlert {
   relatedId?: string;
 }
 
-// Datos semilla iniciales basados fielmente en los prototipos v9
+// Datos semilla iniciales basados fielmente en los prototipos v9 con fechas ISO reales
 export const SEED_EVENTS: TimelineEvent[] = [
   {
     id: 'ev-1',
-    dayKey: '27',
+    dayKey: getTodayKey(),
     title: 'Revisar informe de gastos mensual',
     desc: 'Bloque enfocado con comprobantes',
     startQ: 46, // 11:30
@@ -87,7 +88,7 @@ export const SEED_EVENTS: TimelineEvent[] = [
   },
   {
     id: 'ev-2',
-    dayKey: '28',
+    dayKey: getDateKeyWithOffset(1),
     title: 'Llamar al dentista',
     desc: 'Recordatorio puntual de revisión anual',
     startQ: 68, // 17:00
@@ -98,7 +99,7 @@ export const SEED_EVENTS: TimelineEvent[] = [
   },
   {
     id: 'ev-3',
-    dayKey: '30',
+    dayKey: getDateKeyWithOffset(3),
     title: 'Planificar sprint de la app',
     desc: 'Diseño backlog en Expo y NativeWind',
     startQ: 40, // 10:00
@@ -108,6 +109,33 @@ export const SEED_EVENTS: TimelineEvent[] = [
     completed: false,
   },
 ];
+
+/**
+ * Normaliza claves legadas de 2 dígitos ('27', '28', '30') a claves ISO reales ('YYYY-MM-DD').
+ */
+export function normalizeLegacyEvents(events: TimelineEvent[]): TimelineEvent[] {
+  const today = getTodayKey();
+  const tomorrow = getDateKeyWithOffset(1);
+  const plusTwo = getDateKeyWithOffset(2);
+  const plusThree = getDateKeyWithOffset(3);
+
+  return events.map((ev) => {
+    if (ev.dayKey && ev.dayKey.length <= 2) {
+      const mapped =
+        ev.dayKey === '27'
+          ? today
+          : ev.dayKey === '28'
+          ? tomorrow
+          : ev.dayKey === '29'
+          ? plusTwo
+          : ev.dayKey === '30'
+          ? plusThree
+          : today;
+      return { ...ev, dayKey: mapped };
+    }
+    return ev;
+  });
+}
 
 export const SEED_PENDING: PendingTask[] = [
   {
@@ -216,7 +244,7 @@ export const SEED_CHAT: ChatMessage[] = [
   {
     id: 'msg-2',
     role: 'user',
-    text: 'Recuérdame el miércoles a las 17:00 llamar al dentista, y hoy tengo que comprar pilas para el mando',
+    text: 'Recuérdame mañana a las 17:00 llamar al dentista, y hoy tengo que comprar pilas para el mando',
     timestamp: '09:41',
   },
   {
@@ -228,7 +256,7 @@ export const SEED_CHAT: ChatMessage[] = [
       {
         type: 'reminder',
         title: 'Llamar al dentista',
-        meta: 'Miércoles 17:00',
+        meta: 'Mañana 17:00',
       },
       {
         type: 'pending',

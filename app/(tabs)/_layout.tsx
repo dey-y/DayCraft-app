@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDayCraftStore } from '@/store/useDayCraftStore';
-import { LAYOUT } from '@/constants/theme';
+import { useDayCraftStore, doesEventApplyToDay } from '@/store/useDayCraftStore';
+import { LAYOUT, getTodayKey } from '@/constants/theme';
 import { NotionIcon, NotionIconName } from '@/components/ui/NotionIcon';
 import { SmartIntakeBar } from '@/components/intake/SmartIntakeBar';
 import { BellDropdown } from '@/components/ui/BellDropdown';
@@ -48,10 +48,16 @@ export default function TabsLayout() {
   const setDesktopSideTab = useDayCraftStore((s) => s.setDesktopSideTab);
   const chatMessages = useDayCraftStore((s) => s.chatMessages);
   const events = useDayCraftStore((s) => s.events);
+  const days = useDayCraftStore((s) => s.days);
   const setSelectedDayKey = useDayCraftStore((s) => s.setSelectedDayKey);
 
+  const todayKey = getTodayKey();
+  const todayInfo = days.find((d) => d.key === todayKey) || days.find((d) => d.isToday);
   const pendingIncompleteCount = pendingTasks.filter((t) => !t.completed).length;
-  const todayEvents = events.filter((e) => e.dayKey === '27');
+  const todayEvents = events.filter((e) =>
+    todayInfo ? doesEventApplyToDay(e, todayInfo) : e.dayKey === todayKey
+  );
+  const todayFocusMinutes = todayEvents.reduce((acc, ev) => acc + ev.quarters * 15, 0);
   const isOnChatScreen = pathname.includes('/chat');
 
   // Listener global Ctrl+B en Web para colapsar/expandir el Sidebar
@@ -132,7 +138,7 @@ export default function TabsLayout() {
               <NotionIcon name="sparkle" size={13} color={colors.accentSoft} />
               <Text className="text-xs text-muted">Foco hoy:</Text>
               <Text className="text-xs font-mono font-bold text-ink">
-                {todayEvents.length * 30}m
+                {todayFocusMinutes}m
               </Text>
             </View>
 
@@ -394,7 +400,7 @@ export default function TabsLayout() {
                       <View className="flex-row items-center gap-2">
                         <View className="w-2 h-2 rounded-full bg-ok" />
                         <Text className="font-bold text-xs uppercase tracking-wider text-ink">
-                          Hoy · Martes 27 Oct
+                          Hoy · {todayInfo ? `${todayInfo.dayName} ${todayInfo.dayNum} ${todayInfo.monthShort}` : todayKey}
                         </Text>
                       </View>
                       <Pressable
@@ -430,7 +436,7 @@ export default function TabsLayout() {
                       </View>
                       <Pressable
                         onPress={() => {
-                          setSelectedDayKey('27');
+                          setSelectedDayKey(getTodayKey());
                           router.push('/');
                         }}
                         className="px-2.5 py-1 rounded-lg bg-raised border border-line"

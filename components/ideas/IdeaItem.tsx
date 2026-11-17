@@ -8,17 +8,20 @@ interface IdeaItemProps {
   idea: IdeaItemData;
   onScheduleStep: (idea: IdeaItemData) => void;
   onOpenMarkdown?: (idea: IdeaItemData) => void;
+  onDeleteIdea?: (ideaId: string) => void;
 }
 
 /**
  * IdeaItem — Tarjeta individual de una idea vinculada a un proyecto temático
  * - Al tocar la tarjeta se abre el Editor/Visor Markdown (`.md`).
  * - El botón `[ Agendar paso ]` la convierte en un bloque en el Timeline 24h en 1 toque.
+ * - Permite eliminar rápidamente la idea con opción de Deshacer en el Toast.
  */
 export const IdeaItem: React.FC<IdeaItemProps> = ({
   idea,
   onScheduleStep,
   onOpenMarkdown,
+  onDeleteIdea,
 }) => {
   const { colors } = useTheme();
   return (
@@ -38,9 +41,24 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
             <Text className="text-[10px] font-mono font-semibold text-accent-soft">.md</Text>
           </View>
         </View>
-        <Text className="text-[11px] font-mono text-muted flex-shrink-0">
-          {idea.createdAtLabel}
-        </Text>
+
+        <View className="flex-row items-center gap-1.5 flex-shrink-0">
+          <Text className="text-[11px] font-mono text-muted">
+            {idea.createdAtLabel}
+          </Text>
+          {onDeleteIdea ? (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation?.();
+                onDeleteIdea(idea.id);
+              }}
+              hitSlop={10}
+              className="p-1 rounded-md active:bg-raised"
+            >
+              <NotionIcon name="trash" size={12} color={colors.muted} />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
 
       <Text numberOfLines={2} className="text-xs text-muted leading-relaxed">

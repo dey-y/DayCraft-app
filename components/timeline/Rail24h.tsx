@@ -10,7 +10,6 @@ import {
 import {
   useDayCraftStore,
   formatQuarterToTime,
-  formatQuartersToDuration,
   doesEventApplyToDay,
   SlotPickerTarget,
 } from '@/store/useDayCraftStore';
@@ -25,11 +24,11 @@ interface Rail24hProps {
 
 /**
  * Rail24h — Timeline 24h estilo Google Calendar (100% Limpio + Snapping por Cuartos de Hora 15m).
- * - Cero textos repetitivos en horas vacías: únicamente las 24 líneas horarias y una línea tenue de media hora (:30).
+ * - Cero textos repetitivos en horas vacías: únicamente las 24 líneas horarias.
  * - Los eventos y el bloque en creación ("Ghost Preview Block") se posicionan con coordenadas absolutas
  *   exactas (`top = startQ * quarterHeight`, `height = quarters * quarterHeight`), pudiendo abarcar
  *   cualquier rango de 15m, 30m, 45m, 1h15m o cruzar varias horas igual que en Google Calendar.
- * - Incluye la línea roja horizontal en vivo de la hora actual con su nodo circular en el borde izquierdo.
+ * - Incluye la línea horizontal en vivo de la hora actual con su nodo circular en el borde izquierdo.
  */
 export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const { colors } = useTheme();
@@ -40,6 +39,9 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const days = useDayCraftStore((s) => s.days);
   const allEvents = useDayCraftStore((s) => s.events);
   const removeTimelineEvent = useDayCraftStore((s) => s.removeTimelineEvent);
+  const toggleTimelineEventCompleted = useDayCraftStore(
+    (s) => s.toggleTimelineEventCompleted
+  );
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
 
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
@@ -75,7 +77,10 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   }, []);
 
   const activeDay =
-    days.find((d) => d.key === selectedDayKey) || days[7] || days[0];
+    days.find((d) => d.key === selectedDayKey) ||
+    days.find((d) => d.isToday) ||
+    days[7] ||
+    days[0];
   const dayEvents = allEvents.filter((e) =>
     activeDay ? doesEventApplyToDay(e, activeDay) : e.dayKey === selectedDayKey
   );
@@ -338,7 +343,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   </Text>
                 </View>
 
-                {/* Columna Derecha: Línea de hora limpia y relajante (sin línea discontinua :30) */}
+                {/* Columna Derecha: Línea de hora limpia y relajante */}
                 <View className="flex-1 border-t border-line-subtle/35" />
               </View>
             );
@@ -464,7 +469,25 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   <EventCard
                     event={ev}
                     compact={ev.quarters <= 2}
-                    onRemove={removeTimelineEvent}
+                    onEdit={(targetEv) => {
+                      const target: SlotPickerTarget = {
+                        type: 'edit_event',
+                        id: targetEv.id,
+                        title: targetEv.title,
+                        desc: targetEv.desc || '',
+                        eventType: targetEv.type,
+                        defaultStartQ: targetEv.startQ,
+                        defaultQuarters: targetEv.quarters,
+                        recurrence: targetEv.recurrence,
+                      };
+                      if (onRequestSlotPicker) {
+                        onRequestSlotPicker(target);
+                      } else {
+                        openSlotPicker(target);
+                      }
+                    }}
+                    onToggleComplete={toggleTimelineEventCompleted}
+                    onRemove={(id) => removeTimelineEvent(id, true)}
                   />
                 </View>
               );

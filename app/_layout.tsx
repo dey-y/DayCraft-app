@@ -137,7 +137,7 @@ export default function RootLayout() {
                 bottom: 0,
                 zIndex: 95,
               }}
-              className="bg-black/75 justify-end sm:justify-center p-4"
+              className="bg-canvas/85 justify-end sm:justify-center p-4"
             >
               <SlotPickerSheetContent />
             </View>

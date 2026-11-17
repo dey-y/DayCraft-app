@@ -1,6 +1,6 @@
 /**
- * DayCraft AI - Design System Constants (v9.0 Clean Monocromo)
- * Paleta oscura monocroma estricta e invariantes de layout.
+ * DayCraft AI - Design System Constants (v9.0 Clean Monocromo / Kuro-Zen)
+ * Invariantes de layout y generador de calendario dinámico real con claves ISO (YYYY-MM-DD).
  */
 
 export const COLORS = {
@@ -32,21 +32,21 @@ export const LAYOUT = {
 } as const;
 
 export interface DayInfo {
-  key: string;                // Fecha ISO corta p.ej. '2026-10-27' (o alias '27', '28', '30' para retrocompatibilidad)
+  key: string;                // Clave ISO 'YYYY-MM-DD'
   isoDate: string;            // 'YYYY-MM-DD'
   dayName: string;            // 'LUN', 'MAR', 'MIÉ'...
   dayNum: string;             // '27', '01'...
   monthShort: string;         // 'OCT', 'NOV', 'DIC'...
   monthFull: string;          // 'Octubre', 'Noviembre'...
   year: number;
-  fullTitle: string;          // 'Martes 27 de Octubre 2026 (Hoy)'
+  fullTitle: string;          // 'Sábado 31 de Octubre 2026 (Hoy)'
   isToday?: boolean;
   isPast?: boolean;
   isFirstOfMonth?: boolean;   // true cuando es día 01 de un nuevo mes
 }
 
-const DAY_NAMES_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
-const DAY_NAMES_FULL = [
+export const DAY_NAMES_SHORT = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'] as const;
+export const DAY_NAMES_FULL = [
   'Domingo',
   'Lunes',
   'Martes',
@@ -54,8 +54,8 @@ const DAY_NAMES_FULL = [
   'Jueves',
   'Viernes',
   'Sábado',
-];
-const MONTH_NAMES_SHORT = [
+] as const;
+export const MONTH_NAMES_SHORT = [
   'ENE',
   'FEB',
   'MAR',
@@ -68,8 +68,8 @@ const MONTH_NAMES_SHORT = [
   'OCT',
   'NOV',
   'DIC',
-];
-const MONTH_NAMES_FULL = [
+] as const;
+export const MONTH_NAMES_FULL = [
   'Enero',
   'Febrero',
   'Marzo',
@@ -82,33 +82,70 @@ const MONTH_NAMES_FULL = [
   'Octubre',
   'Noviembre',
   'Diciembre',
-];
+] as const;
 
-// Fecha ancla base "Hoy": Martes 27 de Octubre 2026 (coherente con los datos semilla del proyecto)
-const TODAY_ANCHOR = new Date(2026, 9, 27, 12, 0, 0);
+/**
+ * Convierte un objeto Date a clave ISO local 'YYYY-MM-DD'.
+ */
+export function formatDateToISO(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
-export function createDayInfoFromDate(date: Date): DayInfo {
+/**
+ * Devuelve la clave ISO ('YYYY-MM-DD') del día actual real del sistema.
+ */
+export function getTodayKey(): string {
+  return formatDateToISO(new Date());
+}
+
+/**
+ * Devuelve una clave ISO ('YYYY-MM-DD') desplazada `offsetDays` respecto a una fecha base (por defecto Hoy).
+ */
+export function getDateKeyWithOffset(offsetDays: number, baseDate: Date = new Date()): string {
+  const dt = new Date(
+    baseDate.getFullYear(),
+    baseDate.getMonth(),
+    baseDate.getDate() + offsetDays,
+    12,
+    0,
+    0
+  );
+  return formatDateToISO(dt);
+}
+
+/**
+ * Parsea una clave ISO ('YYYY-MM-DD') devolviendo un objeto Date local al mediodía.
+ */
+export function parseISODate(isoKey: string): Date {
+  const parts = isoKey.split('-').map(Number);
+  if (parts.length === 3 && !parts.some(isNaN)) {
+    return new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+  }
+  return new Date();
+}
+
+export function createDayInfoFromDate(date: Date, now: Date = new Date()): DayInfo {
   const y = date.getFullYear();
   const m = date.getMonth();
   const d = date.getDate();
   const dow = date.getDay();
 
-  const isoDate = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const isoDate = formatDateToISO(date);
   const isToday =
-    y === TODAY_ANCHOR.getFullYear() &&
-    m === TODAY_ANCHOR.getMonth() &&
-    d === TODAY_ANCHOR.getDate();
+    y === now.getFullYear() &&
+    m === now.getMonth() &&
+    d === now.getDate();
 
-  const anchorMidnight = new Date(
-    TODAY_ANCHOR.getFullYear(),
-    TODAY_ANCHOR.getMonth(),
-    TODAY_ANCHOR.getDate()
+  const todayMidnight = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate()
   ).getTime();
   const currentMidnight = new Date(y, m, d).getTime();
-  const isPast = currentMidnight < anchorMidnight;
-
-  // Para mantener compatibilidad directa con eventos semilla en Octubre 2026 ('27', '28', '30')
-  const key = y === 2026 && m === 9 ? String(d).padStart(2, '0') : isoDate;
+  const isPast = currentMidnight < todayMidnight;
 
   const dayName = DAY_NAMES_SHORT[dow];
   const dayNum = String(d).padStart(2, '0');
@@ -119,7 +156,7 @@ export function createDayInfoFromDate(date: Date): DayInfo {
   }`;
 
   return {
-    key,
+    key: isoDate,
     isoDate,
     dayName,
     dayNum,
@@ -134,26 +171,27 @@ export function createDayInfoFromDate(date: Date): DayInfo {
 }
 
 /**
- * Genera un rango continuo de días desde `startOffset` hasta `endOffset` respecto al día de Hoy,
- * abarcando un año completo (365+ días) para permitir scroll multimes libre y continuo.
+ * Genera dinámicamente 7 días pasados + hoy + 365 días futuros con claves ISO ('YYYY-MM-DD')
+ * tomando como referencia la fecha real del sistema (`new Date()`).
  */
-export function generateDaysRange(startOffset = -14, endOffset = 365): DayInfo[] {
+export function generateDaysRange(startOffset = -7, endOffset = 365): DayInfo[] {
+  const now = new Date();
   const list: DayInfo[] = [];
   for (let offset = startOffset; offset <= endOffset; offset++) {
     const dt = new Date(
-      TODAY_ANCHOR.getFullYear(),
-      TODAY_ANCHOR.getMonth(),
-      TODAY_ANCHOR.getDate() + offset,
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + offset,
       12,
       0,
       0
     );
-    list.push(createDayInfoFromDate(dt));
+    list.push(createDayInfoFromDate(dt, now));
   }
   return list;
 }
 
-export const INITIAL_DAYS: DayInfo[] = generateDaysRange(-14, 365);
+export const INITIAL_DAYS: DayInfo[] = generateDaysRange(-7, 365);
 
 export const SMART_SLOTS_PRESETS = [
   { startTime: '12:00', endTime: '12:30', label: 'Tras reunión actual', startQ: 48, quarters: 2 },

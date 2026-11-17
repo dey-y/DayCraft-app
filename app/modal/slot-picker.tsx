@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Pressable, TextInput } from 'react-native';
+import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useDayCraftStore, formatQuarterToTime } from '@/store/useDayCraftStore';
 import {
@@ -25,15 +25,39 @@ const WEEK_DAYS_SELECTOR = [
 ] as const;
 
 const FREQUENCY_OPTIONS: { key: RecurrenceFrequency; label: string }[] = [
-  { key: 'none', label: 'No se repite' },
-  { key: 'daily', label: 'Cada día' },
+  { key: 'none', label: 'Ninguna' },
+  { key: 'daily', label: 'Diaria' },
   { key: 'weekly', label: 'Semanal' },
   { key: 'monthly', label: 'Mensual' },
 ];
 
+const DURATION_OPTIONS: { quarters: number; label: string }[] = [
+  { quarters: 1, label: '15m' },
+  { quarters: 2, label: '30m' },
+  { quarters: 3, label: '45m' },
+  { quarters: 4, label: '1h' },
+  { quarters: 6, label: '1h 30m' },
+  { quarters: 8, label: '2h' },
+  { quarters: 12, label: '3h' },
+];
+
+function parseTimeStringToQuarter(timeStr: string, fallbackQ: number): number {
+  const parts = timeStr.trim().split(':');
+  const h = parseInt(parts[0] || '', 10);
+  const m = parseInt(parts[1] || '0', 10);
+  if (isNaN(h)) return fallbackQ;
+  const clampedH = Math.max(0, Math.min(23, h));
+  const qOffset = isNaN(m) ? 0 : Math.round(m / 15) % 4;
+  return Math.max(0, Math.min(95, clampedH * 4 + qOffset));
+}
+
 /**
- * SlotPickerSheetContent — Popover de creación de bloques en el Timeline 24h
- * Incluye selector de repetición (`No se repite`, `Cada día`, `Semanal [L M X J V S D]`, `Mensual`).
+ * SlotPickerSheetContent — Popover de creación y edición completa de bloques en el Timeline 24h
+ * Permite editar:
+ * - Título y descripción/nota del bloque.
+ * - Tipo de bloque (Tarea de Foco vs Recordatorio Puntual).
+ * - Hora de inicio (startQ) y duración en cuartos de hora (15m, 30m, 45m, 1h, 1h 30m, 2h...).
+ * - Regla de recurrencia (ninguna, diaria, semanal, mensual).
  */
 export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
   onClose,
@@ -41,35 +65,62 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
   const { colors } = useTheme();
   const slotPickerTarget = useDayCraftStore((s) => s.slotPickerTarget);
   const assignSlotFromPicker = useDayCraftStore((s) => s.assignSlotFromPicker);
+  const removeTimelineEvent = useDayCraftStore((s) => s.removeTimelineEvent);
   const closeSlotPicker = useDayCraftStore((s) => s.closeSlotPicker);
   const days = useDayCraftStore((s) => s.days);
   const selectedDayKey = useDayCraftStore((s) => s.selectedDayKey);
 
   const activeDay =
-    days.find((d) => d.key === selectedDayKey) || days[7] || days[0];
+    days.find((d) => d.key === selectedDayKey) ||
+    days.find((d) => d.isToday) ||
+    days[7] ||
+    days[0];
 
-  const [customTitle, setCustomTitle] = useState(
-    slotPickerTarget?.title || ''
+  const [customTitle, setCustomTitle] = useState(slotPickerTarget?.title || '');
+  const [customDesc, setCustomDesc] = useState(slotPickerTarget?.desc || '');
+  const [blockType, setBlockType] = useState<'task' | 'reminder'>(
+    slotPickerTarget?.eventType || 'task'
   );
-  const [frequency, setFrequency] = useState<RecurrenceFrequency>('none');
-  const [selectedWeekDays, setSelectedWeekDays] = useState<string[]>([
-    activeDay?.dayName || 'MAR',
-  ]);
-  const [customHourStr, setCustomHourStr] = useState('15:30');
+  const [startQ, setStartQ] = useState<number>(
+    slotPickerTarget?.defaultStartQ ?? 48
+  );
+  const [quarters, setQuarters] = useState<number>(
+    slotPickerTarget?.defaultQuarters || 2
+  );
+  const [frequency, setFrequency] = useState<RecurrenceFrequency>(
+    slotPickerTarget?.recurrence?.frequency || 'none'
+  );
+  const [selectedWeekDays, setSelectedWeekDays] = useState<string[]>(
+    slotPickerTarget?.recurrence?.daysOfWeek || [activeDay?.dayName || 'MAR']
+  );
+  const [customHourStr, setCustomHourStr] = useState('12:00');
   const [showCustomInput, setShowCustomInput] = useState(false);
 
-  const quarters = slotPickerTarget?.defaultQuarters || 2;
+  const isEditMode = slotPickerTarget?.type === 'edit_event';
   const isDirectFromCalendar =
     slotPickerTarget?.type === 'direct_hour' &&
     typeof slotPickerTarget?.defaultStartQ === 'number';
 
   useEffect(() => {
+    const initialStartQ =
+      typeof slotPickerTarget?.defaultStartQ === 'number'
+        ? slotPickerTarget.defaultStartQ
+        : 48;
+    const initialQuarters = slotPickerTarget?.defaultQuarters || 2;
+
     setCustomTitle(slotPickerTarget?.title || '');
-    setFrequency('none');
-    setSelectedWeekDays([activeDay?.dayName || 'MAR']);
-    if (typeof slotPickerTarget?.defaultStartQ === 'number') {
-      setCustomHourStr(formatQuarterToTime(slotPickerTarget.defaultStartQ));
-    }
+    setCustomDesc(slotPickerTarget?.desc || '');
+    setBlockType(slotPickerTarget?.eventType || 'task');
+    setStartQ(initialStartQ);
+    setQuarters(initialQuarters);
+    setFrequency(slotPickerTarget?.recurrence?.frequency || 'none');
+    setSelectedWeekDays(
+      slotPickerTarget?.recurrence?.daysOfWeek &&
+        slotPickerTarget.recurrence.daysOfWeek.length > 0
+        ? slotPickerTarget.recurrence.daysOfWeek
+        : [activeDay?.dayName || 'MAR']
+    );
+    setCustomHourStr(formatQuarterToTime(initialStartQ));
   }, [slotPickerTarget, activeDay?.dayName]);
 
   const toggleWeekDay = (dayKey: string) => {
@@ -79,6 +130,12 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
       }
       return [...prev, dayKey];
     });
+  };
+
+  const handleShiftStartQ = (deltaQ: number) => {
+    const nextQ = Math.max(0, Math.min(95, startQ + deltaQ));
+    setStartQ(nextQ);
+    setCustomHourStr(formatQuarterToTime(nextQ));
   };
 
   const buildRecurrenceRule = (): EventRecurrenceRule | undefined => {
@@ -95,7 +152,10 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
     if (frequency === 'monthly') {
       return {
         frequency: 'monthly',
-        dayNumOfMonth: activeDay?.dayNum || '27',
+        dayNumOfMonth:
+          slotPickerTarget?.recurrence?.dayNumOfMonth ||
+          activeDay?.dayNum ||
+          '01',
       };
     }
     return undefined;
@@ -106,30 +166,168 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
     onClose?.();
   };
 
-  const handleSelectSlot = (startQ: number, qCount = quarters) => {
+  const handleSaveSlot = (chosenStartQ = startQ, chosenQuarters = quarters) => {
+    const effectiveStartQ = parseTimeStringToQuarter(customHourStr, chosenStartQ);
     assignSlotFromPicker(
-      startQ,
-      qCount,
+      effectiveStartQ,
+      chosenQuarters,
       customTitle.trim() || 'Bloque enfocado',
-      buildRecurrenceRule()
+      buildRecurrenceRule(),
+      {
+        desc: customDesc.trim(),
+        eventType: blockType,
+      }
     );
     onClose?.();
   };
 
-  const handleApplyCustomTime = () => {
-    const parts = customHourStr.trim().split(':');
-    const h = parseInt(parts[0] || '15', 10);
-    const m = parseInt(parts[1] || '0', 10);
-    const clampedH = isNaN(h) ? 15 : Math.max(0, Math.min(23, h));
-    const qOffset = isNaN(m) ? 0 : Math.round(m / 15) % 4;
-    const startQ = clampedH * 4 + qOffset;
-    handleSelectSlot(startQ, 2);
+  const handleDeleteCurrentEvent = () => {
+    if (isEditMode && slotPickerTarget?.id) {
+      removeTimelineEvent(slotPickerTarget.id, true);
+      closeSlotPicker();
+      onClose?.();
+    }
+  };
+
+  const renderBlockTypeSelector = () => (
+    <View className="gap-1.5">
+      <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+        Tipo de Bloque
+      </Text>
+      <View className="flex-row gap-2">
+        <Pressable
+          onPress={() => setBlockType('task')}
+          className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-3 rounded-xl border ${
+            blockType === 'task'
+              ? 'bg-accent/20 border-accent'
+              : 'bg-raised border-line'
+          }`}
+        >
+          <NotionIcon
+            name="clock"
+            size={13}
+            color={blockType === 'task' ? colors.accentSoft : colors.muted}
+          />
+          <Text
+            className={`text-xs font-semibold ${
+              blockType === 'task' ? 'text-ink' : 'text-muted'
+            }`}
+          >
+            Tarea de Foco
+          </Text>
+        </Pressable>
+
+        <Pressable
+          onPress={() => setBlockType('reminder')}
+          className={`flex-1 flex-row items-center justify-center gap-1.5 py-2 px-3 rounded-xl border ${
+            blockType === 'reminder'
+              ? 'bg-info/20 border-info'
+              : 'bg-raised border-line'
+          }`}
+        >
+          <NotionIcon
+            name="reminder"
+            size={13}
+            color={blockType === 'reminder' ? colors.info : colors.muted}
+          />
+          <Text
+            className={`text-xs font-semibold ${
+              blockType === 'reminder' ? 'text-ink' : 'text-muted'
+            }`}
+          >
+            Recordatorio Puntual
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+
+  const renderStartAndDurationSelectors = () => {
+    const previewStartQ = parseTimeStringToQuarter(customHourStr, startQ);
+    const startStr = formatQuarterToTime(previewStartQ);
+    const endStr = formatQuarterToTime(previewStartQ + quarters);
+
+    return (
+      <View className="gap-3">
+        {/* Hora de inicio (startQ) con ajuste cada 15m */}
+        <View className="gap-1.5">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+              Hora de Inicio
+            </Text>
+            <Text className="text-xs font-mono font-bold text-accent-soft">
+              {startStr} – {endStr}
+            </Text>
+          </View>
+
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={() => handleShiftStartQ(-1)}
+              className="px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+            >
+              <Text className="text-xs font-mono font-bold text-ink">-15m</Text>
+            </Pressable>
+
+            <TextInput
+              value={customHourStr}
+              onChangeText={(val) => {
+                setCustomHourStr(val);
+                if (/^\d{1,2}:\d{2}$/.test(val.trim())) {
+                  setStartQ(parseTimeStringToQuarter(val, startQ));
+                }
+              }}
+              placeholder="11:30"
+              placeholderTextColor={colors.muted}
+              className="flex-1 bg-canvas border border-line rounded-xl px-3 py-2 text-center font-mono font-bold text-sm text-ink"
+            />
+
+            <Pressable
+              onPress={() => handleShiftStartQ(1)}
+              className="px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+            >
+              <Text className="text-xs font-mono font-bold text-ink">+15m</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        {/* Duración en cuartos de hora */}
+        <View className="gap-1.5">
+          <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+            Duración
+          </Text>
+          <View className="flex-row flex-wrap gap-1.5">
+            {DURATION_OPTIONS.map((opt) => {
+              const isSelected = quarters === opt.quarters;
+              return (
+                <Pressable
+                  key={opt.quarters}
+                  onPress={() => setQuarters(opt.quarters)}
+                  className={`px-3 py-1.5 rounded-lg border ${
+                    isSelected
+                      ? 'bg-accent/20 border-accent'
+                      : 'bg-raised border-line'
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-mono font-semibold ${
+                      isSelected ? 'text-ink' : 'text-muted'
+                    }`}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </View>
+    );
   };
 
   const renderRecurrenceSelector = () => (
     <View className="gap-2">
       <Text className="text-xs uppercase tracking-wider font-bold text-muted">
-        Repetición
+        Recurrencia
       </Text>
       <View className="flex-row flex-wrap gap-1.5">
         {FREQUENCY_OPTIONS.map((opt) => {
@@ -138,7 +336,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
             <Pressable
               key={opt.key}
               onPress={() => setFrequency(opt.key)}
-              className={`px-3 py-2 rounded-lg border ${
+              className={`px-3 py-1.5 rounded-lg border ${
                 isSel
                   ? 'bg-accent/20 border-accent'
                   : 'bg-raised border-line'
@@ -165,10 +363,8 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
               <Pressable
                 key={wd.key}
                 onPress={() => toggleWeekDay(wd.key)}
-                className={`w-10 h-10 rounded-xl border items-center justify-center ${
-                  active
-                    ? 'bg-ink border-ink'
-                    : 'bg-canvas border-line'
+                className={`w-9 h-9 rounded-xl border items-center justify-center ${
+                  active ? 'bg-ink border-ink' : 'bg-canvas border-line'
                 }`}
               >
                 <Text
@@ -188,26 +384,26 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
       {frequency === 'monthly' ? (
         <View className="px-3 py-2 rounded-xl bg-canvas border border-line-subtle">
           <Text className="text-xs text-accent-soft font-mono">
-            Se repetirá el día {Number(activeDay?.dayNum || 27)} de cada mes
+            Se repetirá el día {Number(activeDay?.dayNum || 1)} de cada mes
           </Text>
         </View>
       ) : null}
     </View>
   );
 
-  // ==================== MODO A: POPUP AL CREAR EN EL CALENDARIO ====================
-  if (isDirectFromCalendar) {
-    const startQ = slotPickerTarget!.defaultStartQ!;
-    const startStr = formatQuarterToTime(startQ);
-    const endStr = formatQuarterToTime(startQ + quarters);
-
+  // ==================== MODO A: CREACIÓN DIRECTA EN EL CALENDARIO O EDICIÓN DE BLOQUE EXISTENTE ====================
+  if (isDirectFromCalendar || isEditMode) {
     return (
-      <View className="bg-card border border-line rounded-2xl p-4 gap-3.5 w-full max-w-sm self-center shadow-2xl">
-        <View className="flex-row items-center justify-between">
+      <View className="bg-card border border-line rounded-3xl p-4 sm:p-5 gap-3.5 w-full max-w-md self-center shadow-2xl max-h-[90%]">
+        <View className="flex-row items-center justify-between pb-2 border-b border-line-subtle">
           <View className="flex-row items-center gap-2">
-            <NotionIcon name="clock" size={15} color={colors.accentSoft} />
-            <Text className="font-mono font-bold text-sm text-accent-soft">
-              {startStr} – {endStr}
+            <NotionIcon
+              name={isEditMode ? 'edit' : 'clock'}
+              size={15}
+              color={colors.accentSoft}
+            />
+            <Text className="font-bold text-sm text-ink">
+              {isEditMode ? 'Editar bloque del Timeline' : 'Nuevo bloque en Timeline'}
             </Text>
           </View>
 
@@ -220,32 +416,73 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
           </Pressable>
         </View>
 
-        <TextInput
-          value={customTitle}
-          onChangeText={setCustomTitle}
-          autoFocus
-          placeholder="Añade un título y pulsa Enter..."
-          placeholderTextColor={colors.muted}
-          onSubmitEditing={() => handleSelectSlot(startQ, quarters)}
-          className="bg-canvas border border-line rounded-xl px-3.5 py-2.5 text-sm text-ink"
-        />
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ gap: 12 }}
+        >
+          <View className="gap-1.5">
+            <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+              Título
+            </Text>
+            <TextInput
+              value={customTitle}
+              onChangeText={setCustomTitle}
+              autoFocus={!isEditMode}
+              placeholder="Añade un título para el bloque..."
+              placeholderTextColor={colors.muted}
+              onSubmitEditing={() => handleSaveSlot(startQ, quarters)}
+              className="bg-canvas border border-line rounded-xl px-3.5 py-2.5 text-sm font-semibold text-ink"
+            />
+          </View>
 
-        {renderRecurrenceSelector()}
+          <View className="gap-1.5">
+            <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+              Descripción / Nota
+            </Text>
+            <TextInput
+              value={customDesc}
+              onChangeText={setCustomDesc}
+              placeholder="Detalles opcionales o enlace..."
+              placeholderTextColor={colors.muted}
+              className="bg-canvas border border-line rounded-xl px-3.5 py-2 text-xs text-ink"
+            />
+          </View>
 
-        <View className="flex-row items-center justify-end gap-2 pt-1">
-          <Pressable
-            onPress={handleClose}
-            className="px-4 py-2.5 rounded-lg active:opacity-70"
-          >
-            <Text className="text-sm font-medium text-muted">Cancelar</Text>
-          </Pressable>
+          {renderBlockTypeSelector()}
+          {renderStartAndDurationSelectors()}
+          {renderRecurrenceSelector()}
+        </ScrollView>
 
-          <Pressable
-            onPress={() => handleSelectSlot(startQ, quarters)}
-            className="px-4 py-2.5 rounded-xl bg-ink active:opacity-85 active:scale-95 transition-transform"
-          >
-            <Text className="text-sm font-bold text-canvas">Guardar</Text>
-          </Pressable>
+        <View className="flex-row items-center justify-between pt-2 border-t border-line-subtle">
+          {isEditMode ? (
+            <Pressable
+              onPress={handleDeleteCurrentEvent}
+              className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+            >
+              <NotionIcon name="trash" size={13} color={colors.now} />
+              <Text className="text-xs font-semibold text-now">Eliminar</Text>
+            </Pressable>
+          ) : (
+            <View />
+          )}
+
+          <View className="flex-row items-center gap-2">
+            <Pressable
+              onPress={handleClose}
+              className="px-4 py-2.5 rounded-xl active:opacity-70"
+            >
+              <Text className="text-sm font-medium text-muted">Cancelar</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => handleSaveSlot(startQ, quarters)}
+              className="px-4 py-2.5 rounded-xl bg-ink active:opacity-85 active:scale-95 transition-transform"
+            >
+              <Text className="text-sm font-bold text-canvas">
+                {isEditMode ? 'Guardar cambios' : 'Guardar'}
+              </Text>
+            </Pressable>
+          </View>
         </View>
       </View>
     );
@@ -253,7 +490,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
 
   // ==================== MODO B: 1-TAP TIME BLOCKING DESDE PENDIENTES / IDEAS ====================
   return (
-    <View className="bg-card border border-line rounded-3xl p-5 gap-3.5 w-full max-w-sm self-center shadow-2xl">
+    <View className="bg-card border border-line rounded-3xl p-5 gap-3.5 w-full max-w-md self-center shadow-2xl max-h-[90%]">
       <View className="flex-row items-center justify-between pb-2 border-b border-line-subtle">
         <View className="flex-row items-center gap-2 flex-1 min-w-0">
           <NotionIcon name="clock" size={16} color={colors.accentSoft} />
@@ -270,56 +507,111 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
         </Pressable>
       </View>
 
-      {renderRecurrenceSelector()}
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ gap: 12 }}
+      >
+        {renderBlockTypeSelector()}
 
-      <Text className="text-sm text-muted">
-        Elige un hueco libre de hoy en 1 toque:
-      </Text>
+        {/* Selector de Duración */}
+        <View className="gap-1.5">
+          <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+            Duración del bloque
+          </Text>
+          <View className="flex-row flex-wrap gap-1.5">
+            {DURATION_OPTIONS.map((opt) => {
+              const isSelected = quarters === opt.quarters;
+              return (
+                <Pressable
+                  key={opt.quarters}
+                  onPress={() => setQuarters(opt.quarters)}
+                  className={`px-3 py-1.5 rounded-lg border ${
+                    isSelected
+                      ? 'bg-accent/20 border-accent'
+                      : 'bg-raised border-line'
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-mono font-semibold ${
+                      isSelected ? 'text-ink' : 'text-muted'
+                    }`}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
-      <View className="flex-row flex-wrap gap-2">
-        {SMART_SLOTS_PRESETS.map((slot) => (
+        {renderRecurrenceSelector()}
+
+        <Text className="text-sm text-muted">
+          Elige un hueco libre de hoy en 1 toque:
+        </Text>
+
+        <View className="flex-row flex-wrap gap-2">
+          {SMART_SLOTS_PRESETS.map((slot) => (
+            <Pressable
+              key={slot.startTime}
+              onPress={() => {
+                setCustomHourStr(slot.startTime);
+                setStartQ(slot.startQ);
+                assignSlotFromPicker(
+                  slot.startQ,
+                  quarters,
+                  customTitle.trim() || 'Bloque enfocado',
+                  buildRecurrenceRule(),
+                  {
+                    desc: customDesc.trim() || undefined,
+                    eventType: blockType,
+                  }
+                );
+                onClose?.();
+              }}
+              style={{ width: '48%' }}
+              className="p-3.5 rounded-xl bg-raised border border-line active:border-ink active:scale-95 transition-transform"
+            >
+              <Text className="font-mono font-bold text-sm text-accent-soft">
+                {slot.startTime}
+              </Text>
+              <Text numberOfLines={1} className="text-xs text-muted mt-0.5">
+                {slot.label}
+              </Text>
+            </Pressable>
+          ))}
+
           <Pressable
-            key={slot.startTime}
-            onPress={() => handleSelectSlot(slot.startQ, 2)}
+            onPress={() => setShowCustomInput((v) => !v)}
             style={{ width: '48%' }}
-            className="p-3.5 rounded-xl bg-raised border border-line active:border-ink active:scale-95 transition-transform"
+            className="p-3.5 rounded-xl bg-raised border border-dashed border-line active:border-ink active:scale-95 transition-transform"
           >
-            <Text className="font-mono font-bold text-sm text-accent-soft">
-              {slot.startTime}
-            </Text>
-            <Text numberOfLines={1} className="text-xs text-muted mt-0.5">
-              {slot.label}
-            </Text>
-          </Pressable>
-        ))}
-
-        <Pressable
-          onPress={() => setShowCustomInput((v) => !v)}
-          style={{ width: '48%' }}
-          className="p-3.5 rounded-xl bg-raised border border-dashed border-line active:border-ink active:scale-95 transition-transform"
-        >
-          <Text className="font-mono font-bold text-sm text-ink">Manual</Text>
-          <Text className="text-xs text-muted mt-0.5">Elegir HH:MM</Text>
-        </Pressable>
-      </View>
-
-      {showCustomInput ? (
-        <View className="flex-row items-center gap-2 pt-1">
-          <TextInput
-            value={customHourStr}
-            onChangeText={setCustomHourStr}
-            placeholder="15:30"
-            placeholderTextColor={colors.muted}
-            className="flex-1 bg-raised border border-line rounded-xl px-3 py-2 text-sm font-mono text-ink"
-          />
-          <Pressable
-            onPress={handleApplyCustomTime}
-            className="px-4 py-2.5 rounded-xl bg-ink active:opacity-85"
-          >
-            <Text className="text-sm font-bold text-canvas">Fijar</Text>
+            <Text className="font-mono font-bold text-sm text-ink">Manual</Text>
+            <Text className="text-xs text-muted mt-0.5">Elegir HH:MM</Text>
           </Pressable>
         </View>
-      ) : null}
+
+        {showCustomInput ? (
+          <View className="flex-row items-center gap-2 pt-1">
+            <TextInput
+              value={customHourStr}
+              onChangeText={setCustomHourStr}
+              placeholder="15:30"
+              placeholderTextColor={colors.muted}
+              className="flex-1 bg-raised border border-line rounded-xl px-3 py-2 text-sm font-mono text-ink"
+            />
+            <Pressable
+              onPress={() => {
+                const parsedQ = parseTimeStringToQuarter(customHourStr, 62);
+                handleSaveSlot(parsedQ, quarters);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-ink active:opacity-85"
+            >
+              <Text className="text-sm font-bold text-canvas">Fijar</Text>
+            </Pressable>
+          </View>
+        ) : null}
+      </ScrollView>
     </View>
   );
 };
@@ -327,7 +619,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
 export default function SlotPickerModalScreen() {
   const router = useRouter();
   return (
-    <View className="flex-1 bg-black/75 justify-end sm:justify-center p-4">
+    <View className="flex-1 bg-canvas/85 justify-end sm:justify-center p-4">
       <SlotPickerSheetContent
         onClose={() => {
           if (router.canGoBack()) {

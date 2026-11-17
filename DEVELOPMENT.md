@@ -452,3 +452,25 @@ Pendiente, en este orden:
   4. **Soporte WebAssembly (`wa-sqlite.wasm`) en Metro**: Se añadió `config.resolver.assetExts.push("wasm")` en `metro.config.js` para resolver el motor WebAssembly de `expo-sqlite` en SDK 58 Web.
   5. **Tipado estricto React 19 / RN 0.88**: Migración de `useRef<ScrollView>` y `useRef<View>` a `useRef<React.ComponentRef<typeof ScrollView>>` / `typeof View` y ajuste de `StatusBar` edge-to-edge en `app/_layout.tsx` (`npm run typecheck` con `0` errores).
   6. **Verificación de Bundlers**: Confirmada la compilación limpia (`HTTP 200 OK`) tanto del bundle Web (`5.15 MB`) como del bundle bytecode nativo Android Hermes (`9.05 MB`) con `runtimeVersion: exposdk:58.0.0`.
+
+
+---
+
+### 12. Fase Funcional Completa: Calendario Real ISO, Edición Completa 24h, Dictado por Voz Real y Gestión de Proyectos `.md`
+* **Bloque 1 — Calendario con Fechas Dinámicas Reales y Rollover Diario Automático**:
+  1. Reemplazo de la fecha ancla estática (`'27'`) por la fecha real del sistema (`new Date()`), generando dinámicamente 7 días pasados + hoy + 365 días futuros con claves ISO (`YYYY-MM-DD`) en `constants/theme.ts` (`getTodayKey()`, `getDateKeyWithOffset()`, `generateDaysRange(-7, 365)`).
+  2. Migración automática de eventos legados (`normalizeLegacyEvents` en `services/db/sqlite.ts`) y salto directo a `getTodayKey()` en el botón **"Hoy"** de `app/(tabs)/index.tsx` y `app/(tabs)/_layout.tsx`.
+  3. Actualización del parser NLP local y del prompt de Gemini en `services/ai/geminiClient.ts` (`resolveDynamicDayFromText`) para resolver `"hoy"`, `"mañana"`, `"pasado mañana"`, `"lunes"`, `"viernes"`, etc. sobre las fechas ISO reales.
+  4. Persistencia de `last_opened_date_v9` en SQLite (`store/useDayCraftStore.ts`): al abrir la app en un nuevo día real, se ejecuta automáticamente `evaluateDailyRollover`, marcando pendientes incompletos de ayer con `isFromYesterday = true`, incrementando `rolloverDays` y generando las alertas de la Regla de los 3 Días en la campana.
+* **Bloque 2 — Edición Completa de Bloques en el `Rail24h` (Timeline 24h)**:
+  1. Al tocar cualquier `EventCard` en `components/timeline/Rail24h.tsx`, se abre `app/modal/slot-picker.tsx` en modo edición (`type: 'edit_event'`).
+  2. El modal permite editar título, descripción/nota, tipo de bloque (`Tarea de Foco` vs `Recordatorio Puntual`), hora de inicio (`startQ` con ajuste de `±15m` o entrada `HH:MM`), duración en cuartos de hora (`15m`, `30m`, `45m`, `1h`, `1h 30m`, `2h`, `3h`) y recurrencia (`ninguna`, `diaria`, `semanal`, `mensual`).
+  3. Toggle rápido de completado en `components/timeline/EventCard.tsx` con microinteracción elástica (`Animated.spring`), estilo atenuado y tachado, además de eliminación con opción **Deshacer** en `FloatingToast`.
+* **Bloque 3 — Dictado por Voz Real y Configuración de IA Gemini**:
+  1. Reconocimiento de voz real en Web (`window.SpeechRecognition` / `window.webkitSpeechRecognition` con `lang = 'es-ES'`, `interimResults = true`) en `components/intake/SmartIntakeBar.tsx`, mostrando la transcripción en vivo mientras hablas y enviando automáticamente al terminar.
+  2. Fallback inteligente y no intrusivo si el navegador no soporta Web Speech API o se deniega el permiso del micrófono.
+  3. Modal discreto de configuración en la cabecera de `app/(tabs)/chat.tsx` para guardar opcionalmente una `GEMINI_API_KEY` en SQLite (`gemini_config_v9`) y alternar entre **Gemini 2.0 Flash (Cloud)** y el **Parser NLP Local (100% Offline)**.
+* **Bloque 4 — Gestión Completa de Proyectos e Ideas en el Cajón de Ideas (`.md`)**:
+  1. Creación de nuevas carpetas/grupos de proyecto personalizados desde `app/(tabs)/ideas.tsx` eligiendo nombre, subtítulo, icono vectorial de `NotionIcon` y color de acento semántico Kuro-Zen.
+  2. Soporte para mover cualquier idea `.md` de un grupo de proyecto a otro y eliminar ideas (con opción **Deshacer** en `FloatingToast`) desde `components/ideas/IdeaNoteModal.tsx` y `components/ideas/IdeaItem.tsx`.
+  3. Clasificador dinámico en `services/ai/geminiClient.ts` (`matchIdeaGroup`) que reconoce automáticamente los nombres de los nuevos proyectos creados por el usuario al auto-clasificar ideas desde `SmartIntakeBar`.

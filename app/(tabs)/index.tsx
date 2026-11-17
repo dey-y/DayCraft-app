@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useDayCraftStore, doesEventApplyToDay } from '@/store/useDayCraftStore';
-import { LAYOUT } from '@/constants/theme';
+import { LAYOUT, getTodayKey } from '@/constants/theme';
 import { DayStrip } from '@/components/timeline/DayStrip';
 import { Rail24h } from '@/components/timeline/Rail24h';
 import { NotionIcon } from '@/components/ui/NotionIcon';
@@ -26,15 +26,23 @@ export default function TimelineScreen() {
   const pendingTasks = useDayCraftStore((s) => s.pendingTasks);
 
   const activeDay =
-    days.find((d) => d.key === selectedDayKey) || days[7] || days[0];
+    days.find((d) => d.key === selectedDayKey) ||
+    days.find((d) => d.isToday) ||
+    days[7] ||
+    days[0];
+
   const dayEventsCount = events.filter((e) =>
     activeDay ? doesEventApplyToDay(e, activeDay) : e.dayKey === selectedDayKey
   ).length;
   const pendingCount = pendingTasks.filter((t) => !t.completed).length;
 
-  // Buscar el primer día del próximo mes para permitir saltar directo si se desea
+  // Buscar el primer día del próximo mes posterior al día activo para saltar directo
   const nextMonthFirstDay = days.find(
-    (d) => d.isFirstOfMonth && d.monthShort !== activeDay?.monthShort
+    (d) =>
+      d.isFirstOfMonth &&
+      activeDay &&
+      d.isoDate > activeDay.isoDate &&
+      (d.monthShort !== activeDay.monthShort || d.year !== activeDay.year)
   );
 
   return (
@@ -93,7 +101,7 @@ export default function TimelineScreen() {
           ) : null}
 
           <Pressable
-            onPress={() => setSelectedDayKey('27')}
+            onPress={() => setSelectedDayKey(getTodayKey())}
             className={`px-3 py-1.5 rounded-lg border active:opacity-80 ${
               activeDay?.isToday
                 ? 'bg-accent/20 border-accent'

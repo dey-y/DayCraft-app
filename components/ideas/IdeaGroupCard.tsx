@@ -10,6 +10,7 @@ interface IdeaGroupCardProps {
   onScheduleIdea: (idea: IdeaItemData) => void;
   onOpenMarkdown?: (idea: IdeaItemData) => void;
   onCreateIdeaInGroup?: (groupId: string) => void;
+  onDeleteIdea?: (ideaId: string) => void;
 }
 
 /**
@@ -21,6 +22,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
   onScheduleIdea,
   onOpenMarkdown,
   onCreateIdeaInGroup,
+  onDeleteIdea,
 }) => {
   const { colors } = useTheme();
   const iconColor =
@@ -75,16 +77,25 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
         ) : null}
       </View>
 
-      <View className="gap-2.5 pl-2.5 border-l-2 border-line ml-1">
-        {group.items.map((item) => (
-          <IdeaItem
-            key={item.id}
-            idea={item}
-            onScheduleStep={onScheduleIdea}
-            onOpenMarkdown={onOpenMarkdown}
-          />
-        ))}
-      </View>
+      {group.items.length === 0 ? (
+        <View className="py-3 px-2 items-center">
+          <Text className="text-xs text-muted">
+            Carpeta vacía · Pulsa "Nueva .md" o dicta una idea para este proyecto
+          </Text>
+        </View>
+      ) : (
+        <View className="gap-2.5 pl-2.5 border-l-2 border-line ml-1">
+          {group.items.map((item) => (
+            <IdeaItem
+              key={item.id}
+              idea={item}
+              onScheduleStep={onScheduleIdea}
+              onOpenMarkdown={onOpenMarkdown}
+              onDeleteIdea={onDeleteIdea}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
