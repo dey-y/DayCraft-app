@@ -19,11 +19,33 @@ export default function PendingScreen() {
 
   const pendingTasks = useDayCraftStore((s) => s.pendingTasks);
   const togglePendingTask = useDayCraftStore((s) => s.togglePendingTask);
+  const removePendingTask = useDayCraftStore((s) => s.removePendingTask);
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
   const simulateAllPendingDone = useDayCraftStore((s) => s.simulateAllPendingDone);
   const triggerRolloverSimulation = useDayCraftStore((s) => s.triggerRolloverSimulation);
+  const showToast = useDayCraftStore((s) => s.showToast);
 
   const incompleteCount = pendingTasks.filter((t) => !t.completed).length;
+
+  const handleSimulateAllDone = () => {
+    const allCompleted =
+      pendingTasks.length > 0 && pendingTasks.every((t) => t.completed);
+    simulateAllPendingDone();
+    showToast({
+      title: allCompleted ? 'Pendientes restaurados' : 'Todo marcado como hecho',
+      description: allCompleted
+        ? 'Tus tareas pendientes vuelven a estar activas'
+        : 'Celebración de jornada despejada activada',
+    });
+  };
+
+  const handleSimulateRollover = () => {
+    triggerRolloverSimulation();
+    showToast({
+      title: 'Rollover simulado (+1 día)',
+      description: 'Pendientes actualizados con regla antiestrés',
+    });
+  };
 
   return (
     <ScrollView
@@ -70,18 +92,37 @@ export default function PendingScreen() {
       ) : (
         <View className="gap-2.5">
           {pendingTasks.map((task) => (
-            <PendingItem
-              key={task.id}
-              task={task}
-              onToggle={togglePendingTask}
-              onAssignTime={(t) =>
-                openSlotPicker({
-                  type: 'pending',
-                  id: t.id,
-                  title: t.title,
-                })
-              }
-            />
+            <View key={task.id} className="flex-row items-center gap-2">
+              <View className="flex-1 min-w-0">
+                <PendingItem
+                  task={task}
+                  onToggle={togglePendingTask}
+                  onAssignTime={(t) =>
+                    openSlotPicker({
+                      type: 'pending',
+                      id: t.id,
+                      title: t.title,
+                    })
+                  }
+                />
+              </View>
+              {task.completed ? (
+                <Pressable
+                  onPress={() => {
+                    removePendingTask(task.id);
+                    showToast({
+                      title: 'Pendiente eliminado',
+                      description: task.title,
+                    });
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel="Eliminar pendiente completado"
+                  className="min-w-[44px] min-h-[44px] rounded-xl bg-raised border border-line items-center justify-center active:border-warm"
+                >
+                  <NotionIcon name="trash" size={16} color={colors.warm} />
+                </Pressable>
+              ) : null}
+            </View>
           ))}
         </View>
       )}
@@ -89,7 +130,7 @@ export default function PendingScreen() {
       {/* Acciones de prueba de Reglas de Negocio (Todo Hecho & Rollover 3 días) */}
       <View className="flex-row gap-2 pt-2">
         <Pressable
-          onPress={simulateAllPendingDone}
+          onPress={handleSimulateAllDone}
           className="flex-1 py-2.5 px-3 min-h-[44px] justify-center rounded-xl border border-dashed border-line items-center active:border-ink"
         >
           <Text className="text-xs text-muted font-medium">
@@ -98,7 +139,7 @@ export default function PendingScreen() {
         </Pressable>
 
         <Pressable
-          onPress={triggerRolloverSimulation}
+          onPress={handleSimulateRollover}
           className="flex-1 py-2.5 px-3 min-h-[44px] justify-center rounded-xl border border-dashed border-warm/30 items-center active:border-warm"
         >
           <Text className="text-xs text-warm font-medium">

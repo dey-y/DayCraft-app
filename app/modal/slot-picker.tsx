@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import {
   useDayCraftStore,
   formatQuarterToTime,
+  formatQuartersToDuration,
   doesEventApplyToDay,
 } from '@/store/useDayCraftStore';
 import {
@@ -343,7 +344,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
               Hora de Inicio
             </Text>
             <Text className="text-xs font-mono font-bold text-accent-soft">
-              {startStr} – {endStr}
+              {startStr} – {endStr} · {formatQuartersToDuration(quarters)}
             </Text>
           </View>
 
@@ -379,9 +380,25 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
 
         {/* Duración en cuartos de hora */}
         <View className="gap-1.5">
-          <Text className="text-xs uppercase tracking-wider font-bold text-muted">
-            Duración
-          </Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-xs uppercase tracking-wider font-bold text-muted">
+              Duración · {formatQuartersToDuration(quarters)}
+            </Text>
+            <View className="flex-row items-center gap-1.5">
+              <Pressable
+                onPress={() => setQuarters((q) => Math.max(1, q - 1))}
+                className="px-3 py-1.5 min-h-[44px] justify-center rounded-xl bg-raised border border-line active:border-ink"
+              >
+                <Text className="text-xs font-mono font-bold text-ink">-15m</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => setQuarters((q) => Math.min(48, q + 1))}
+                className="px-3 py-1.5 min-h-[44px] justify-center rounded-xl bg-raised border border-line active:border-ink"
+              >
+                <Text className="text-xs font-mono font-bold text-ink">+15m</Text>
+              </Pressable>
+            </View>
+          </View>
           <View className="flex-row flex-wrap gap-1.5">
             {DURATION_OPTIONS.map((opt) => {
               const isSelected = quarters === opt.quarters;

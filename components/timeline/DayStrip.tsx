@@ -196,7 +196,7 @@ export const DayStrip: React.FC = () => {
   };
 
   return (
-    <View className="w-full bg-header border border-line-subtle px-2 py-1.5 rounded-2xl flex-row items-center gap-2">
+    <View className="w-full py-1 flex-row items-center gap-1.5">
       {/* Botón Anterior (Retrocede 1 día y desliza la tira) */}
       <Pressable
         onPress={handleScrollLeft}

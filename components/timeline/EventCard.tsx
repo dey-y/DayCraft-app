@@ -79,11 +79,13 @@ export const EventCard: React.FC<EventCardProps> = ({
         style={{
           justifyContent: 'flex-start',
           alignItems: 'flex-start',
+          minWidth: 56,
         }}
-        className="flex-1 min-w-0 flex-row items-start gap-2"
+        className="flex-1 flex-row items-start gap-2"
       >
         {onToggleComplete ? (
           <Pressable
+            onPressIn={(e) => e?.stopPropagation?.()}
             onPress={handleToggleComplete}
             hitSlop={14}
             className="mt-0.5 flex-shrink-0"
@@ -111,13 +113,13 @@ export const EventCard: React.FC<EventCardProps> = ({
           className="flex-1 min-w-0 justify-start"
         >
           <View
-            style={{ alignItems: 'center' }}
-            className="flex-row items-center gap-1.5"
+            style={{ alignItems: 'flex-start', justifyContent: 'flex-start' }}
+            className="flex-row items-center gap-1.5 w-full"
           >
             <Text
               numberOfLines={1}
-              style={{ textAlign: 'left' }}
-              className={`font-bold text-xs sm:text-sm flex-shrink ${
+              style={{ textAlign: 'left', lineHeight: 16 }}
+              className={`font-bold text-xs sm:text-sm flex-1 min-w-0 ${
                 isCompleted ? 'text-muted line-through' : 'text-ink'
               }`}
             >
@@ -144,11 +146,12 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       {/* Cápsula de horas e icono de eliminar: también anclada arriba */}
       <View
-        style={{ alignItems: 'flex-start' }}
-        className="flex-row items-center gap-1.5 flex-shrink-0 mt-0.5"
+        style={{ alignItems: 'center', justifyContent: 'flex-start' }}
+        className="flex-row items-center gap-1.5 flex-shrink-0"
       >
         <View className="px-2 py-0.5 rounded-md bg-raised border border-line-subtle">
           <Text
+            numberOfLines={1}
             className={`font-mono text-xs font-semibold ${
               isCompleted
                 ? 'text-ok'
@@ -163,6 +166,7 @@ export const EventCard: React.FC<EventCardProps> = ({
 
         {onRemove ? (
           <Pressable
+            onPressIn={(e) => e?.stopPropagation?.()}
             onPress={(e) => {
               e?.stopPropagation?.();
               onRemove(event.id);

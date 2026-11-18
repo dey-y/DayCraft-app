@@ -18,6 +18,7 @@ import * as Haptics from 'expo-haptics';
 import {
   useDayCraftStore,
   formatQuarterToTime,
+  formatQuartersToDuration,
   doesEventApplyToDay,
   SlotPickerTarget,
 } from '@/store/useDayCraftStore';
@@ -133,6 +134,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
 
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const gridRef = useRef<React.ComponentRef<typeof View>>(null);
 
   const hourHeight = isDesktop ? LAYOUT.hourHeightDesktop : LAYOUT.hourHeightMobile;
   const quarterHeight = hourHeight / 4;
@@ -258,11 +260,33 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     [onRequestSlotPicker, openSlotPicker]
   );
 
-  // Finalizar arrastre en Web con ratón
+  const getQuarterFromClientY = useCallback(
+    (clientY: number | undefined): number | null => {
+      if (typeof clientY !== 'number') return null;
+      const node = gridRef.current as unknown as {
+        getBoundingClientRect?: () => { top: number };
+      } | null;
+      if (!node || typeof node.getBoundingClientRect !== 'function') return null;
+      const rect = node.getBoundingClientRect();
+      return topToQuarter(clientY - rect.top);
+    },
+    [topToQuarter]
+  );
+
+  // Arrastre suave en Web con ratón (mousemove + mouseup en window)
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== 'web' || !isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const q = getQuarterFromClientY(e.clientY);
+      if (q !== null && lastDragQRef.current !== q) {
+        lastDragQRef.current = q;
+        setDragCurrentQ(q);
+      }
+    };
+
     const handleMouseUp = () => {
-      if (!isDragging || dragStartQ === null || dragCurrentQ === null) return;
+      if (dragStartQ === null || dragCurrentQ === null) return;
       const minQ = Math.min(dragStartQ, dragCurrentQ);
       const maxQ = Math.max(dragStartQ, dragCurrentQ);
       const quarters = minQ === maxQ ? 2 : maxQ - minQ + 1;
@@ -270,16 +294,26 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
       setIsDragging(false);
       setDragStartQ(null);
       setDragCurrentQ(null);
+      lastDragQRef.current = null;
       ghostOpacity.value = withTiming(0, { duration: 120 });
 
       dispatchSlotPicker(minQ, quarters);
     };
 
+    window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, dragStartQ, dragCurrentQ, dispatchSlotPicker, ghostOpacity]);
+  }, [
+    isDragging,
+    dragStartQ,
+    dragCurrentQ,
+    getQuarterFromClientY,
+    dispatchSlotPicker,
+    ghostOpacity,
+  ]);
 
   const handleGestureDragStart = useCallback(
     (y: number) => {
@@ -331,6 +365,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
+        .enabled(Platform.OS !== 'web')
         .activateAfterLongPress(260)
         .onStart((e) => {
           runOnJS(handleGestureDragStart)(e.y);
@@ -392,24 +427,24 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const nowMarkerTop = quarterToTop(nowQuarterExact) - 5;
 
   return (
-    <View className="flex-1 bg-card border border-line-subtle rounded-2xl overflow-hidden">
-      {/* Banner sutil superior cuando el día está libre (Hoy / Pasado / Futuro) */}
+    <View className="flex-1 bg-canvas border-t border-line-subtle/60 overflow-hidden">
+      {/* Nota empática ultra-discreta cuando el día está libre (sin caja pesada) */}
       {dayEvents.length === 0 ? (
-        <View className="px-4 py-2.5 bg-header border-b border-line-subtle flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2 flex-1">
-            <NotionIcon
-              name={activeDay?.isToday ? 'cup' : activeDay?.isPast ? 'check' : 'clock'}
-              size={14}
-              color={
-                activeDay?.isToday
-                  ? colors.ok
-                  : activeDay?.isPast
-                  ? colors.muted
-                  : colors.accentSoft
-              }
-            />
-            <Text className="text-xs text-muted flex-1">{emptyDayMessage}</Text>
-          </View>
+        <View className="px-2 py-1.5 flex-row items-center gap-2">
+          <NotionIcon
+            name={activeDay?.isToday ? 'cup' : activeDay?.isPast ? 'check' : 'clock'}
+            size={12}
+            color={
+              activeDay?.isToday
+                ? colors.ok
+                : activeDay?.isPast
+                ? colors.muted
+                : colors.accentSoft
+            }
+          />
+          <Text numberOfLines={1} className="text-xs text-muted/80 flex-1">
+            {emptyDayMessage}
+          </Text>
         </View>
       ) : null}
 
@@ -526,7 +561,7 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
             pointerEvents="none"
           />
 
-          {/* 3. CAPA INTERACTIVA DE 96 CUARTOS DE HORA CON GESTURE HANDLER */}
+          {/* 3. CAPA INTERACTIVA DE 96 CUARTOS DE HORA: WEB MOUSE DRAG + NATIVE GESTURE HANDLER */}
           <GestureDetector gesture={panGesture}>
             <View
               style={{
@@ -538,63 +573,127 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                 touchAction: (isDragging ? 'none' : 'pan-y') as any,
               }}
             >
-              {Array.from({ length: 96 }, (_, q) => {
-                if (isQuietCollapsed && q < QUIET_END_QUARTER) {
-                  return null;
-                }
-                const isHovered = hoverQuarter === q && !isDragging;
-                const webEvents =
-                  Platform.OS === 'web'
-                    ? {
-                        onMouseDown: (e: { button?: number; preventDefault?: () => void }) => {
-                          if (e.button !== undefined && e.button !== 0) return;
-                          e.preventDefault?.();
-                          setIsDragging(true);
-                          setDragStartQ(q);
-                          setDragCurrentQ(q);
-                          ghostOpacity.value = 1;
-                        },
-                        onMouseEnter: () => {
-                          setHoverQuarter(q);
-                          if (isDragging) {
-                            setDragCurrentQ(q);
-                          }
-                        },
-                        onMouseLeave: () => {
-                          if (hoverQuarter === q) setHoverQuarter(null);
-                        },
+              {Platform.OS === 'web' ? (
+                <View
+                  ref={gridRef}
+                  {...({
+                    onMouseDown: (e: {
+                      button?: number;
+                      clientY?: number;
+                      nativeEvent?: { clientY?: number };
+                      preventDefault?: () => void;
+                    }) => {
+                      if (e.button !== undefined && e.button !== 0) return;
+                      const q = getQuarterFromClientY(
+                        e.clientY ?? e.nativeEvent?.clientY
+                      );
+                      if (q === null) return;
+                      e.preventDefault?.();
+                      lastDragQRef.current = q;
+                      setIsDragging(true);
+                      setDragStartQ(q);
+                      setDragCurrentQ(q);
+                      setHoverQuarter(null);
+                      ghostOpacity.value = 1;
+                    },
+                    onMouseMove: (e: {
+                      clientY?: number;
+                      nativeEvent?: { clientY?: number };
+                    }) => {
+                      if (isDragging) return;
+                      const q = getQuarterFromClientY(
+                        e.clientY ?? e.nativeEvent?.clientY
+                      );
+                      if (q !== null && q !== hoverQuarter) {
+                        setHoverQuarter(q);
                       }
-                    : {};
-
-                return (
-                  <Pressable
-                    key={`q-hit-${q}`}
-                    onPress={() => handleTapQuarter(q)}
-                    {...(webEvents as object)}
-                    style={{
-                      position: 'absolute',
-                      top: quarterToTop(q),
-                      left: 0,
-                      right: 0,
-                      height: quarterHeight,
-                    }}
-                  >
-                    {isHovered ? (
-                      <View className="flex-1 bg-accent/10 border-l-2 border-l-accent/60 px-2.5 justify-center">
-                        <Text className="text-xs font-mono text-accent-soft/90">
-                          {formatQuarterToTime(q)}
+                    },
+                    onMouseLeave: () => {
+                      if (!isDragging) {
+                        setHoverQuarter(null);
+                      }
+                    },
+                  } as object)}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 10,
+                    cursor: isDragging ? 'ns-resize' : 'crosshair',
+                  } as any}
+                >
+                  {hoverQuarter !== null &&
+                  !isDragging &&
+                  (!isQuietCollapsed || hoverQuarter >= QUIET_END_QUARTER) ? (
+                    <View
+                      pointerEvents="none"
+                      style={{
+                        position: 'absolute',
+                        top: quarterToTop(hoverQuarter),
+                        left: 0,
+                        right: 0,
+                        height: quarterHeight,
+                        backgroundColor: `${colors.accent}18`,
+                        borderLeftWidth: 2,
+                        borderLeftColor: colors.accent,
+                        paddingHorizontal: 10,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <View
+                        style={{
+                          alignSelf: 'flex-start',
+                          backgroundColor: colors.raised,
+                          borderColor: colors.lineSubtle,
+                          borderWidth: 1,
+                          borderRadius: 999,
+                          paddingHorizontal: 8,
+                          paddingVertical: 1,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: colors.accentSoft,
+                            fontSize: 12,
+                            fontWeight: '600',
+                          }}
+                          className="font-mono"
+                        >
+                          {formatQuarterToTime(hoverQuarter)}
                         </Text>
                       </View>
-                    ) : null}
-                  </Pressable>
-                );
-              })}
+                    </View>
+                  ) : null}
+                </View>
+              ) : (
+                Array.from({ length: 96 }, (_, q) => {
+                  if (isQuietCollapsed && q < QUIET_END_QUARTER) {
+                    return null;
+                  }
+                  return (
+                    <Pressable
+                      key={`q-hit-${q}`}
+                      onPress={() => handleTapQuarter(q)}
+                      style={{
+                        position: 'absolute',
+                        top: quarterToTop(q),
+                        left: 0,
+                        right: 0,
+                        height: quarterHeight,
+                      }}
+                    />
+                  );
+                })
+              )}
 
               {/* 4. BLOQUE FANTASMA EN VIVO (GHOST EVENT PREVIEW) */}
               {ghostStartQ !== null && ghostQuarters > 0 ? (
                 <Animated.View
                   pointerEvents="none"
                   style={[
+                    ghostAnimatedStyle,
                     {
                       position: 'absolute',
                       top: quarterToTop(ghostStartQ) + 1,
@@ -605,15 +704,51 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                         ghostQuarters * quarterHeight - 2
                       ),
                       zIndex: 30,
+                      opacity: 1,
+                      backgroundColor: `${colors.accent}45`,
+                      borderColor: colors.accent,
+                      borderWidth: 1.5,
+                      borderLeftWidth: 4,
+                      borderLeftColor: colors.accentSoft,
+                      borderRadius: 12,
+                      paddingHorizontal: 12,
+                      paddingVertical: 6,
+                      alignItems: 'flex-start',
+                      justifyContent: 'flex-start',
+                      overflow: 'hidden',
                     },
-                    ghostAnimatedStyle,
                   ]}
-                  className="bg-accent/20 border border-accent/60 border-l-[3px] border-l-accent rounded-xl px-3 py-1.5 items-start justify-start overflow-hidden"
                 >
-                  <Text className="text-xs font-mono font-bold text-accent-soft">
-                    {formatQuarterToTime(ghostStartQ)} –{' '}
-                    {formatQuarterToTime(ghostStartQ + ghostQuarters)}
-                  </Text>
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        color: colors.ink,
+                        fontSize: 12,
+                        fontWeight: '700',
+                      }}
+                      className="font-mono"
+                    >
+                      {formatQuarterToTime(ghostStartQ)} –{' '}
+                      {formatQuarterToTime(ghostStartQ + ghostQuarters)}
+                    </Text>
+                    <Text
+                      style={{
+                        color: colors.accentSoft,
+                        fontSize: 12,
+                        fontWeight: '700',
+                      }}
+                      className="font-mono"
+                    >
+                      · {formatQuartersToDuration(ghostQuarters)}
+                    </Text>
+                  </View>
                 </Animated.View>
               ) : null}
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,20 +9,23 @@ import {
 } from 'react-native';
 import { Tabs, usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDayCraftStore, doesEventApplyToDay } from '@/store/useDayCraftStore';
-import { LAYOUT, getTodayKey } from '@/constants/theme';
+import { useDayCraftStore } from '@/store/useDayCraftStore';
+import { LAYOUT } from '@/constants/theme';
 import { NotionIcon, NotionIconName } from '@/components/ui/NotionIcon';
 import { SmartIntakeBar } from '@/components/intake/SmartIntakeBar';
 import { BellDropdown } from '@/components/ui/BellDropdown';
 import { ThemePickerButton } from '@/components/ui/ThemePicker';
 import { PendingItem } from '@/components/pending/PendingItem';
 import { EmptyCelebration } from '@/components/pending/EmptyCelebration';
+import { GlobalSearchModal, QuickSettingsModal } from '@/components/ui/GlobalSearchModal';
 import { useTheme } from '@/store/useThemeStore';
 
 /**
- * Layout Adaptativo de Pestañas (Móvil 4 Pestañas / Web Desktop Cockpit 3 Columnas v9)
- * - En Móvil (< 900px): Top App Bar con Campana + Contenido de Pestaña + Smart Intake Único + Bottom Nav 4 Tabs.
- * - En Web/Desktop (>= 900px): Header Superior + Sidebar Colapsable (`Ctrl+B`) + Panel Multifunción (Agenda Hoy / Asistente IA) + Lienzo Principal.
+ * Layout Adaptativo — 2 Zonas Equilibradas (Escritorio) + 4 Tabs (Móvil)
+ * - En Escritorio (>= 900px): Cabecera minimalista + 2 Zonas limpias:
+ *   1) Panel único izquierdo (`w-[340px]`): Pendientes / Asistente IA + Smart Intake en su base.
+ *   2) Lienzo principal amplio (`flex-1`): Timeline 24h o Ideas .md.
+ *   (Proyectos accesibles como cajón deslizante con `Ctrl+B`, sin 3ª columna fija).
  */
 export default function TabsLayout() {
   const { colors } = useTheme();
@@ -39,37 +42,27 @@ export default function TabsLayout() {
   const alerts = useDayCraftStore((s) => s.alerts);
   const pendingTasks = useDayCraftStore((s) => s.pendingTasks);
   const togglePendingTask = useDayCraftStore((s) => s.togglePendingTask);
-  const simulateAllPendingDone = useDayCraftStore(
-    (s) => s.simulateAllPendingDone
-  );
+  const simulateAllPendingDone = useDayCraftStore((s) => s.simulateAllPendingDone);
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
   const ideaGroups = useDayCraftStore((s) => s.ideaGroups);
   const desktopSideTab = useDayCraftStore((s) => s.desktopSideTab);
   const setDesktopSideTab = useDayCraftStore((s) => s.setDesktopSideTab);
   const chatMessages = useDayCraftStore((s) => s.chatMessages);
-  const events = useDayCraftStore((s) => s.events);
-  const days = useDayCraftStore((s) => s.days);
-  const setSelectedDayKey = useDayCraftStore((s) => s.setSelectedDayKey);
+  const setActiveIdeaGroupId = useDayCraftStore((s) => s.setActiveIdeaGroupId);
 
-  const todayKey = getTodayKey();
-  const todayInfo = days.find((d) => d.key === todayKey) || days.find((d) => d.isToday);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
+  const [quickSettingsOpen, setQuickSettingsOpen] = useState(false);
+
   const pendingIncompleteCount = pendingTasks.filter((t) => !t.completed).length;
-  const todayEvents = events.filter((e) =>
-    todayInfo ? doesEventApplyToDay(e, todayInfo) : e.dayKey === todayKey
-  );
-  const todayFocusMinutes = todayEvents.reduce((acc, ev) => acc + ev.quarters * 15, 0);
-  const afternoonEventsCount = todayEvents.filter((e) => e.startQ >= 48).length;
-  const focusCapsuleSummary =
-    todayEvents.length === 0
-      ? 'Jornada libre · Sin bloques agendados'
-      : afternoonEventsCount === 0
-      ? 'Tarde despejada desde las 12:00'
-      : `${todayFocusMinutes}m de foco · ${afternoonEventsCount} ${
-          afternoonEventsCount === 1 ? 'bloque' : 'bloques'
-        } de tarde`;
   const isOnChatScreen = pathname.includes('/chat');
+  const isOnTimeline =
+    pathname === '/' ||
+    pathname === '/index' ||
+    (!pathname.includes('/chat') &&
+      !pathname.includes('/ideas') &&
+      !pathname.includes('/pending'));
 
-  // Listener global Ctrl+B en Web para colapsar/expandir el Sidebar
+  // Atajos globales en Web: Ctrl+B (Sidebar), Ctrl+K (Buscador), Escape (Cerrar overlays)
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,8 +70,14 @@ export default function TabsLayout() {
         e.preventDefault();
         toggleSidebar();
       }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchModalOpen((prev) => !prev);
+      }
       if (e.key === 'Escape') {
         setBellDropdownOpen(false);
+        setSearchModalOpen(false);
+        setQuickSettingsOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -88,163 +87,180 @@ export default function TabsLayout() {
   const getMobileHeaderTitle = () => {
     if (pathname.includes('/chat')) return 'Asistente IA';
     if (pathname.includes('/ideas')) return 'Cajón de Ideas';
-    if (pathname.includes('/pending')) return 'Pendientes de Hoy';
-    return 'Timeline 24h';
+    if (pathname.includes('/pending')) return 'Pendientes';
+    return 'DayCraft';
   };
 
-  // ==================== VISTA ESCRITORIO / WEB COCKPIT v9 ====================
+  // ==================== VISTA ESCRITORIO: 2 ZONAS EQUILIBRADAS ====================
   if (isDesktop) {
     return (
       <View className="flex-1 bg-canvas">
-        {/* 1. HEADER SUPERIOR */}
-        <View className="h-14 border-b border-line-subtle bg-header px-4 flex-row items-center justify-between z-30">
-          <View className="flex-row items-center gap-2.5">
+        {/* 1. CABECERA LIMPIA */}
+        <View className="h-14 border-b border-line-subtle/70 bg-canvas px-5 flex-row items-center justify-between z-30">
+          {/* Izquierda: Toggle Sidebar (Ctrl+B) + Marca */}
+          <View className="flex-row items-center gap-3">
             <Pressable
               onPress={toggleSidebar}
               accessibilityRole="button"
               accessibilityLabel="Alternar barra lateral"
               hitSlop={6}
-              className="min-w-[44px] min-h-[44px] rounded-xl bg-card border border-line-subtle items-center justify-center active:border-ink"
+              className="min-w-[44px] min-h-[44px] rounded-xl items-center justify-center active:bg-raised"
             >
-              <NotionIcon name="menu" size={16} color={colors.muted} />
+              <NotionIcon
+                name="menu"
+                size={18}
+                color={sidebarOpen ? colors.ink : colors.muted}
+              />
             </Pressable>
 
-            <View className="w-8 h-8 rounded-xl bg-ink items-center justify-center">
-              <NotionIcon name="zap" size={16} color={colors.canvas} />
-            </View>
-
-            <View>
-              <View className="flex-row items-center gap-2">
-                <Text className="font-bold text-sm text-ink">DayCraft AI</Text>
-                <View className="px-2 py-0.5 rounded-full bg-raised border border-line">
-                  <Text className="text-xs font-mono text-muted">
-                    v9.0 Clean
-                  </Text>
-                </View>
+            <Pressable
+              onPress={() => router.push('/')}
+              className="flex-row items-center gap-2.5 min-h-[44px]"
+            >
+              <View className="w-7 h-7 rounded-lg bg-ink items-center justify-center">
+                <NotionIcon name="zap" size={14} color={colors.canvas} />
               </View>
-              <Text className="text-xs text-muted">
-                Sin fricción · Time-blocking 24h & IA Gemini
+              <Text className="font-bold text-sm text-ink tracking-tight">
+                DayCraft
               </Text>
-            </View>
+            </Pressable>
           </View>
 
-          {/* Barra Omni de Estado Central */}
-          <Pressable
-            onPress={() => setDesktopSideTab('ai')}
-            className="min-h-[44px] flex-1 max-w-md mx-6 bg-card border border-line-subtle rounded-xl px-3.5 py-2 flex-row items-center justify-between"
-          >
-            <View className="flex-row items-center gap-2 flex-1 min-w-0">
-              <NotionIcon name="search" size={14} color={colors.muted} />
-              <Text numberOfLines={1} className="text-xs text-muted">
-                Usa la barra Smart Intake inferior para dictar o agendar...
+          {/* Centro: Selector Limpio de Vista Principal (Calendario vs Ideas .md) */}
+          <View className="flex-row items-center bg-card border border-line-subtle rounded-xl p-1 gap-1">
+            <Pressable
+              onPress={() => router.push('/')}
+              className={`min-h-[36px] px-4 rounded-lg flex-row items-center gap-1.5 ${
+                isOnTimeline ? 'bg-raised' : ''
+              }`}
+            >
+              <NotionIcon
+                name="clock"
+                size={14}
+                color={isOnTimeline ? colors.ink : colors.muted}
+              />
+              <Text
+                className={`text-xs font-semibold ${
+                  isOnTimeline ? 'text-ink' : 'text-muted'
+                }`}
+              >
+                Calendario
               </Text>
-            </View>
-            <View className="px-1.5 py-0.5 rounded bg-raised border border-line flex-shrink-0">
-              <Text className="text-xs font-mono text-muted">Ctrl+B</Text>
-            </View>
-          </Pressable>
+            </Pressable>
 
-          {/* Acciones Derecha Header */}
-          <View className="flex-row items-center gap-3">
-            <View className="flex-row items-center gap-2 px-2.5 py-1.5 rounded-lg bg-card border border-line-subtle">
-              <NotionIcon name="sparkle" size={13} color={colors.accentSoft} />
-              <Text className="text-xs text-muted">Foco hoy:</Text>
-              <Text className="text-xs font-mono font-bold text-ink">
-                {todayFocusMinutes}m
+            <Pressable
+              onPress={() => router.push('/ideas')}
+              className={`min-h-[36px] px-4 rounded-lg flex-row items-center gap-1.5 ${
+                pathname.includes('/ideas') ? 'bg-raised' : ''
+              }`}
+            >
+              <NotionIcon
+                name="lightbulb"
+                size={14}
+                color={pathname.includes('/ideas') ? colors.ink : colors.muted}
+              />
+              <Text
+                className={`text-xs font-semibold ${
+                  pathname.includes('/ideas') ? 'text-ink' : 'text-muted'
+                }`}
+              >
+                Ideas .md
               </Text>
-            </View>
+            </Pressable>
+          </View>
 
-            <View className="flex-row items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-ok/10 border border-ok/20">
-              <View className="w-1.5 h-1.5 rounded-full bg-ok" />
-              <Text className="text-xs font-mono text-ok">
-                Offline SQLite
-              </Text>
-            </View>
+          {/* Derecha: Buscar (Ctrl+K), Tema, Campana y Ajustes */}
+          <View className="flex-row items-center gap-1.5">
+            <Pressable
+              onPress={() => setSearchModalOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Buscar (Ctrl+K)"
+              className="min-h-[44px] px-3 rounded-xl flex-row items-center gap-2 active:bg-raised"
+            >
+              <NotionIcon name="search" size={16} color={colors.muted} />
+              <Text className="text-xs font-mono text-muted">Ctrl+K</Text>
+            </Pressable>
 
-            {/* Selector de tema Kuro-Zen */}
             <ThemePickerButton />
 
-            {/* Campana No Intrusiva */}
             <Pressable
               onPress={() => setBellDropdownOpen(!bellDropdownOpen)}
               accessibilityRole="button"
               accessibilityLabel="Abrir avisos"
               hitSlop={6}
-              className="min-w-[44px] min-h-[44px] px-2.5 rounded-xl bg-card border border-line-subtle flex-row items-center justify-center gap-1.5"
+              className="min-w-[44px] min-h-[44px] px-2 rounded-xl flex-row items-center justify-center gap-1 active:bg-raised"
             >
-              <NotionIcon name="bell" size={16} color={colors.ink} />
+              <NotionIcon name="bell" size={17} color={colors.ink} />
               {alerts.length > 0 ? (
-                <View className="px-1.5 py-0.5 rounded-full bg-warm/20 border border-warm/30">
-                  <Text className="text-xs font-mono font-bold text-warm">
-                    {alerts.length}
-                  </Text>
-                </View>
+                <View className="w-2 h-2 rounded-full bg-warm" />
               ) : null}
             </Pressable>
 
-            <View className="w-8 h-8 rounded-full bg-raised border border-line items-center justify-center">
-              <Text className="font-bold text-xs text-ink">D</Text>
-            </View>
+            <Pressable
+              onPress={() => setQuickSettingsOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Ajustes y sincronización"
+              hitSlop={6}
+              className="min-w-[44px] min-h-[44px] items-center justify-center"
+            >
+              <View className="w-8 h-8 rounded-full bg-raised border border-line items-center justify-center">
+                <Text className="font-bold text-xs text-ink">D</Text>
+              </View>
+            </Pressable>
           </View>
         </View>
 
         <BellDropdown />
 
-        {/* 2. CUERPO DE 3 PANELES */}
+        {/* 2. CUERPO CON BARRA LATERAL + PANEL PENDIENTES/IA + TIMELINE */}
         <View className="flex-1 flex-row overflow-hidden">
-          {/* PANEL 1: SIDEBAR COLAPSABLE (Ctrl+B) */}
+          {/* BARRA LATERAL IZQUIERDA (COLAPSABLE CON Ctrl+B) */}
           {sidebarOpen ? (
-            <View className="w-60 border-r border-line-subtle bg-card p-3.5 justify-between">
+            <View className="w-56 border-r border-line-subtle/70 bg-card/40 p-3.5 justify-between">
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={{ gap: 20 }}
               >
                 <View>
                   <Text className="text-xs uppercase tracking-wider text-muted font-bold px-2 mb-2">
-                    Vistas Principales
+                    Vistas
                   </Text>
-                  <View className="gap-1.5">
+                  <View className="gap-1">
                     {(
                       [
                         {
-                          label: 'Día (Timeline 24h)',
+                          label: 'Timeline 24h',
                           href: '/',
                           icon: 'clock' as NotionIconName,
-                          active: pathname === '/' || pathname === '/index',
-                          badge: 'Principal',
+                          active: isOnTimeline,
                         },
                         {
-                          label: 'Pendientes de Hoy',
+                          label: 'Pendientes',
                           href: '/pending',
                           icon: 'checkbox-checked' as NotionIconName,
                           active: pathname.includes('/pending'),
-                          badge: String(pendingIncompleteCount),
+                          badge: pendingIncompleteCount,
                         },
                         {
-                          label: 'Cajón de Ideas',
+                          label: 'Ideas .md',
                           href: '/ideas',
                           icon: 'lightbulb' as NotionIconName,
                           active: pathname.includes('/ideas'),
-                          badge: String(
-                            ideaGroups.reduce((acc, g) => acc + g.items.length, 0)
-                          ),
+                          badge: ideaGroups.reduce((acc, g) => acc + g.items.length, 0),
                         },
                         {
                           label: 'Asistente IA',
                           href: '/chat',
-                          icon: 'chat' as NotionIconName,
+                          icon: 'sparkle' as NotionIconName,
                           active: pathname.includes('/chat'),
-                          badge: undefined,
                         },
                       ] as const
                     ).map((navItem) => (
                       <Pressable
                         key={navItem.href}
                         onPress={() => router.push(navItem.href)}
-                        className={`min-h-[44px] flex-row items-center justify-between px-3 py-2 rounded-xl border ${
-                          navItem.active
-                            ? 'bg-raised border-line'
-                            : 'bg-transparent border-transparent'
+                        className={`min-h-[40px] flex-row items-center justify-between px-3 rounded-xl ${
+                          navItem.active ? 'bg-raised' : 'active:bg-raised/60'
                         }`}
                       >
                         <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
@@ -256,87 +272,57 @@ export default function TabsLayout() {
                           <Text
                             numberOfLines={1}
                             className={`text-xs ${
-                              navItem.active
-                                ? 'text-ink font-semibold'
-                                : 'text-muted font-medium'
+                              navItem.active ? 'text-ink font-semibold' : 'text-muted'
                             }`}
                           >
                             {navItem.label}
                           </Text>
                         </View>
-                        {navItem.badge ? (
-                          <View
-                            className={`px-1.5 py-0.5 rounded flex-shrink-0 ${
-                              navItem.active
-                                ? 'bg-accent/20 border border-accent/30'
-                                : 'bg-canvas border border-line'
-                            }`}
-                          >
-                            <Text
-                              className={`text-xs font-mono ${
-                                navItem.active
-                                  ? 'text-accent-soft'
-                                  : 'text-muted'
-                              }`}
-                            >
-                              {navItem.badge}
-                            </Text>
-                          </View>
+                        {'badge' in navItem && navItem.badge ? (
+                          <Text className="text-xs font-mono text-muted">
+                            {navItem.badge}
+                          </Text>
                         ) : null}
                       </Pressable>
                     ))}
                   </View>
                 </View>
 
-                {/* Proyectos Activos Auto-Agrupados */}
                 <View>
-                  <View className="flex-row items-center justify-between px-2 mb-2">
-                    <Text className="text-xs uppercase tracking-wider text-muted font-bold">
-                      Proyectos Activos
-                    </Text>
-                    <Text className="text-xs font-mono text-ok">
-                      Auto-IA
-                    </Text>
-                  </View>
-
-                  <View className="gap-2">
+                  <Text className="text-xs uppercase tracking-wider text-muted font-bold px-2 mb-2">
+                    Proyectos
+                  </Text>
+                  <View className="gap-1">
                     {ideaGroups.map((grp) => (
                       <Pressable
                         key={grp.id}
-                        onPress={() => router.push('/ideas')}
-                        className="min-h-[44px] p-2.5 rounded-xl bg-raised/75 border border-line active:border-ink"
+                        onPress={() => {
+                          setActiveIdeaGroupId(grp.id);
+                          router.push('/ideas');
+                        }}
+                        className="min-h-[40px] px-3 py-2 rounded-xl active:bg-raised flex-row items-center justify-between"
                       >
-                        <View className="flex-row items-center justify-between gap-2">
-                          <View className="flex-row items-center gap-2 flex-1 min-w-0">
-                            <View className="w-6 h-6 rounded-lg bg-card border border-line items-center justify-center flex-shrink-0">
-                              <NotionIcon
-                                name={grp.icon}
-                                size={13}
-                                color={
-                                  grp.accentColor === 'indigo'
-                                    ? colors.accentSoft
-                                    : grp.accentColor === 'emerald'
-                                    ? colors.ok
-                                    : colors.warm
-                                }
-                              />
-                            </View>
-                            <Text
-                              numberOfLines={1}
-                              className="font-bold text-xs text-ink flex-1"
-                            >
-                              {grp.title.replace('Proyecto: ', '')}
-                            </Text>
-                          </View>
-                          <Text className="text-xs font-mono text-muted flex-shrink-0">
-                            {grp.items.length} ideas
+                        <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
+                          <NotionIcon
+                            name={grp.icon}
+                            size={14}
+                            color={
+                              grp.accentColor === 'indigo'
+                                ? colors.accentSoft
+                                : grp.accentColor === 'emerald'
+                                ? colors.ok
+                                : colors.warm
+                            }
+                          />
+                          <Text
+                            numberOfLines={1}
+                            className="text-xs font-medium text-ink flex-1"
+                          >
+                            {grp.title.replace('Proyecto: ', '')}
                           </Text>
                         </View>
-                        <Text
-                          numberOfLines={1}
-                          className="text-xs text-muted mt-1"
-                        >
-                          {grp.subtitle}
+                        <Text className="text-xs font-mono text-muted">
+                          {grp.items.length}
                         </Text>
                       </Pressable>
                     ))}
@@ -344,55 +330,53 @@ export default function TabsLayout() {
                 </View>
               </ScrollView>
 
-              <View className="pt-3 border-t border-line-subtle flex-row items-center justify-between px-1">
-                <View className="flex-row items-center gap-1.5">
-                  <NotionIcon name="zap" size={12} color={colors.muted} />
-                  <Text className="text-xs text-muted">Notion Icons</Text>
-                </View>
-                <Text className="text-xs font-mono text-ok">
-                  Ctrl+B
-                </Text>
-              </View>
+              <Text className="text-xs text-muted px-2">Ctrl+B para ocultar</Text>
             </View>
           ) : null}
 
-          {/* PANEL 2: PANEL MULTIFUNCIÓN (AGENDA HOY + ASISTENTE IA) */}
-          <View className="w-[340px] border-r border-line-subtle bg-header p-3.5 justify-between">
+          {/* ZONA 1: PANEL ÚNICO DE PENDIENTES / ASISTENTE IA + SMART INTAKE */}
+          <View className="w-[320px] border-r border-line-subtle/70 bg-card/30 p-3.5 justify-between">
             <View className="flex-1 min-h-0">
-              {/* Switch Segmentado: Agenda Hoy vs Asistente IA */}
-              <View className="bg-card p-1 rounded-xl border border-line-subtle flex-row items-center gap-1 mb-3">
+              {/* Switch limpio Pendientes / Asistente IA */}
+              <View className="bg-card p-1 rounded-xl border border-line-subtle/70 flex-row items-center gap-1 mb-3.5">
                 <Pressable
                   onPress={() => setDesktopSideTab('agenda')}
-                  className={`min-h-[44px] flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-lg ${
-                    desktopSideTab === 'agenda'
-                      ? 'bg-raised border border-line'
-                      : ''
+                  className={`flex-1 min-h-[38px] flex-row items-center justify-center gap-1.5 rounded-lg ${
+                    desktopSideTab === 'agenda' ? 'bg-raised' : ''
                   }`}
                 >
-                  <NotionIcon name="calendar" size={13} color={colors.ok} />
+                  <NotionIcon
+                    name="checkbox-checked"
+                    size={14}
+                    color={desktopSideTab === 'agenda' ? colors.ink : colors.muted}
+                  />
                   <Text
                     className={`text-xs font-semibold ${
                       desktopSideTab === 'agenda' ? 'text-ink' : 'text-muted'
                     }`}
                   >
-                    Agenda Hoy
+                    Pendientes
                   </Text>
-                  <View className="px-1.5 py-0.5 rounded bg-card">
-                    <Text className="text-xs font-mono text-muted">
-                      {pendingIncompleteCount}
-                    </Text>
-                  </View>
+                  {pendingIncompleteCount > 0 ? (
+                    <View className="px-1.5 py-0.5 rounded-full bg-accent/15">
+                      <Text className="text-xs font-mono font-bold text-accent-soft">
+                        {pendingIncompleteCount}
+                      </Text>
+                    </View>
+                  ) : null}
                 </Pressable>
 
                 <Pressable
                   onPress={() => setDesktopSideTab('ai')}
-                  className={`min-h-[44px] flex-1 flex-row items-center justify-center gap-1.5 py-1.5 rounded-lg ${
-                    desktopSideTab === 'ai'
-                      ? 'bg-raised border border-line'
-                      : ''
+                  className={`flex-1 min-h-[38px] flex-row items-center justify-center gap-1.5 rounded-lg ${
+                    desktopSideTab === 'ai' ? 'bg-raised' : ''
                   }`}
                 >
-                  <NotionIcon name="sparkle" size={13} color={colors.accentSoft} />
+                  <NotionIcon
+                    name="sparkle"
+                    size={14}
+                    color={desktopSideTab === 'ai' ? colors.accentSoft : colors.muted}
+                  />
                   <Text
                     className={`text-xs font-semibold ${
                       desktopSideTab === 'ai' ? 'text-ink' : 'text-muted'
@@ -400,135 +384,74 @@ export default function TabsLayout() {
                   >
                     Asistente IA
                   </Text>
-                  <View className="w-2 h-2 rounded-full bg-accent" />
                 </Pressable>
               </View>
 
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 className="flex-1"
-                contentContainerStyle={{ gap: 12, paddingBottom: 12 }}
+                contentContainerStyle={{ gap: 10, paddingBottom: 14 }}
               >
                 {desktopSideTab === 'agenda' ? (
                   <>
-                    {/*Sub-cabecera Hoy */}
-                    <View className="flex-row items-center justify-between pb-2 border-b border-line-subtle">
-                      <View className="flex-row items-center gap-2">
-                        <View className="w-2 h-2 rounded-full bg-ok" />
-                        <Text className="font-bold text-xs uppercase tracking-wider text-ink">
-                          Hoy · {todayInfo ? `${todayInfo.dayName} ${todayInfo.dayNum} ${todayInfo.monthShort}` : todayKey}
-                        </Text>
-                      </View>
+                    <View className="flex-row items-center justify-between px-1 pb-1">
+                      <Text className="text-xs font-semibold text-muted">
+                        Sin hora fija
+                      </Text>
                       <Pressable
                         onPress={simulateAllPendingDone}
-                        hitSlop={6}
-                        className="min-h-[44px] px-2.5 rounded-lg bg-card border border-line-subtle items-center justify-center"
+                        className="px-2 py-1 rounded-lg active:bg-raised"
                       >
-                        <Text className="text-xs text-muted">
-                          Simular: Todo Hecho
-                        </Text>
+                        <Text className="text-xs text-muted">Todo hecho</Text>
                       </Pressable>
                     </View>
 
-                    {/* Cápsula Compacta de Foco (Cero Duplicidad con el Timeline Central) */}
-                    <View className="bg-card border border-accent/30 rounded-xl p-3 flex-row items-center justify-between gap-2">
-                      <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
-                        <View className="w-7 h-7 rounded-lg bg-accent/10 border border-accent/20 items-center justify-center flex-shrink-0">
-                          <NotionIcon name="clock" size={14} color={colors.accentSoft} />
-                        </View>
-                        <View className="flex-1 min-w-0">
-                          <Text className="font-bold text-xs text-ink">
-                            {todayEvents.length}{' '}
-                            {todayEvents.length === 1
-                              ? 'bloque agendado'
-                              : 'bloques agendados'}
-                          </Text>
-                          <Text
-                            numberOfLines={1}
-                            className="text-xs text-ok mt-0.5"
-                          >
-                            {focusCapsuleSummary}
-                          </Text>
-                        </View>
-                      </View>
-                      <Pressable
-                        onPress={() => {
-                          setSelectedDayKey(getTodayKey());
-                          router.push('/');
-                        }}
-                        hitSlop={6}
-                        className="min-h-[44px] min-w-[44px] px-3 rounded-lg bg-raised border border-line items-center justify-center flex-shrink-0"
-                      >
-                        <Text className="text-xs font-semibold text-ink">
-                          Ver
-                        </Text>
-                      </Pressable>
-                    </View>
-
-                    {/* Cabecera Pendientes */}
-                    <View className="flex-row items-center justify-between px-1 pt-1">
-                      <View className="flex-row items-center gap-1.5">
-                        <NotionIcon name="reminder" size={13} color={colors.warm} />
-                        <Text className="text-xs font-bold uppercase tracking-wider text-warm">
-                          Pendientes
-                        </Text>
-                      </View>
-                      <Text className="text-xs font-mono text-muted">
-                        {pendingIncompleteCount}{' '}
-                        {pendingIncompleteCount === 1 ? 'tarea' : 'tareas'}
-                      </Text>
-                    </View>
-
-                    {/* Lista de Pendientes o Celebración */}
-                    <View className="gap-2">
-                      {pendingIncompleteCount === 0 ? (
-                        <EmptyCelebration />
-                      ) : (
-                        pendingTasks.map((task) => (
-                          <PendingItem
-                            key={task.id}
-                            task={task}
-                            onToggle={togglePendingTask}
-                            onAssignTime={(t) =>
-                              openSlotPicker({
-                                type: 'pending',
-                                id: t.id,
-                                title: t.title,
-                              })
-                            }
-                          />
-                        ))
-                      )}
-                    </View>
+                    {pendingIncompleteCount === 0 ? (
+                      <EmptyCelebration />
+                    ) : (
+                      pendingTasks.map((task) => (
+                        <PendingItem
+                          key={task.id}
+                          task={task}
+                          onToggle={togglePendingTask}
+                          onAssignTime={(t) =>
+                            openSlotPicker({
+                              type: 'pending',
+                              id: t.id,
+                              title: t.title,
+                            })
+                          }
+                        />
+                      ))
+                    )}
                   </>
                 ) : (
                   <>
-                    <View className="p-3 rounded-xl bg-raised border border-line gap-1.5">
-                      <View className="flex-row items-center justify-between">
-                        <Text className="text-xs font-bold text-ink">
-                          Briefing de Jornada
-                        </Text>
-                        <Text className="text-xs font-mono text-ok">
-                          Activo
-                        </Text>
-                      </View>
-                      <Text className="text-xs text-muted leading-relaxed">
-                        Tienes {todayEvents.length} bloque agendado hoy y{' '}
-                        {pendingIncompleteCount} pendientes sin hora fija.
+                    <View className="flex-row items-center justify-between px-1 pb-1">
+                      <Text className="text-xs font-semibold text-muted">
+                        Conversación
                       </Text>
+                      <Pressable
+                        onPress={() => router.push('/chat')}
+                        className="px-2 py-1 rounded-lg active:bg-raised"
+                      >
+                        <Text className="text-xs text-accent-soft">
+                          Ver completo →
+                        </Text>
+                      </Pressable>
                     </View>
 
-                    {chatMessages.slice(-4).map((m) => (
+                    {chatMessages.slice(-6).map((m) => (
                       <View
                         key={m.id}
-                        className={`p-3 rounded-xl border ${
+                        className={`p-3 rounded-2xl ${
                           m.role === 'user'
-                            ? 'bg-ink border-ink self-end max-w-[90%]'
-                            : 'bg-card border-line'
+                            ? 'bg-ink self-end max-w-[90%]'
+                            : 'bg-card border border-line-subtle self-start max-w-[92%]'
                         }`}
                       >
                         <Text
-                          className={`text-xs ${
+                          className={`text-xs leading-relaxed ${
                             m.role === 'user'
                               ? 'text-canvas font-medium'
                               : 'text-ink'
@@ -543,11 +466,14 @@ export default function TabsLayout() {
               </ScrollView>
             </View>
 
-            {/* Punto de Entrada Universal Único en el pie del panel */}
-            <SmartIntakeBar compact isOnChatScreen={isOnChatScreen} />
+            {/* Smart Intake anclado cómodamente en la base del panel */}
+            <SmartIntakeBar
+              compact
+              isOnChatScreen={isOnChatScreen || desktopSideTab === 'ai'}
+            />
           </View>
 
-          {/* PANEL 3: LIENZO PRINCIPAL EXPANDIDO */}
+          {/* ZONA 2: LIENZO PRINCIPAL AMPLIO (TIMELINE 24H O IDEAS .MD) */}
           <View className="flex-1 bg-canvas">
             <Tabs
               screenOptions={{
@@ -562,51 +488,71 @@ export default function TabsLayout() {
             </Tabs>
           </View>
         </View>
+
+        <GlobalSearchModal
+          visible={searchModalOpen}
+          onClose={() => setSearchModalOpen(false)}
+        />
+        <QuickSettingsModal
+          visible={quickSettingsOpen}
+          onClose={() => setQuickSettingsOpen(false)}
+        />
       </View>
     );
   }
 
-  // ==================== VISTA MÓVIL (4 PESTAÑAS + SMART INTAKE ÚNICO) ====================
+  // ==================== VISTA MÓVIL (LIMPIA Y AIREADA) ====================
   return (
     <View className="flex-1 bg-canvas">
-      {/* Mobile Top App Bar */}
-      <View className="px-4 py-3 border-b border-line-subtle bg-card flex-row items-center justify-between z-20">
-        <View className="flex-row items-center gap-2.5">
-          <View className="w-7 h-7 rounded-lg bg-raised border border-line items-center justify-center">
-            <NotionIcon name="zap" size={14} color={colors.ink} />
-          </View>
-          <Text className="font-bold text-sm text-ink">
-            {getMobileHeaderTitle()}
-          </Text>
-        </View>
+      {/* Mobile Top App Bar Minimalista */}
+      <View className="px-4 py-2.5 border-b border-line-subtle/70 bg-canvas flex-row items-center justify-between z-20">
+        <Text className="font-bold text-base text-ink tracking-tight">
+          {getMobileHeaderTitle()}
+        </Text>
 
-        <View className="flex-row items-center gap-2">
-        <ThemePickerButton />
-        <Pressable
-          onPress={() => setBellDropdownOpen(!bellDropdownOpen)}
-          accessibilityRole="button"
-          accessibilityLabel="Abrir avisos"
-          hitSlop={6}
-          className="min-w-[44px] min-h-[44px] rounded-full items-center justify-center active:bg-raised relative"
-        >
-          <NotionIcon name="bell" size={18} color={colors.ink} />
-          {alerts.length > 0 ? (
-            <View
-              style={{ position: 'absolute', top: 2, right: 2 }}
-              className="min-w-[18px] h-[18px] px-1 rounded-full bg-ink items-center justify-center"
-            >
-              <Text allowFontScaling={false} className="text-xs font-bold text-canvas leading-none">
-                {alerts.length}
-              </Text>
+        <View className="flex-row items-center gap-1">
+          <Pressable
+            onPress={() => setSearchModalOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Buscar"
+            hitSlop={6}
+            className="min-w-[44px] min-h-[44px] rounded-full items-center justify-center active:bg-raised"
+          >
+            <NotionIcon name="search" size={18} color={colors.ink} />
+          </Pressable>
+          <ThemePickerButton />
+          <Pressable
+            onPress={() => setQuickSettingsOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Ajustes y estado"
+            hitSlop={6}
+            className="min-w-[44px] min-h-[44px] rounded-full items-center justify-center"
+          >
+            <View className="w-7 h-7 rounded-full bg-raised border border-line items-center justify-center">
+              <Text className="font-bold text-xs text-ink">D</Text>
             </View>
-          ) : null}
-        </Pressable>
+          </Pressable>
+          <Pressable
+            onPress={() => setBellDropdownOpen(!bellDropdownOpen)}
+            accessibilityRole="button"
+            accessibilityLabel="Abrir avisos"
+            hitSlop={6}
+            className="min-w-[44px] min-h-[44px] rounded-full items-center justify-center active:bg-raised relative"
+          >
+            <NotionIcon name="bell" size={18} color={colors.ink} />
+            {alerts.length > 0 ? (
+              <View
+                style={{ position: 'absolute', top: 8, right: 8 }}
+                className="w-2 h-2 rounded-full bg-warm"
+              />
+            ) : null}
+          </Pressable>
         </View>
       </View>
 
       <BellDropdown />
 
-      {/* Cuerpo de las 4 Pestañas (ocupa exactamente el espacio libre sobre SmartIntakeBar) */}
+      {/* Cuerpo de las 4 Pestañas */}
       <View className="flex-1 min-h-0">
         <Tabs
           screenOptions={{
@@ -621,10 +567,10 @@ export default function TabsLayout() {
         </Tabs>
       </View>
 
-      {/* Punto de Entrada Universal Único en flujo normal (nunca solapa ni estira el Rail24h) */}
+      {/* Punto de Entrada Universal Único */}
       <SmartIntakeBar isOnChatScreen={isOnChatScreen} />
 
-      {/* Barra de Navegación Inferior Móvil Custom (Cero recorte de letras garantizado) */}
+      {/* Barra de Navegación Inferior Móvil Custom (Cero recorte de letras) */}
       <View
         style={{
           backgroundColor: colors.card,
@@ -666,12 +612,7 @@ export default function TabsLayout() {
               label: 'Timeline',
               href: '/',
               icon: 'clock' as NotionIconName,
-              active:
-                pathname === '/' ||
-                pathname === '/index' ||
-                (!pathname.includes('/chat') &&
-                  !pathname.includes('/ideas') &&
-                  !pathname.includes('/pending')),
+              active: isOnTimeline,
               badge: 0,
             },
           ] as const
@@ -724,6 +665,15 @@ export default function TabsLayout() {
           );
         })}
       </View>
+
+      <GlobalSearchModal
+        visible={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+      />
+      <QuickSettingsModal
+        visible={quickSettingsOpen}
+        onClose={() => setQuickSettingsOpen(false)}
+      />
     </View>
   );
 }

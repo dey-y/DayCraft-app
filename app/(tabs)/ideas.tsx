@@ -47,11 +47,18 @@ export default function IdeasScreen() {
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
 
   const ideaGroups = useDayCraftStore((s) => s.ideaGroups);
+  const activeIdeaGroupId = useDayCraftStore((s) => s.activeIdeaGroupId);
+  const setActiveIdeaGroupId = useDayCraftStore((s) => s.setActiveIdeaGroupId);
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
   const setActiveIdeaId = useDayCraftStore((s) => s.setActiveIdeaId);
   const addIdeaToGroup = useDayCraftStore((s) => s.addIdeaToGroup);
   const addIdeaGroup = useDayCraftStore((s) => s.addIdeaGroup);
   const removeIdea = useDayCraftStore((s) => s.removeIdea);
+
+  const activeGroup = activeIdeaGroupId
+    ? ideaGroups.find((g) => g.id === activeIdeaGroupId) ?? null
+    : null;
+  const displayedGroups = activeGroup ? [activeGroup] : ideaGroups;
 
   const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
   const [projectTitle, setProjectTitle] = useState('');
@@ -128,7 +135,9 @@ export default function IdeasScreen() {
 
             <Pressable
               onPress={() =>
-                handleCreateNewMarkdownNote(ideaGroups[0]?.id || 'grp-app')
+                handleCreateNewMarkdownNote(
+                  activeGroup?.id || ideaGroups[0]?.id || 'grp-app'
+                )
               }
               className="flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-ink active:opacity-85"
             >
@@ -140,9 +149,30 @@ export default function IdeasScreen() {
           </View>
         </View>
 
+        {/* Pill de Filtro Activo desde Sidebar */}
+        {activeGroup ? (
+          <View className="flex-row items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-accent/10 border border-accent/30">
+            <View className="flex-row items-center gap-2 flex-1 min-w-0">
+              <NotionIcon name="folder" size={14} color={colors.accentSoft} />
+              <Text numberOfLines={1} className="text-xs font-semibold text-ink flex-1">
+                Filtrando: {activeGroup.title.replace('Proyecto: ', '')}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => setActiveIdeaGroupId(null)}
+              accessibilityRole="button"
+              accessibilityLabel="Ver todos los proyectos"
+              className="min-h-[44px] px-3 rounded-xl bg-card border border-line flex-row items-center gap-1.5 active:border-ink"
+            >
+              <NotionIcon name="close" size={12} color={colors.muted} />
+              <Text className="text-xs font-semibold text-ink">Ver todos</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         {/* Grid adaptativo de Grupos de Proyecto */}
         <View className="gap-3.5">
-          {ideaGroups.map((group) => (
+          {displayedGroups.map((group) => (
             <IdeaGroupCard
               key={group.id}
               group={group}
