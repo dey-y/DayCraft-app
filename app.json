@@ -8,7 +8,7 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#0d1117"
+      "backgroundColor": "#130F11"
     },
     "ios": {
       "supportsTablet": true,
@@ -16,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#0d1117"
+        "backgroundColor": "#130F11"
       },
       "package": "com.deimar.daycraftai"
     },

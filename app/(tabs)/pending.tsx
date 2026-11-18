@@ -41,7 +41,7 @@ export default function PendingScreen() {
             <NotionIcon name="checkbox-checked" size={16} color={colors.accentSoft} />
             <Text className="font-bold text-sm text-ink">Pendientes de Hoy</Text>
           </View>
-          <Text className="text-[11px] text-muted mt-0.5">
+          <Text className="text-xs text-muted mt-0.5">
             Cosas para hacer hoy sin hora fija asignada
           </Text>
         </View>
@@ -90,7 +90,7 @@ export default function PendingScreen() {
       <View className="flex-row gap-2 pt-2">
         <Pressable
           onPress={simulateAllPendingDone}
-          className="flex-1 py-2 px-3 rounded-xl border border-dashed border-line items-center active:border-ink"
+          className="flex-1 py-2.5 px-3 min-h-[44px] justify-center rounded-xl border border-dashed border-line items-center active:border-ink"
         >
           <Text className="text-xs text-muted font-medium">
             Simular: Todo Hecho / Restaurar
@@ -99,7 +99,7 @@ export default function PendingScreen() {
 
         <Pressable
           onPress={triggerRolloverSimulation}
-          className="flex-1 py-2 px-3 rounded-xl border border-dashed border-warm/30 items-center active:border-warm"
+          className="flex-1 py-2.5 px-3 min-h-[44px] justify-center rounded-xl border border-dashed border-warm/30 items-center active:border-warm"
         >
           <Text className="text-xs text-warm font-medium">
             Simular: Rollover (+1 día)

@@ -22,8 +22,9 @@ export const COLORS = {
 } as const;
 
 export const LAYOUT = {
-  hourHeightMobile: 56,       // Altura por hora en móvil (4 cuartos de 14px)
-  hourHeightDesktop: 84,      // Altura por hora en web/desktop (4 cuartos de 21px)
+  hourHeightMobile: 64,       // Altura por hora en móvil (4 cuartos de 16px)
+  hourHeightDesktop: 72,      // Altura por hora en web/desktop (4 cuartos de 18px)
+  railPaddingHorizontal: 16,  // Padding horizontal compartido del raíl 24h
   quarterMinutes: 15,
   quartersPerDay: 96,         // 24h * 4 cuartos de hora
   toastDurationMs: 4200,      // Duración efímera del Toast flotante (4.2s)

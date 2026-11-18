@@ -80,7 +80,7 @@ export default function TimelineScreen() {
           {!isDesktop && pendingCount > 0 ? (
             <Pressable
               onPress={() => router.push('/pending')}
-              className="px-3 py-1.5 rounded-lg bg-warm/15 border border-warm/30 flex-row items-center gap-1 active:opacity-80"
+              className="px-3 py-2 min-h-[44px] rounded-lg bg-warm/15 border border-warm/30 flex-row items-center gap-1 active:opacity-80"
             >
               <Text className="text-xs font-semibold text-warm">
                 {pendingCount} pend. →
@@ -91,7 +91,7 @@ export default function TimelineScreen() {
           {nextMonthFirstDay && isDesktop ? (
             <Pressable
               onPress={() => setSelectedDayKey(nextMonthFirstDay.key)}
-              className="px-3 py-1.5 rounded-lg bg-card border border-line flex-row items-center gap-1.5 active:border-ink"
+              className="px-3 py-2 min-h-[44px] rounded-lg bg-card border border-line flex-row items-center gap-1.5 active:border-ink"
             >
               <NotionIcon name="calendar" size={12} color={colors.accentSoft} />
               <Text className="text-xs font-mono font-semibold text-accent-soft">
@@ -102,7 +102,7 @@ export default function TimelineScreen() {
 
           <Pressable
             onPress={() => setSelectedDayKey(getTodayKey())}
-            className={`px-3 py-1.5 rounded-lg border active:opacity-80 ${
+            className={`px-3 py-2 min-h-[44px] justify-center rounded-lg border active:opacity-80 ${
               activeDay?.isToday
                 ? 'bg-accent/20 border-accent'
                 : 'bg-raised border-line'

@@ -1,5 +1,12 @@
-import React, { useRef } from 'react';
-import { View, Text, Pressable, Animated } from 'react-native';
+import React from 'react';
+import { View, Text, Pressable } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+  withSpring,
+} from 'react-native-reanimated';
 import { TimelineEvent } from '@/services/db/sqlite';
 import { formatQuarterToTime } from '@/store/useDayCraftStore';
 import { NotionIcon } from '@/components/ui/NotionIcon';
@@ -14,10 +21,10 @@ interface EventCardProps {
 }
 
 /**
- * EventCard — Bloque ligero y translúcido estilo Google Calendar / Linear.
- * - El título y la hora SIEMPRE se sitúan estrictamente arriba a la izquierda (`alignItems: flex-start`, `justifyContent: flex-start`).
+ * EventCard — Bloque ligero y translúcido estilo Google Calendar / Kuro-Zen.
+ * - El título y la hora SIEMPRE se sitúan estrictamente arriba a la izquierda (`alignItems: 'flex-start'`, `justifyContent: 'flex-start'`).
  * - Tocar la tarjeta abre `slot-picker.tsx` en modo edición (`type: 'edit_event'`).
- * - Incluye toggle rápido de completado con microinteracción elástica y botón de eliminar con Deshacer.
+ * - Incluye toggle rápido de completado con microinteracción elástica Reanimated v4 y botón de eliminar con Deshacer.
  */
 export const EventCard: React.FC<EventCardProps> = ({
   event,
@@ -27,7 +34,11 @@ export const EventCard: React.FC<EventCardProps> = ({
   onRemove,
 }) => {
   const { colors } = useTheme();
-  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const checkScale = useSharedValue(1);
+
+  const checkAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
 
   const startStr = formatQuarterToTime(event.startQ);
   const endStr = formatQuarterToTime(event.startQ + event.quarters);
@@ -36,21 +47,12 @@ export const EventCard: React.FC<EventCardProps> = ({
   const hasRecurrence =
     event.recurrence && event.recurrence.frequency !== 'none';
 
-  const handleToggleComplete = (e: any) => {
+  const handleToggleComplete = (e: { stopPropagation?: () => void }) => {
     e?.stopPropagation?.();
-    Animated.sequence([
-      Animated.timing(scaleAnim, {
-        toValue: 0.8,
-        duration: 80,
-        useNativeDriver: true,
-      }),
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        friction: 4,
-        tension: 140,
-        useNativeDriver: true,
-      }),
-    ]).start();
+    checkScale.value = withSequence(
+      withTiming(0.8, { duration: 80 }),
+      withSpring(1, { damping: 10, stiffness: 220 })
+    );
     onToggleComplete?.(event.id);
   };
 
@@ -59,7 +61,7 @@ export const EventCard: React.FC<EventCardProps> = ({
       onPress={() => onEdit?.(event)}
       style={{
         alignItems: 'flex-start',
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         opacity: isCompleted ? 0.65 : 1,
       }}
       className={`w-full h-full border border-line-subtle/80 border-l-[3.5px] rounded-xl ${
@@ -70,7 +72,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           : isReminder
           ? 'bg-info/15 border-l-info'
           : 'bg-card border-l-accent'
-      } flex-row items-start justify-between gap-2 overflow-hidden shadow-sm active:border-line`}
+      } flex-row items-start justify-start gap-2 overflow-hidden shadow-sm active:border-line`}
     >
       {/* Toggle rápido de completado + Columna de título y descripción estrictamente anclada arriba */}
       <View
@@ -83,11 +85,11 @@ export const EventCard: React.FC<EventCardProps> = ({
         {onToggleComplete ? (
           <Pressable
             onPress={handleToggleComplete}
-            hitSlop={10}
+            hitSlop={14}
             className="mt-0.5 flex-shrink-0"
           >
             <Animated.View
-              style={{ transform: [{ scale: scaleAnim }] }}
+              style={checkAnimatedStyle}
               className={`w-4 h-4 rounded-md border items-center justify-center ${
                 isCompleted
                   ? 'bg-ok border-ok'
@@ -122,7 +124,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               {event.title}
             </Text>
             {hasRecurrence ? (
-              <NotionIcon name="repeat" size={11} color={colors.muted} />
+              <NotionIcon name="repeat" size={12} color={colors.muted} />
             ) : null}
           </View>
 
@@ -130,7 +132,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             <Text
               numberOfLines={1}
               style={{ textAlign: 'left' }}
-              className={`text-[11px] mt-0.5 ${
+              className={`text-xs mt-0.5 ${
                 isCompleted ? 'text-muted/70 line-through' : 'text-muted'
               }`}
             >
@@ -165,7 +167,7 @@ export const EventCard: React.FC<EventCardProps> = ({
               e?.stopPropagation?.();
               onRemove(event.id);
             }}
-            hitSlop={12}
+            hitSlop={14}
             className="p-1 rounded-md active:bg-raised flex-shrink-0"
           >
             <NotionIcon name="close" size={12} color={colors.muted} />

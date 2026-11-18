@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, Pressable, useWindowDimensions } from 'react-native';
+import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { LAYOUT } from '@/constants/theme';
 import { NotionIcon } from './NotionIcon';
@@ -8,13 +10,14 @@ import { useTheme } from '@/store/useThemeStore';
 /**
  * FloatingToast — Fricción Cero (Principio Innegociable v9)
  * Al capturar una tarea desde el calendario, muestra un Toast flotante efímero de 4.2 segundos
- * ("✨ Añadido a Pendientes [Fijar hora] [Deshacer]") sin forzar cambio brusco de pantalla.
+ * ("Añadido a Pendientes [Fijar hora] [Deshacer]") sin forzar cambio brusco de pantalla.
  */
 export const FloatingToast: React.FC = () => {
   const { colors } = useTheme();
   const activeToast = useDayCraftStore((s) => s.activeToast);
   const hideToast = useDayCraftStore((s) => s.hideToast);
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const isDesktop = width >= LAYOUT.desktopBreakpoint;
 
   useEffect(() => {
@@ -28,10 +31,13 @@ export const FloatingToast: React.FC = () => {
   if (!activeToast) return null;
 
   return (
-    <View
+    <Animated.View
+      key={activeToast.id}
+      entering={FadeInDown.springify().damping(18).stiffness(220)}
+      exiting={FadeOutDown.duration(180)}
       style={{
         position: 'absolute',
-        bottom: isDesktop ? 24 : 132,
+        bottom: isDesktop ? 24 : Math.max(insets.bottom + 124, 132),
         right: isDesktop ? 24 : 16,
         left: isDesktop ? undefined : 16,
         minWidth: isDesktop ? 340 : undefined,
@@ -48,7 +54,7 @@ export const FloatingToast: React.FC = () => {
           <Text numberOfLines={1} className="text-xs font-bold text-ink">
             {activeToast.title}
           </Text>
-          <Text numberOfLines={1} className="text-[11px] text-muted mt-0.5">
+          <Text numberOfLines={1} className="text-xs text-muted mt-0.5">
             {activeToast.description}
           </Text>
         </View>
@@ -61,9 +67,10 @@ export const FloatingToast: React.FC = () => {
               activeToast.onPrimaryAction?.();
               hideToast();
             }}
-            className="bg-ink px-2.5 py-1.5 rounded-lg active:opacity-80"
+            hitSlop={6}
+            className="min-h-[44px] bg-ink px-3 rounded-lg items-center justify-center active:opacity-80"
           >
-            <Text className="text-[10px] font-bold text-canvas">
+            <Text className="text-xs font-bold text-canvas">
               {activeToast.primaryActionLabel}
             </Text>
           </Pressable>
@@ -75,9 +82,10 @@ export const FloatingToast: React.FC = () => {
               activeToast.onUndoAction?.();
               hideToast();
             }}
-            className="bg-raised border border-line px-2.5 py-1.5 rounded-lg active:border-ink"
+            hitSlop={6}
+            className="min-h-[44px] bg-raised border border-line px-3 rounded-lg items-center justify-center active:border-ink"
           >
-            <Text className="text-[10px] font-semibold text-ink">
+            <Text className="text-xs font-semibold text-ink">
               {activeToast.undoActionLabel}
             </Text>
           </Pressable>
@@ -85,12 +93,14 @@ export const FloatingToast: React.FC = () => {
 
         <Pressable
           onPress={hideToast}
-          className="p-1 rounded-lg active:bg-raised"
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar notificación"
+          className="min-w-[44px] min-h-[44px] rounded-lg items-center justify-center active:bg-raised"
           hitSlop={8}
         >
-          <NotionIcon name="close" size={13} color={colors.muted} />
+          <NotionIcon name="close" size={14} color={colors.muted} />
         </Pressable>
       </View>
-    </View>
+    </Animated.View>
   );
 };

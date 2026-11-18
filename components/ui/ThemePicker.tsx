@@ -44,7 +44,7 @@ export const ThemePickerButton: React.FC = () => {
         accessibilityRole="button"
         accessibilityLabel="Cambiar tema de color"
         hitSlop={8}
-        className="px-2.5 py-1.5 rounded-xl bg-card border border-line-subtle flex-row items-center gap-2 active:border-ink"
+        className="min-h-[44px] min-w-[44px] px-3 py-2 rounded-xl bg-card border border-line-subtle flex-row items-center justify-center gap-2 active:border-ink"
       >
         <View
           style={{ backgroundColor: colors.accent }}
@@ -64,7 +64,7 @@ export const ThemePickerButton: React.FC = () => {
         <Pressable
           onPress={() => setOpen(false)}
           style={themeStyle}
-          className="flex-1 bg-black/65 items-center justify-center p-3 sm:p-4"
+          className="flex-1 bg-canvas/80 items-center justify-center p-3 sm:p-4"
         >
           {/* Tarjeta Modal con ScrollView para asegurar que nunca se corte abajo */}
           <Pressable
@@ -74,18 +74,18 @@ export const ThemePickerButton: React.FC = () => {
           >
             {/* Cabecera */}
             <View className="flex-row items-center justify-between pb-3 border-b border-line-subtle flex-shrink-0">
-              <View className="flex-row items-center gap-2.5">
+              <View className="flex-row items-center gap-2.5 flex-1 min-w-0">
                 <View
                   style={{ backgroundColor: colors.accent }}
-                  className="w-7 h-7 rounded-lg items-center justify-center"
+                  className="w-7 h-7 rounded-lg items-center justify-center flex-shrink-0"
                 >
                   <NotionIcon name="sparkle" size={14} color={colors.onAccent} />
                 </View>
-                <View>
+                <View className="flex-1 min-w-0">
                   <Text className="text-sm font-bold text-ink">
                     Atmósferas Japandi
                   </Text>
-                  <Text className="text-[11px] text-muted">
+                  <Text className="text-xs text-muted">
                     6 paletas balanceadas con contraste WCAG garantizado
                   </Text>
                 </View>
@@ -93,10 +93,12 @@ export const ThemePickerButton: React.FC = () => {
 
               <Pressable
                 onPress={() => setOpen(false)}
+                accessibilityRole="button"
+                accessibilityLabel="Cerrar selector de tema"
                 hitSlop={8}
-                className="w-7 h-7 rounded-full bg-raised items-center justify-center active:bg-line"
+                className="min-w-[44px] min-h-[44px] rounded-full bg-raised items-center justify-center active:bg-line flex-shrink-0"
               >
-                <NotionIcon name="close" size={13} color={colors.muted} />
+                <NotionIcon name="close" size={14} color={colors.muted} />
               </Pressable>
             </View>
 
@@ -134,8 +136,8 @@ export const ThemePickerButton: React.FC = () => {
                             {t.label}
                           </Text>
                           <Text
-                            style={{ lineHeight: 14 }}
-                            className="text-[10px] font-mono text-muted"
+                            style={{ lineHeight: 16 }}
+                            className="text-xs font-mono text-muted"
                           >
                             {t.kanji}
                           </Text>
@@ -151,7 +153,7 @@ export const ThemePickerButton: React.FC = () => {
                       {/* Descripción con line-height amplio para no cortar letras con descendente */}
                       <Text
                         numberOfLines={2}
-                        style={{ fontSize: 11, lineHeight: 15 }}
+                        style={{ fontSize: 12, lineHeight: 16 }}
                         className="text-muted"
                       >
                         {t.description}
@@ -179,12 +181,12 @@ export const ThemePickerButton: React.FC = () => {
             </ScrollView>
 
             {/* Pie de confirmación siempre visible y sin cortes */}
-            <View className="pt-2.5 border-t border-line-subtle flex-row items-center justify-between flex-shrink-0">
-              <Text style={{ fontSize: 11, lineHeight: 16 }} className="text-muted flex-1 min-w-0">
+            <View className="pt-2.5 border-t border-line-subtle flex-row items-center justify-between gap-2 flex-shrink-0">
+              <Text style={{ fontSize: 12, lineHeight: 16 }} className="text-muted flex-1 min-w-0">
                 Tema activo: <Text className="font-bold text-accent-soft">{theme.label} ({theme.kanji})</Text>
               </Text>
-              <Text style={{ fontSize: 10, lineHeight: 14 }} className="font-mono text-muted flex-shrink-0">
-                Guardado en SQLite
+              <Text style={{ fontSize: 12, lineHeight: 16 }} className="font-mono text-muted flex-shrink-0">
+                SQLite
               </Text>
             </View>
           </Pressable>

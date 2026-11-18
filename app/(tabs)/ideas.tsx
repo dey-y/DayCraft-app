@@ -107,7 +107,7 @@ export default function IdeasScreen() {
               <NotionIcon name="folder" size={16} color={colors.warm} />
               <Text className="font-bold text-sm text-ink">Cajón de Ideas</Text>
               <View className="px-2 py-0.5 rounded-full bg-ok/10 border border-ok/25">
-                <Text className="text-[11px] font-mono text-ok">
+                <Text className="text-xs font-mono text-ok">
                   Notas .md + Auto-IA
                 </Text>
               </View>
@@ -120,7 +120,7 @@ export default function IdeasScreen() {
           <View className="flex-row items-center gap-2">
             <Pressable
               onPress={() => setNewProjectModalOpen(true)}
-              className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+              className="flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-raised border border-line active:border-ink"
             >
               <NotionIcon name="folder" size={13} color={colors.accentSoft} />
               <Text className="text-xs font-bold text-ink">Nuevo Proyecto</Text>
@@ -130,7 +130,7 @@ export default function IdeasScreen() {
               onPress={() =>
                 handleCreateNewMarkdownNote(ideaGroups[0]?.id || 'grp-app')
               }
-              className="flex-row items-center gap-1.5 px-3 py-2 rounded-xl bg-ink active:opacity-85"
+              className="flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-ink active:opacity-85"
             >
               <NotionIcon name="plus" size={12} color={colors.canvas} />
               <Text className="text-xs font-bold text-canvas">

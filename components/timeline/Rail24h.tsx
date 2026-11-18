@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,21 @@ import {
   Platform,
   useWindowDimensions,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  runOnJS,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 import {
   useDayCraftStore,
   formatQuarterToTime,
   doesEventApplyToDay,
   SlotPickerTarget,
 } from '@/store/useDayCraftStore';
+import { TimelineEvent } from '@/services/db/sqlite';
 import { LAYOUT } from '@/constants/theme';
 import { EventCard } from './EventCard';
 import { NotionIcon } from '@/components/ui/NotionIcon';
@@ -22,13 +31,92 @@ interface Rail24hProps {
   onRequestSlotPicker?: (target: SlotPickerTarget) => void;
 }
 
+interface PositionedEvent {
+  event: TimelineEvent;
+  colIndex: number;
+  totalCols: number;
+}
+
+const QUIET_BAND_HEIGHT = 44;
+const QUIET_END_QUARTER = 24; // 06:00 = 24 quarters
+
 /**
- * Rail24h — Timeline 24h estilo Google Calendar (100% Limpio + Snapping por Cuartos de Hora 15m).
- * - Cero textos repetitivos en horas vacías: únicamente las 24 líneas horarias.
- * - Los eventos y el bloque en creación ("Ghost Preview Block") se posicionan con coordenadas absolutas
- *   exactas (`top = startQ * quarterHeight`, `height = quarters * quarterHeight`), pudiendo abarcar
- *   cualquier rango de 15m, 30m, 45m, 1h15m o cruzar varias horas igual que en Google Calendar.
- * - Incluye la línea horizontal en vivo de la hora actual con su nodo circular en el borde izquierdo.
+ * Computes non-overlapping column assignments for concurrent timeline events.
+ */
+function computeOverlapLayout(events: TimelineEvent[]): PositionedEvent[] {
+  if (events.length === 0) return [];
+  const sorted = [...events].sort((a, b) =>
+    a.startQ !== b.startQ ? a.startQ - b.startQ : b.quarters - a.quarters
+  );
+
+  const clusters: TimelineEvent[][] = [];
+  let currentCluster: TimelineEvent[] = [];
+  let clusterMaxEnd = -1;
+
+  for (const ev of sorted) {
+    const evEnd = ev.startQ + ev.quarters;
+    if (currentCluster.length === 0 || ev.startQ < clusterMaxEnd) {
+      currentCluster.push(ev);
+      clusterMaxEnd = Math.max(clusterMaxEnd, evEnd);
+    } else {
+      clusters.push(currentCluster);
+      currentCluster = [ev];
+      clusterMaxEnd = evEnd;
+    }
+  }
+  if (currentCluster.length > 0) {
+    clusters.push(currentCluster);
+  }
+
+  const result: PositionedEvent[] = [];
+  for (const cluster of clusters) {
+    const colEnds: number[] = [];
+    const assigned: { event: TimelineEvent; colIndex: number }[] = [];
+
+    for (const ev of cluster) {
+      let placedCol = -1;
+      for (let c = 0; c < colEnds.length; c++) {
+        if (colEnds[c] <= ev.startQ) {
+          placedCol = c;
+          colEnds[c] = ev.startQ + ev.quarters;
+          break;
+        }
+      }
+      if (placedCol === -1) {
+        placedCol = colEnds.length;
+        colEnds.push(ev.startQ + ev.quarters);
+      }
+      assigned.push({ event: ev, colIndex: placedCol });
+    }
+
+    const totalCols = Math.max(1, colEnds.length);
+    for (const item of assigned) {
+      result.push({ event: item.event, colIndex: item.colIndex, totalCols });
+    }
+  }
+
+  return result;
+}
+
+function triggerHapticLight() {
+  if (Platform.OS !== 'web') {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  }
+}
+
+function triggerHapticSelection() {
+  if (Platform.OS !== 'web') {
+    Haptics.selectionAsync().catch(() => {});
+  }
+}
+
+/**
+ * Rail24h — Timeline 24h estilo Kuro-Zen (Snapping por Cuartos de Hora 15m).
+ * - Cero textos repetitivos en horas vacías: únicamente las 24 líneas horarias limpias.
+ * - Banda tranquila colapsable 00:00–06:00 ("Ma" espacio negativo) cuando no hay eventos de madrugada.
+ * - Gesture Handler + Reanimated v4 + Expo Haptics para tap & long-press drag de 15m en móvil y web.
+ * - Columnas de solapamiento automáticas para bloques concurrentes.
+ * - NowMarker exclusivo para el día de hoy, alineado con LAYOUT.hourHeightMobile / hourHeightDesktop.
  */
 export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const { colors } = useTheme();
@@ -45,23 +133,19 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
 
   const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
-  const gridContainerRef = useRef<React.ComponentRef<typeof View>>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const touchStartClientY = useRef<number | null>(null);
-  const touchStartClientX = useRef<number | null>(null);
-  const touchStartQ = useRef<number | null>(null);
-  const isTouchDragging = useRef<boolean>(false);
 
-  // Dimensiones compactas y proporcionadas estilo Google Calendar / Time-Blocking
-  const quarterHeight = isDesktop ? 14 : 13; // 15 min = 14px (1 hora = 56px en desktop, 52px en móvil)
-  const hourHeight = quarterHeight * 4;
-  const totalCanvasHeight = 24 * hourHeight;
-  const hourColumnWidth = isDesktop ? 58 : 46;
+  const hourHeight = isDesktop ? LAYOUT.hourHeightDesktop : LAYOUT.hourHeightMobile;
+  const quarterHeight = hourHeight / 4;
+  const hourColumnWidth = isDesktop ? 58 : 48;
 
+  const [collapseQuietBand, setCollapseQuietBand] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartQ, setDragStartQ] = useState<number | null>(null);
   const [dragCurrentQ, setDragCurrentQ] = useState<number | null>(null);
   const [hoverQuarter, setHoverQuarter] = useState<number | null>(null);
+
+  const lastDragQRef = useRef<number | null>(null);
+  const ghostOpacity = useSharedValue(0);
 
   const [nowMinutes, setNowMinutes] = useState(() => {
     const d = new Date();
@@ -81,15 +165,69 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
     days.find((d) => d.isToday) ||
     days[7] ||
     days[0];
-  const dayEvents = allEvents.filter((e) =>
-    activeDay ? doesEventApplyToDay(e, activeDay) : e.dayKey === selectedDayKey
+
+  const dayEvents = useMemo(
+    () =>
+      allEvents.filter((e) =>
+        activeDay ? doesEventApplyToDay(e, activeDay) : e.dayKey === selectedDayKey
+      ),
+    [allEvents, activeDay, selectedDayKey]
+  );
+
+  const hasEarlyEvents = useMemo(
+    () => dayEvents.some((e) => e.startQ < QUIET_END_QUARTER),
+    [dayEvents]
+  );
+
+  const isQuietCollapsed = collapseQuietBand && !hasEarlyEvents;
+  const totalCanvasHeight = isQuietCollapsed
+    ? QUIET_BAND_HEIGHT + 18 * hourHeight
+    : 24 * hourHeight;
+
+  const positionedEvents = useMemo(
+    () => computeOverlapLayout(dayEvents),
+    [dayEvents]
+  );
+
+  const quarterToTop = useCallback(
+    (q: number) => {
+      if (!isQuietCollapsed) return q * quarterHeight;
+      if (q < QUIET_END_QUARTER) {
+        return (q / QUIET_END_QUARTER) * QUIET_BAND_HEIGHT;
+      }
+      return QUIET_BAND_HEIGHT + (q - QUIET_END_QUARTER) * quarterHeight;
+    },
+    [isQuietCollapsed, quarterHeight]
+  );
+
+  const topToQuarter = useCallback(
+    (y: number) => {
+      const clampedY = Math.max(0, y);
+      if (!isQuietCollapsed) {
+        return Math.max(0, Math.min(95, Math.floor(clampedY / quarterHeight)));
+      }
+      if (clampedY < QUIET_BAND_HEIGHT) {
+        return Math.max(
+          0,
+          Math.min(23, Math.floor((clampedY / QUIET_BAND_HEIGHT) * QUIET_END_QUARTER))
+        );
+      }
+      return Math.max(
+        QUIET_END_QUARTER,
+        Math.min(
+          95,
+          QUIET_END_QUARTER +
+            Math.floor((clampedY - QUIET_BAND_HEIGHT) / quarterHeight)
+        )
+      );
+    },
+    [isQuietCollapsed, quarterHeight]
   );
 
   // Auto-scroll inicial hacia las 09:00 o el primer evento del día
   useEffect(() => {
-    const firstHour =
-      dayEvents.length > 0 ? Math.floor(dayEvents[0].startQ / 4) : 9;
-    const targetY = Math.max(0, (firstHour - 1) * hourHeight);
+    const firstQ = dayEvents.length > 0 ? Math.max(0, dayEvents[0].startQ - 4) : 32;
+    const targetY = Math.max(0, quarterToTop(firstQ));
     const timer = setTimeout(() => {
       scrollRef.current?.scrollTo({ y: targetY, animated: true });
       if (Platform.OS === 'web') {
@@ -101,173 +239,128 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
       }
     }, 80);
     return () => clearTimeout(timer);
-  }, [selectedDayKey, hourHeight]);
+  }, [selectedDayKey, hourHeight, isQuietCollapsed]);
 
-  // Finalizar arrastre en Web para abrir el creador con el rango exacto seleccionado
+  const dispatchSlotPicker = useCallback(
+    (startQ: number, quarters: number) => {
+      const target: SlotPickerTarget = {
+        type: 'direct_hour',
+        title: '',
+        defaultStartQ: startQ,
+        defaultQuarters: quarters,
+      };
+      if (onRequestSlotPicker) {
+        onRequestSlotPicker(target);
+      } else {
+        openSlotPicker(target);
+      }
+    },
+    [onRequestSlotPicker, openSlotPicker]
+  );
+
+  // Finalizar arrastre en Web con ratón
   useEffect(() => {
     if (Platform.OS !== 'web') return;
     const handleMouseUp = () => {
       if (!isDragging || dragStartQ === null || dragCurrentQ === null) return;
       const minQ = Math.min(dragStartQ, dragCurrentQ);
       const maxQ = Math.max(dragStartQ, dragCurrentQ);
-      // Si fue un clic simple sin arrastrar (minQ === maxQ), por defecto damos 2 cuartos (30 min) como Google Calendar
       const quarters = minQ === maxQ ? 2 : maxQ - minQ + 1;
 
       setIsDragging(false);
       setDragStartQ(null);
       setDragCurrentQ(null);
+      ghostOpacity.value = withTiming(0, { duration: 120 });
 
-      const target: SlotPickerTarget = {
-        type: 'direct_hour',
-        title: '',
-        defaultStartQ: minQ,
-        defaultQuarters: quarters,
-      };
-      if (onRequestSlotPicker) {
-        onRequestSlotPicker(target);
-      } else {
-        openSlotPicker(target);
-      }
+      dispatchSlotPicker(minQ, quarters);
     };
 
     window.addEventListener('mouseup', handleMouseUp);
     return () => {
       window.removeEventListener('mouseup', handleMouseUp);
-      if (longPressTimer.current) clearTimeout(longPressTimer.current);
     };
-  }, [isDragging, dragStartQ, dragCurrentQ, onRequestSlotPicker, openSlotPicker]);
+  }, [isDragging, dragStartQ, dragCurrentQ, dispatchSlotPicker, ghostOpacity]);
 
-  // Prevenir que el navegador haga scroll táctil mientras se está estirando un bloque con long-press
-  useEffect(() => {
-    if (Platform.OS !== 'web' || !isDragging) return;
+  const handleGestureDragStart = useCallback(
+    (y: number) => {
+      const q = topToQuarter(y);
+      triggerHapticLight();
+      lastDragQRef.current = q;
+      setIsDragging(true);
+      setDragStartQ(q);
+      setDragCurrentQ(q);
+      ghostOpacity.value = withTiming(1, { duration: 100 });
+    },
+    [topToQuarter, ghostOpacity]
+  );
 
-    const preventTouchScroll = (e: TouchEvent) => {
-      if (e.cancelable) {
-        e.preventDefault();
-      }
-    };
-
-    window.addEventListener('touchmove', preventTouchScroll, { passive: false });
-    return () => {
-      window.removeEventListener('touchmove', preventTouchScroll);
-    };
-  }, [isDragging]);
-
-  const handleTouchStart = (e: any) => {
-    const touch = e.touches?.[0] || e.nativeEvent?.touches?.[0];
-    if (!touch) return;
-
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-
-    touchStartClientY.current = touch.clientY;
-    touchStartClientX.current = touch.clientX;
-    isTouchDragging.current = false;
-
-    const targetElement = e.currentTarget || e.target;
-    const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
-    if (rect) {
-      const relY = touch.clientY - rect.top;
-      const q = Math.floor(Math.max(0, Math.min(95, relY / quarterHeight)));
-      touchStartQ.current = q;
-
-      // Long Press de 280ms para activar modo arrastre sin pelear con el scroll vertical
-      longPressTimer.current = setTimeout(() => {
-        isTouchDragging.current = true;
-        setIsDragging(true);
-        setDragStartQ(q);
+  const handleGestureDragUpdate = useCallback(
+    (y: number) => {
+      const q = topToQuarter(y);
+      if (lastDragQRef.current !== q) {
+        lastDragQRef.current = q;
+        triggerHapticSelection();
         setDragCurrentQ(q);
-        if (typeof window !== 'undefined' && window.navigator && 'vibrate' in window.navigator) {
-          try { window.navigator.vibrate(25); } catch {}
-        }
-      }, 280);
-    }
-  };
-
-  const handleTouchMove = (e: any) => {
-    if (touchStartQ.current === null) return;
-    const touch = e.touches?.[0] || e.nativeEvent?.touches?.[0];
-    if (!touch) return;
-
-    // Si el usuario no ha completado el long-press y mueve el dedo, cancelamos: ESTÁ HACIENDO SCROLL
-    if (!isTouchDragging.current) {
-      const deltaY = touchStartClientY.current !== null ? Math.abs(touch.clientY - touchStartClientY.current) : 0;
-      const deltaX = touchStartClientX.current !== null ? Math.abs(touch.clientX - touchStartClientX.current) : 0;
-      if (deltaY > 8 || deltaX > 8) {
-        if (longPressTimer.current) {
-          clearTimeout(longPressTimer.current);
-          longPressTimer.current = null;
-        }
       }
-      return;
-    }
+    },
+    [topToQuarter]
+  );
 
-    // Si ya se activó el long-press, ahora sí estiramos el bloque fantasma
-    const targetElement = (gridContainerRef.current as any) || e.currentTarget || e.target;
-    const rect = targetElement?.getBoundingClientRect ? targetElement.getBoundingClientRect() : null;
-    if (rect) {
-      const relY = touch.clientY - rect.top;
-      const currentQ = Math.floor(Math.max(0, Math.min(95, relY / quarterHeight)));
-      setDragCurrentQ(currentQ);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-
-    if (isTouchDragging.current && dragStartQ !== null && dragCurrentQ !== null) {
+  const handleGestureDragEnd = useCallback(() => {
+    if (dragStartQ !== null && dragCurrentQ !== null) {
       const minQ = Math.min(dragStartQ, dragCurrentQ);
       const maxQ = Math.max(dragStartQ, dragCurrentQ);
       const quarters = minQ === maxQ ? 2 : maxQ - minQ + 1;
-
       setIsDragging(false);
       setDragStartQ(null);
       setDragCurrentQ(null);
-      isTouchDragging.current = false;
-      touchStartQ.current = null;
-      touchStartClientY.current = null;
-      touchStartClientX.current = null;
-
-      const target: SlotPickerTarget = {
-        type: 'direct_hour',
-        title: '',
-        defaultStartQ: minQ,
-        defaultQuarters: quarters,
-      };
-      if (onRequestSlotPicker) {
-        onRequestSlotPicker(target);
-      } else {
-        openSlotPicker(target);
-      }
-    } else {
-      isTouchDragging.current = false;
-      touchStartQ.current = null;
-      touchStartClientY.current = null;
-      touchStartClientX.current = null;
+      lastDragQRef.current = null;
+      ghostOpacity.value = withTiming(0, { duration: 120 });
+      dispatchSlotPicker(minQ, quarters);
     }
-  };
+  }, [dragStartQ, dragCurrentQ, dispatchSlotPicker, ghostOpacity]);
+
+  const handleGestureDragCancel = useCallback(() => {
+    setIsDragging(false);
+    setDragStartQ(null);
+    setDragCurrentQ(null);
+    lastDragQRef.current = null;
+    ghostOpacity.value = withTiming(0, { duration: 100 });
+  }, [ghostOpacity]);
+
+  const panGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activateAfterLongPress(260)
+        .onStart((e) => {
+          runOnJS(handleGestureDragStart)(e.y);
+        })
+        .onUpdate((e) => {
+          runOnJS(handleGestureDragUpdate)(e.y);
+        })
+        .onEnd(() => {
+          runOnJS(handleGestureDragEnd)();
+        })
+        .onFinalize((_e, success) => {
+          if (!success) {
+            runOnJS(handleGestureDragCancel)();
+          }
+        }),
+    [
+      handleGestureDragStart,
+      handleGestureDragUpdate,
+      handleGestureDragEnd,
+      handleGestureDragCancel,
+    ]
+  );
 
   const handleTapQuarter = (q: number) => {
     if (isDragging) return;
-    const target: SlotPickerTarget = {
-      type: 'direct_hour',
-      title: '',
-      defaultStartQ: q,
-      defaultQuarters: 2,
-    };
-    if (onRequestSlotPicker) {
-      onRequestSlotPicker(target);
-    } else {
-      openSlotPicker(target);
-    }
+    triggerHapticLight();
+    dispatchSlotPicker(q, 2);
   };
 
-  // Cálculo del bloque fantasma (Ghost Event) durante el arrastre o el hover
+  // Cálculo del bloque fantasma (Ghost Event) durante el arrastre
   const minDragQ =
     isDragging && dragStartQ !== null && dragCurrentQ !== null
       ? Math.min(dragStartQ, dragCurrentQ)
@@ -285,22 +378,37 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
         : maxDragQ - minDragQ + 1
       : 0;
 
+  const ghostAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: ghostOpacity.value,
+  }));
+
+  const emptyDayMessage = activeDay?.isToday
+    ? 'Día despejado · Toca o mantén pulsado en la rejilla para crear un bloque con calma.'
+    : activeDay?.isPast
+    ? `Día pasado sin bloques (${activeDay?.dayNum} ${activeDay?.monthShort}) · El descanso también cuenta.`
+    : `Sin bloques para el ${activeDay?.dayNum} ${activeDay?.monthShort} · Toca o arrastra en la rejilla cuando quieras planificar.`;
+
+  const nowQuarterExact = nowMinutes / 15;
+  const nowMarkerTop = quarterToTop(nowQuarterExact) - 5;
+
   return (
     <View className="flex-1 bg-card border border-line-subtle rounded-2xl overflow-hidden">
-      {/* Banner sutil superior cuando el día está libre */}
+      {/* Banner sutil superior cuando el día está libre (Hoy / Pasado / Futuro) */}
       {dayEvents.length === 0 ? (
         <View className="px-4 py-2.5 bg-header border-b border-line-subtle flex-row items-center justify-between">
           <View className="flex-row items-center gap-2 flex-1">
             <NotionIcon
-              name={activeDay?.isToday ? 'cup' : 'clock'}
+              name={activeDay?.isToday ? 'cup' : activeDay?.isPast ? 'check' : 'clock'}
               size={14}
-              color={activeDay?.isToday ? colors.ok : colors.accentSoft}
+              color={
+                activeDay?.isToday
+                  ? colors.ok
+                  : activeDay?.isPast
+                  ? colors.muted
+                  : colors.accentSoft
+              }
             />
-            <Text className="text-xs text-muted flex-1">
-              {activeDay?.isToday
-                ? 'Día despejado · Haz clic o arrastra sobre cualquier cuarto de hora en la cuadrícula para crear un bloque.'
-                : `Sin bloques para el ${activeDay?.dayNum} ${activeDay?.monthShort} · Haz clic o arrastra en la rejilla para agendar.`}
-            </Text>
+            <Text className="text-xs text-muted flex-1">{emptyDayMessage}</Text>
           </View>
         </View>
       ) : null}
@@ -315,9 +423,53 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
           style={{ height: totalCanvasHeight + 24 }}
           className="relative w-full pt-3"
         >
-          {/* 1. LÍNEAS HORIZONTALES DE LAS 24 HORAS + ETIQUETAS DE HORA */}
+          {/* 1. LÍNEAS HORIZONTALES DE LAS 24 HORAS + BANDA TRANQUILA COLAPSABLE 00:00–06:00 */}
           {Array.from({ length: 24 }, (_, h) => {
-            const topPos = h * hourHeight + 12;
+            if (isQuietCollapsed && h > 0 && h < 6) {
+              return null;
+            }
+
+            if (isQuietCollapsed && h === 0) {
+              return (
+                <Pressable
+                  key="quiet-band-00-06"
+                  onPress={() => {
+                    triggerHapticLight();
+                    setCollapseQuietBand(false);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: 12,
+                    left: 0,
+                    right: 0,
+                    height: QUIET_BAND_HEIGHT,
+                    zIndex: 25,
+                  }}
+                  className="flex-row items-center bg-raised/40 border-b border-line-subtle/50 active:bg-raised"
+                >
+                  <View
+                    style={{ width: hourColumnWidth }}
+                    className="items-end pr-3"
+                  >
+                    <Text className="font-mono text-xs font-medium text-muted">
+                      00–06
+                    </Text>
+                  </View>
+                  <View className="flex-1 flex-row items-center justify-between px-3">
+                    <Text className="text-xs text-muted">
+                      00:00–06:00 · Madrugada en calma (Ma)
+                    </Text>
+                    <Text className="text-xs font-mono font-semibold text-accent-soft">
+                      Expandir
+                    </Text>
+                  </View>
+                </Pressable>
+              );
+            }
+
+            const topPos = isQuietCollapsed
+              ? QUIET_BAND_HEIGHT + (h - 6) * hourHeight + 12
+              : h * hourHeight + 12;
             const hourStr = `${String(h).padStart(2, '0')}:00`;
 
             return (
@@ -330,10 +482,10 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   right: 0,
                   height: hourHeight,
                 }}
-                pointerEvents="none"
+                pointerEvents={h === 0 && !isQuietCollapsed && !hasEarlyEvents ? 'box-none' : 'none'}
                 className="flex-row"
               >
-                {/* Columna Izquierda: Etiqueta HH:00 estilo Google Calendar */}
+                {/* Columna Izquierda: Etiqueta HH:00 */}
                 <View
                   style={{ width: hourColumnWidth }}
                   className="items-end pr-3 -mt-2"
@@ -343,8 +495,20 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
                   </Text>
                 </View>
 
-                {/* Columna Derecha: Línea de hora limpia y relajante */}
-                <View className="flex-1 border-t border-line-subtle/35" />
+                {/* Columna Derecha: Línea de hora limpia */}
+                <View className="flex-1 border-t border-line-subtle/35">
+                  {h === 0 && !isQuietCollapsed && !hasEarlyEvents ? (
+                    <Pressable
+                      onPress={() => setCollapseQuietBand(true)}
+                      hitSlop={10}
+                      className="self-end mr-3 mt-1 px-2.5 py-1 min-h-[44px] justify-center rounded-lg bg-raised border border-line-subtle"
+                    >
+                      <Text className="text-xs font-mono text-muted">
+                        Colapsar 00:00–06:00
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
               </View>
             );
           })}
@@ -362,158 +526,180 @@ export const Rail24h: React.FC<Rail24hProps> = ({ onRequestSlotPicker }) => {
             pointerEvents="none"
           />
 
-          {/* 3. CAPA INTERACTIVA DE 96 CUARTOS DE HORA (SNAPPING DE 15 MINUTOS) */}
-          <View
-            ref={gridContainerRef}
-            {...(Platform.OS === 'web'
-              ? {
-                  onTouchStart: handleTouchStart,
-                  onTouchMove: handleTouchMove,
-                  onTouchEnd: handleTouchEnd,
+          {/* 3. CAPA INTERACTIVA DE 96 CUARTOS DE HORA CON GESTURE HANDLER */}
+          <GestureDetector gesture={panGesture}>
+            <View
+              style={{
+                position: 'absolute',
+                top: 12,
+                left: hourColumnWidth + 1,
+                right: 0,
+                height: totalCanvasHeight,
+                touchAction: (isDragging ? 'none' : 'pan-y') as any,
+              }}
+            >
+              {Array.from({ length: 96 }, (_, q) => {
+                if (isQuietCollapsed && q < QUIET_END_QUARTER) {
+                  return null;
                 }
-              : {})}
-            style={{
-              position: 'absolute',
-              top: 12,
-              left: hourColumnWidth + 1,
-              right: 0,
-              height: totalCanvasHeight,
-              touchAction: (isDragging ? 'none' : 'pan-y') as any,
-            }}
-          >
-            {Array.from({ length: 96 }, (_, q) => {
-              const isHovered = hoverQuarter === q && !isDragging;
-              const webEvents =
-                Platform.OS === 'web'
-                  ? {
-                      onMouseDown: (e: { button?: number; preventDefault?: () => void }) => {
-                        if (e.button !== undefined && e.button !== 0) return;
-                        e.preventDefault?.();
-                        setIsDragging(true);
-                        setDragStartQ(q);
-                        setDragCurrentQ(q);
-                      },
-                      onMouseEnter: () => {
-                        setHoverQuarter(q);
-                        if (isDragging) {
+                const isHovered = hoverQuarter === q && !isDragging;
+                const webEvents =
+                  Platform.OS === 'web'
+                    ? {
+                        onMouseDown: (e: { button?: number; preventDefault?: () => void }) => {
+                          if (e.button !== undefined && e.button !== 0) return;
+                          e.preventDefault?.();
+                          setIsDragging(true);
+                          setDragStartQ(q);
                           setDragCurrentQ(q);
-                        }
-                      },
-                      onMouseLeave: () => {
-                        if (hoverQuarter === q) setHoverQuarter(null);
-                      },
-                    }
-                  : {};
+                          ghostOpacity.value = 1;
+                        },
+                        onMouseEnter: () => {
+                          setHoverQuarter(q);
+                          if (isDragging) {
+                            setDragCurrentQ(q);
+                          }
+                        },
+                        onMouseLeave: () => {
+                          if (hoverQuarter === q) setHoverQuarter(null);
+                        },
+                      }
+                    : {};
 
-              return (
-                <Pressable
-                  key={`q-hit-${q}`}
-                  onPress={() => handleTapQuarter(q)}
-                  {...(webEvents as object)}
-                  style={{ height: quarterHeight }}
-                  className="w-full"
+                return (
+                  <Pressable
+                    key={`q-hit-${q}`}
+                    onPress={() => handleTapQuarter(q)}
+                    {...(webEvents as object)}
+                    style={{
+                      position: 'absolute',
+                      top: quarterToTop(q),
+                      left: 0,
+                      right: 0,
+                      height: quarterHeight,
+                    }}
+                  >
+                    {isHovered ? (
+                      <View className="flex-1 bg-accent/10 border-l-2 border-l-accent/60 px-2.5 justify-center">
+                        <Text className="text-xs font-mono text-accent-soft/90">
+                          {formatQuarterToTime(q)}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </Pressable>
+                );
+              })}
+
+              {/* 4. BLOQUE FANTASMA EN VIVO (GHOST EVENT PREVIEW) */}
+              {ghostStartQ !== null && ghostQuarters > 0 ? (
+                <Animated.View
+                  pointerEvents="none"
+                  style={[
+                    {
+                      position: 'absolute',
+                      top: quarterToTop(ghostStartQ) + 1,
+                      left: 8,
+                      right: 16,
+                      height: Math.max(
+                        quarterHeight - 2,
+                        ghostQuarters * quarterHeight - 2
+                      ),
+                      zIndex: 30,
+                    },
+                    ghostAnimatedStyle,
+                  ]}
+                  className="bg-accent/20 border border-accent/60 border-l-[3px] border-l-accent rounded-xl px-3 py-1.5 items-start justify-start overflow-hidden"
                 >
-                  {/* Indicador ultra-sutil al pasar el ratón por un cuarto de hora libre */}
-                  {isHovered ? (
-                    <View className="flex-1 bg-accent/10 border-l-2 border-l-accent/60 px-2.5 justify-center">
-                      <Text className="text-xs font-mono text-accent-soft/90">
-                        {formatQuarterToTime(q)}
-                      </Text>
-                    </View>
-                  ) : null}
-                </Pressable>
-              );
-            })}
+                  <Text className="text-xs font-mono font-bold text-accent-soft">
+                    {formatQuarterToTime(ghostStartQ)} –{' '}
+                    {formatQuarterToTime(ghostStartQ + ghostQuarters)}
+                  </Text>
+                </Animated.View>
+              ) : null}
 
-            {/* 4. BLOQUE FANTASMA EN VIVO (GHOST EVENT PREVIEW) AL HACER CLIC O ARRASTRAR */}
-            {ghostStartQ !== null && ghostQuarters > 0 ? (
+              {/* 5. EVENTOS AGENDADOS CON LAYOUT DE COLUMNAS PARA SOLAPAMIENTOS */}
               <View
-                pointerEvents="none"
+                pointerEvents="box-none"
                 style={{
                   position: 'absolute',
-                  top: ghostStartQ * quarterHeight + 1,
+                  top: 0,
                   left: 8,
                   right: 16,
-                  height: Math.max(quarterHeight - 2, ghostQuarters * quarterHeight - 2),
-                  zIndex: 30,
+                  bottom: 0,
+                  zIndex: 20,
                 }}
-                className="bg-accent/20 border border-accent/60 border-l-[3px] border-l-accent rounded-xl px-3 py-1.5 items-start justify-start overflow-hidden"
               >
-                <Text className="text-xs font-mono font-bold text-accent-soft">
-                  {formatQuarterToTime(ghostStartQ)} –{' '}
-                  {formatQuarterToTime(ghostStartQ + ghostQuarters)}
-                </Text>
+                {positionedEvents.map(({ event: ev, colIndex, totalCols }) => {
+                  const topPx = quarterToTop(ev.startQ) + 1;
+                  const heightPx = Math.max(
+                    quarterHeight * 2 - 2,
+                    ev.quarters * quarterHeight - 2
+                  );
+                  const widthPct = 100 / totalCols;
+                  const leftPct = colIndex * widthPct;
+
+                  return (
+                    <View
+                      key={ev.id}
+                      style={{
+                        position: 'absolute',
+                        top: topPx,
+                        left: `${leftPct}%`,
+                        width: `${widthPct}%`,
+                        height: heightPx,
+                        paddingHorizontal: totalCols > 1 ? 2 : 0,
+                      }}
+                    >
+                      <EventCard
+                        event={ev}
+                        compact={ev.quarters <= 2}
+                        onEdit={(targetEv) => {
+                          const target: SlotPickerTarget = {
+                            type: 'edit_event',
+                            id: targetEv.id,
+                            title: targetEv.title,
+                            desc: targetEv.desc || '',
+                            eventType: targetEv.type,
+                            defaultStartQ: targetEv.startQ,
+                            defaultQuarters: targetEv.quarters,
+                            recurrence: targetEv.recurrence,
+                          };
+                          if (onRequestSlotPicker) {
+                            onRequestSlotPicker(target);
+                          } else {
+                            openSlotPicker(target);
+                          }
+                        }}
+                        onToggleComplete={toggleTimelineEventCompleted}
+                        onRemove={(id) => removeTimelineEvent(id, true)}
+                      />
+                    </View>
+                  );
+                })}
               </View>
-            ) : null}
 
-            {/* 5. EVENTOS AGENDADOS POSICIONADOS PROPORCIONALMENTE EN LA ESCALA DE 24H */}
-            {dayEvents.map((ev) => {
-              const topPx = ev.startQ * quarterHeight + 1;
-              const heightPx = Math.max(
-                quarterHeight * 2 - 2,
-                ev.quarters * quarterHeight - 2
-              );
-
-              return (
+              {/* 6. LÍNEA EN VIVO DE LA HORA ACTUAL (NOW MARKER — SOLO HOY) */}
+              {activeDay?.isToday ? (
                 <View
-                  key={ev.id}
                   style={{
                     position: 'absolute',
-                    top: topPx,
-                    left: 8,
-                    right: 16,
-                    height: heightPx,
-                    zIndex: 20,
+                    top: nowMarkerTop,
+                    left: 0,
+                    right: 12,
+                    zIndex: 40,
                   }}
+                  pointerEvents="none"
+                  className="flex-row items-center"
                 >
-                  <EventCard
-                    event={ev}
-                    compact={ev.quarters <= 2}
-                    onEdit={(targetEv) => {
-                      const target: SlotPickerTarget = {
-                        type: 'edit_event',
-                        id: targetEv.id,
-                        title: targetEv.title,
-                        desc: targetEv.desc || '',
-                        eventType: targetEv.type,
-                        defaultStartQ: targetEv.startQ,
-                        defaultQuarters: targetEv.quarters,
-                        recurrence: targetEv.recurrence,
-                      };
-                      if (onRequestSlotPicker) {
-                        onRequestSlotPicker(target);
-                      } else {
-                        openSlotPicker(target);
-                      }
-                    }}
-                    onToggleComplete={toggleTimelineEventCompleted}
-                    onRemove={(id) => removeTimelineEvent(id, true)}
+                  <View
+                    style={{ width: 10, height: 10 }}
+                    className="rounded-full bg-now border-2 border-canvas -ml-1.5 shadow-sm"
                   />
+                  <View className="flex-1 h-[2px] bg-now/85" />
                 </View>
-              );
-            })}
-
-            {/* 6. LÍNEA EN VIVO DE LA HORA ACTUAL (NOW INDICATOR) */}
-            {activeDay?.isToday ? (
-              <View
-                style={{
-                  position: 'absolute',
-                  top: (nowMinutes / 15) * quarterHeight - 5,
-                  left: 0,
-                  right: 12,
-                  zIndex: 40,
-                }}
-                pointerEvents="none"
-                className="flex-row items-center"
-              >
-                <View
-                  style={{ width: 10, height: 10 }}
-                  className="rounded-full bg-now border-2 border-canvas -ml-1.5 shadow-sm"
-                />
-                <View className="flex-1 h-[2px] bg-now/85" />
-              </View>
-            ) : null}
-          </View>
+              ) : null}
+            </View>
+          </GestureDetector>
         </View>
       </ScrollView>
     </View>

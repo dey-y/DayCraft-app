@@ -38,12 +38,12 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
             {idea.title}
           </Text>
           <View className="px-1.5 py-0.5 rounded bg-raised border border-line flex-shrink-0">
-            <Text className="text-[10px] font-mono font-semibold text-accent-soft">.md</Text>
+            <Text className="text-xs font-mono font-semibold text-accent-soft">.md</Text>
           </View>
         </View>
 
         <View className="flex-row items-center gap-1.5 flex-shrink-0">
-          <Text className="text-[11px] font-mono text-muted">
+          <Text className="text-xs font-mono text-muted">
             {idea.createdAtLabel}
           </Text>
           {onDeleteIdea ? (
@@ -52,8 +52,8 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
                 e.stopPropagation?.();
                 onDeleteIdea(idea.id);
               }}
-              hitSlop={10}
-              className="p-1 rounded-md active:bg-raised"
+              hitSlop={14}
+              className="p-1.5 rounded-md active:bg-raised"
             >
               <NotionIcon name="trash" size={12} color={colors.muted} />
             </Pressable>
@@ -78,7 +78,7 @@ export const IdeaItem: React.FC<IdeaItemProps> = ({
             e.stopPropagation?.();
             onScheduleStep(idea);
           }}
-          className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-lg bg-ink active:opacity-85 flex-shrink-0"
+          className="flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg bg-ink active:opacity-85 flex-shrink-0"
         >
           <NotionIcon name="clock" size={12} color={colors.canvas} />
           <Text className="text-xs font-bold text-canvas">Agendar paso</Text>

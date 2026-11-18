@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, TextInput, Pressable, Text, Platform } from 'react-native';
+import {
+  View,
+  TextInput,
+  Pressable,
+  Text,
+  Platform,
+  ActivityIndicator,
+} from 'react-native';
 import { NotionIcon } from '@/components/ui/NotionIcon';
 import { useDayCraftStore, SlotPickerTarget } from '@/store/useDayCraftStore';
 import { useTheme } from '@/store/useThemeStore';
@@ -20,8 +27,7 @@ const VOICE_FALLBACK_SAMPLES = [
 /**
  * SmartIntakeBar — Punto de Entrada Universal Único (Principio Innegociable v9)
  * Barra omnidireccional de texto + dictado por voz real en Web (`SpeechRecognition` / `webkitSpeechRecognition` es-ES)
- * con transcripción en vivo y envío automático al terminar, más fallback inteligente si el navegador no soporta voz
- * o se deniega el permiso del micrófono.
+ * con transcripción en vivo, feedback no bloqueante durante el análisis y fallback limpio en nativo/navegadores sin soporte.
  */
 export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
   isOnChatScreen = false,
@@ -31,6 +37,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
   const { colors } = useTheme();
   const [text, setText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [liveTranscript, setLiveTranscript] = useState('');
   const [sampleIdx, setSampleIdx] = useState(0);
 
@@ -55,12 +62,21 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
     };
   }, []);
 
+  const dispatchIntake = async (utterance: string) => {
+    setIsSubmitting(true);
+    try {
+      await submitSmartIntake(utterance, { isOnChatScreen, onOpenSlotPicker });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     const val = text.trim();
     if (!val) return;
     setText('');
     setLiveTranscript('');
-    await submitSmartIntake(val, { isOnChatScreen, onOpenSlotPicker });
+    await dispatchIntake(val);
   };
 
   const runIntelligentFallback = (reason?: string) => {
@@ -81,12 +97,11 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
       setIsRecording(false);
       setLiveTranscript('');
       setText('');
-      await submitSmartIntake(chosenSample, { isOnChatScreen, onOpenSlotPicker });
+      await dispatchIntake(chosenSample);
     }, 900);
   };
 
   const handleToggleVoiceDictation = () => {
-    // Si ya está grabando, detener el reconocimiento (lo cual disparará onend y enviará el texto capturado)
     if (isRecording) {
       if (recognitionRef.current) {
         try {
@@ -108,7 +123,9 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
 
     if (!SpeechRecognitionCtor) {
       runIntelligentFallback(
-        'Tu navegador no soporta Web Speech API · usando muestra inteligente'
+        Platform.OS === 'web'
+          ? 'Tu navegador no soporta Web Speech API · usando muestra inteligente'
+          : 'Dictado nativo en modo demostración · usando muestra inteligente'
       );
       return;
     }
@@ -173,10 +190,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
           latestTranscriptRef.current = '';
           setLiveTranscript('');
           setText('');
-          await submitSmartIntake(captured, {
-            isOnChatScreen,
-            onOpenSlotPicker,
-          });
+          await dispatchIntake(captured);
         } else {
           setLiveTranscript('');
         }
@@ -206,12 +220,14 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
     >
       <View className="flex-row items-center gap-2">
         <View
-          className={`flex-1 bg-raised border rounded-full px-4 py-2 flex-row items-center gap-2 ${
+          className={`flex-1 min-h-[44px] bg-raised border rounded-full px-4 py-1.5 flex-row items-center gap-2 ${
             isRecording ? 'border-now' : 'border-line'
           }`}
         >
           {isRecording ? (
             <View className="w-2 h-2 rounded-full bg-now flex-shrink-0" />
+          ) : isSubmitting ? (
+            <ActivityIndicator size="small" color={colors.accentSoft} />
           ) : null}
 
           <TextInput
@@ -230,18 +246,22 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
           {text.trim().length > 0 && !isRecording ? (
             <Pressable
               onPress={handleSubmit}
-              className="p-1 rounded-full active:scale-95"
-              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Enviar entrada"
+              className="min-w-[44px] min-h-[44px] -mr-2 rounded-full items-center justify-center active:scale-95"
+              hitSlop={6}
             >
-              <NotionIcon name="send" size={15} color={colors.ink} />
+              <NotionIcon name="send" size={16} color={colors.ink} />
             </Pressable>
           ) : null}
         </View>
 
         <Pressable
           onPress={handleToggleVoiceDictation}
+          accessibilityRole="button"
+          accessibilityLabel={isRecording ? 'Detener dictado' : 'Dictar por voz'}
           hitSlop={6}
-          className={`w-10 h-10 rounded-full items-center justify-center flex-shrink-0 ${
+          className={`w-11 h-11 min-w-[44px] min-h-[44px] rounded-full items-center justify-center flex-shrink-0 ${
             isRecording
               ? 'bg-now/20 border border-now'
               : 'bg-ink active:opacity-85'
@@ -249,7 +269,7 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
         >
           <NotionIcon
             name="mic"
-            size={16}
+            size={18}
             color={isRecording ? colors.now : colors.canvas}
           />
         </Pressable>
@@ -259,6 +279,8 @@ export const SmartIntakeBar: React.FC<SmartIntakeBarProps> = ({
         <Text className="text-xs text-muted text-center mt-1.5">
           {isRecording
             ? 'Transcribiendo voz en vivo (es-ES) · Pulsa el micro para enviar ya'
+            : isSubmitting
+            ? 'Clasificando entrada con IA...'
             : 'Gemini clasifica en Tarea con Horario, Pendiente o Idea.'}
         </Text>
       ) : null}

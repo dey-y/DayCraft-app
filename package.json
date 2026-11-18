@@ -7,7 +7,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run tests/unit",
+    "test:e2e": "vitest run tests/e2e",
+    "test:all": "vitest run"
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
@@ -17,9 +20,12 @@
     "@react-navigation/native": "^7.0.0",
     "expo": "~58.0.21",
     "expo-constants": "~58.0.14",
+    "expo-file-system": "~58.0.13",
     "expo-font": "~58.0.11",
+    "expo-haptics": "~58.0.7",
     "expo-linking": "~58.0.15",
     "expo-router": "~58.0.28",
+    "expo-sharing": "~58.0.21",
     "expo-splash-screen": "~58.0.12",
     "expo-sqlite": "~58.0.14",
     "expo-status-bar": "~58.0.4",
@@ -42,7 +48,9 @@
     "@babel/core": "^7.25.2",
     "@types/react": "~19.3.0",
     "tailwindcss": "^3.4.15",
-    "typescript": "~5.8.3"
+    "tsx": "^4.23.15",
+    "typescript": "~5.8.3",
+    "vitest": "^5.1.0"
   },
   "private": true
 }

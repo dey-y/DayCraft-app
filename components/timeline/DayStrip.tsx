@@ -201,7 +201,7 @@ export const DayStrip: React.FC = () => {
       <Pressable
         onPress={handleScrollLeft}
         hitSlop={8}
-        className="w-8 h-9 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
+        className="w-11 h-11 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
         <NotionIcon name="chevron-left" size={14} color={colors.muted} />
       </Pressable>
@@ -232,8 +232,8 @@ export const DayStrip: React.FC = () => {
             <React.Fragment key={d.isoDate}>
               {/* Separador de Mes compacto */}
               {showMonthDivider ? (
-                <View className="px-2.5 py-1 rounded-lg bg-accent/10 border border-accent/25 items-center justify-center flex-shrink-0">
-                  <Text className="text-[10px] font-mono font-bold uppercase tracking-widest text-accent-soft">
+                <View className="px-2.5 py-1.5 min-h-[44px] rounded-lg bg-accent/10 border border-accent/25 items-center justify-center flex-shrink-0">
+                  <Text className="text-xs font-mono font-bold uppercase tracking-widest text-accent-soft">
                     {d.monthShort}
                   </Text>
                 </View>
@@ -245,7 +245,7 @@ export const DayStrip: React.FC = () => {
                   setSelectedDayKey(d.key);
                   scrollToDay(index, true);
                 }}
-                className={`px-3.5 py-2 rounded-xl border flex-row items-center gap-1.5 flex-shrink-0 active:opacity-85 ${
+                className={`px-3.5 py-2 min-h-[44px] rounded-xl border flex-row items-center gap-1.5 flex-shrink-0 active:opacity-85 ${
                   isSelected
                     ? 'bg-accent/20 border-accent'
                     : d.isToday
@@ -282,7 +282,7 @@ export const DayStrip: React.FC = () => {
       <Pressable
         onPress={handleScrollRight}
         hitSlop={8}
-        className="w-8 h-9 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
+        className="w-11 h-11 rounded-xl bg-card border border-line items-center justify-center active:border-ink flex-shrink-0"
       >
         <NotionIcon name="chevron-right" size={14} color={colors.muted} />
       </Pressable>

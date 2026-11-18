@@ -1,10 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, Pressable, TextInput, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useDayCraftStore, formatQuarterToTime } from '@/store/useDayCraftStore';
+import {
+  useDayCraftStore,
+  formatQuarterToTime,
+  doesEventApplyToDay,
+} from '@/store/useDayCraftStore';
 import {
   RecurrenceFrequency,
   EventRecurrenceRule,
+  TimelineEvent,
 } from '@/services/db/sqlite';
 import { SMART_SLOTS_PRESETS } from '@/constants/theme';
 import { NotionIcon } from '@/components/ui/NotionIcon';
@@ -51,6 +56,74 @@ function parseTimeStringToQuarter(timeStr: string, fallbackQ: number): number {
   return Math.max(0, Math.min(95, clampedH * 4 + qOffset));
 }
 
+function getSlotPeriodLabel(startQ: number): string {
+  if (startQ < 48) return 'Mañana libre';
+  if (startQ < 56) return 'Mediodía libre';
+  if (startQ < 76) return 'Tarde libre';
+  return 'Noche libre';
+}
+
+/**
+ * Dynamically suggests up to 4 free timeline slots for the active day,
+ * avoiding any occupied quarters from existing events.
+ */
+function suggestFreeSlots(
+  dayEvents: TimelineEvent[],
+  durationQuarters: number
+): { startQ: number; startTime: string; label: string }[] {
+  const busyQuarters = new Array<boolean>(96).fill(false);
+  for (const ev of dayEvents) {
+    const endQ = Math.min(96, ev.startQ + ev.quarters);
+    for (let q = Math.max(0, ev.startQ); q < endQ; q++) {
+      busyQuarters[q] = true;
+    }
+  }
+
+  const isSlotFree = (startQ: number, len: number) => {
+    if (startQ < 0 || startQ + len > 96) return false;
+    for (let q = startQ; q < startQ + len; q++) {
+      if (busyQuarters[q]) return false;
+    }
+    return true;
+  };
+
+  const freeSlots: { startQ: number; startTime: string; label: string }[] = [];
+  const usedStartQ = new Set<number>();
+
+  for (const preset of SMART_SLOTS_PRESETS) {
+    if (isSlotFree(preset.startQ, durationQuarters)) {
+      freeSlots.push({
+        startQ: preset.startQ,
+        startTime: preset.startTime,
+        label: preset.label,
+      });
+      usedStartQ.add(preset.startQ);
+    }
+  }
+
+  if (freeSlots.length < 4) {
+    for (let q = 32; q <= 88 - durationQuarters; q += 2) {
+      if (freeSlots.length >= 4) break;
+      if (usedStartQ.has(q)) continue;
+      if (isSlotFree(q, durationQuarters)) {
+        const overlapsPicked = freeSlots.some(
+          (s) => Math.abs(s.startQ - q) < Math.max(2, durationQuarters)
+        );
+        if (!overlapsPicked) {
+          freeSlots.push({
+            startQ: q,
+            startTime: formatQuarterToTime(q),
+            label: getSlotPeriodLabel(q),
+          });
+          usedStartQ.add(q);
+        }
+      }
+    }
+  }
+
+  return freeSlots.slice(0, 4);
+}
+
 /**
  * SlotPickerSheetContent — Popover de creación y edición completa de bloques en el Timeline 24h
  * Permite editar:
@@ -69,12 +142,21 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
   const closeSlotPicker = useDayCraftStore((s) => s.closeSlotPicker);
   const days = useDayCraftStore((s) => s.days);
   const selectedDayKey = useDayCraftStore((s) => s.selectedDayKey);
+  const events = useDayCraftStore((s) => s.events);
 
   const activeDay =
     days.find((d) => d.key === selectedDayKey) ||
     days.find((d) => d.isToday) ||
     days[7] ||
     days[0];
+
+  const dayEvents = useMemo(
+    () =>
+      events.filter((e) =>
+        activeDay ? doesEventApplyToDay(e, activeDay) : e.dayKey === selectedDayKey
+      ),
+    [events, activeDay, selectedDayKey]
+  );
 
   const [customTitle, setCustomTitle] = useState(slotPickerTarget?.title || '');
   const [customDesc, setCustomDesc] = useState(slotPickerTarget?.desc || '');
@@ -95,6 +177,11 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
   );
   const [customHourStr, setCustomHourStr] = useState('12:00');
   const [showCustomInput, setShowCustomInput] = useState(false);
+
+  const availableSlots = useMemo(
+    () => suggestFreeSlots(dayEvents, quarters),
+    [dayEvents, quarters]
+  );
 
   const isEditMode = slotPickerTarget?.type === 'edit_event';
   const isDirectFromCalendar =
@@ -263,7 +350,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
           <View className="flex-row items-center gap-2">
             <Pressable
               onPress={() => handleShiftStartQ(-1)}
-              className="px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+              className="px-3 py-2 min-h-[44px] justify-center rounded-xl bg-raised border border-line active:border-ink"
             >
               <Text className="text-xs font-mono font-bold text-ink">-15m</Text>
             </Pressable>
@@ -278,12 +365,12 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
               }}
               placeholder="11:30"
               placeholderTextColor={colors.muted}
-              className="flex-1 bg-canvas border border-line rounded-xl px-3 py-2 text-center font-mono font-bold text-sm text-ink"
+              className="flex-1 min-h-[44px] bg-canvas border border-line rounded-xl px-3 py-2 text-center font-mono font-bold text-sm text-ink"
             />
 
             <Pressable
               onPress={() => handleShiftStartQ(1)}
-              className="px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+              className="px-3 py-2 min-h-[44px] justify-center rounded-xl bg-raised border border-line active:border-ink"
             >
               <Text className="text-xs font-mono font-bold text-ink">+15m</Text>
             </Pressable>
@@ -363,7 +450,7 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
               <Pressable
                 key={wd.key}
                 onPress={() => toggleWeekDay(wd.key)}
-                className={`w-9 h-9 rounded-xl border items-center justify-center ${
+                className={`w-11 h-11 rounded-xl border items-center justify-center ${
                   active ? 'bg-ink border-ink' : 'bg-canvas border-line'
                 }`}
               >
@@ -410,9 +497,9 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
           <Pressable
             onPress={handleClose}
             hitSlop={10}
-            className="w-8 h-8 rounded-full bg-raised items-center justify-center"
+            className="w-11 h-11 rounded-full bg-raised items-center justify-center"
           >
-            <NotionIcon name="close" size={13} color={colors.muted} />
+            <NotionIcon name="close" size={14} color={colors.muted} />
           </Pressable>
         </View>
 
@@ -551,40 +638,48 @@ export const SlotPickerSheetContent: React.FC<SlotPickerSheetContentProps> = ({
         </Text>
 
         <View className="flex-row flex-wrap gap-2">
-          {SMART_SLOTS_PRESETS.map((slot) => (
-            <Pressable
-              key={slot.startTime}
-              onPress={() => {
-                setCustomHourStr(slot.startTime);
-                setStartQ(slot.startQ);
-                assignSlotFromPicker(
-                  slot.startQ,
-                  quarters,
-                  customTitle.trim() || 'Bloque enfocado',
-                  buildRecurrenceRule(),
-                  {
-                    desc: customDesc.trim() || undefined,
-                    eventType: blockType,
-                  }
-                );
-                onClose?.();
-              }}
-              style={{ width: '48%' }}
-              className="p-3.5 rounded-xl bg-raised border border-line active:border-ink active:scale-95 transition-transform"
-            >
-              <Text className="font-mono font-bold text-sm text-accent-soft">
-                {slot.startTime}
+          {availableSlots.length === 0 ? (
+            <View className="w-full p-3.5 rounded-xl bg-raised border border-line-subtle">
+              <Text className="text-xs text-muted">
+                Agenda completa para esta duración · Usa Manual para elegir una hora exacta.
               </Text>
-              <Text numberOfLines={1} className="text-xs text-muted mt-0.5">
-                {slot.label}
-              </Text>
-            </Pressable>
-          ))}
+            </View>
+          ) : (
+            availableSlots.map((slot) => (
+              <Pressable
+                key={slot.startTime}
+                onPress={() => {
+                  setCustomHourStr(slot.startTime);
+                  setStartQ(slot.startQ);
+                  assignSlotFromPicker(
+                    slot.startQ,
+                    quarters,
+                    customTitle.trim() || 'Bloque enfocado',
+                    buildRecurrenceRule(),
+                    {
+                      desc: customDesc.trim() || undefined,
+                      eventType: blockType,
+                    }
+                  );
+                  onClose?.();
+                }}
+                style={{ width: '48%' }}
+                className="p-3.5 min-h-[44px] rounded-xl bg-raised border border-line active:border-ink active:scale-95 transition-transform"
+              >
+                <Text className="font-mono font-bold text-sm text-accent-soft">
+                  {slot.startTime}
+                </Text>
+                <Text numberOfLines={1} className="text-xs text-muted mt-0.5">
+                  {slot.label}
+                </Text>
+              </Pressable>
+            ))
+          )}
 
           <Pressable
             onPress={() => setShowCustomInput((v) => !v)}
             style={{ width: '48%' }}
-            className="p-3.5 rounded-xl bg-raised border border-dashed border-line active:border-ink active:scale-95 transition-transform"
+            className="p-3.5 min-h-[44px] rounded-xl bg-raised border border-dashed border-line active:border-ink active:scale-95 transition-transform"
           >
             <Text className="font-mono font-bold text-sm text-ink">Manual</Text>
             <Text className="text-xs text-muted mt-0.5">Elegir HH:MM</Text>

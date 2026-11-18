@@ -67,7 +67,7 @@ export const IdeaGroupCard: React.FC<IdeaGroupCardProps> = ({
           <Pressable
             onPress={() => onCreateIdeaInGroup(group.id)}
             hitSlop={6}
-            className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-card border border-line active:border-ink flex-shrink-0"
+            className="flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-card border border-line active:border-ink flex-shrink-0"
           >
             <NotionIcon name="plus" size={12} color={colors.ink} />
             <Text className="text-xs font-mono font-semibold text-ink">

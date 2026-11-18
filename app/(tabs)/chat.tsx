@@ -87,7 +87,7 @@ export default function ChatScreen() {
 
           <Pressable
             onPress={() => setConfigOpen(true)}
-            className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-raised border border-line active:border-ink flex-shrink-0"
+            className="flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-raised border border-line active:border-ink flex-shrink-0"
           >
             <NotionIcon
               name="key"
@@ -220,9 +220,9 @@ export default function ChatScreen() {
               <Pressable
                 onPress={() => setConfigOpen(false)}
                 hitSlop={10}
-                className="w-8 h-8 rounded-full bg-raised items-center justify-center"
+                className="w-11 h-11 rounded-full bg-raised items-center justify-center"
               >
-                <NotionIcon name="close" size={13} color={colors.muted} />
+                <NotionIcon name="close" size={14} color={colors.muted} />
               </Pressable>
             </View>
 
@@ -250,14 +250,14 @@ export default function ChatScreen() {
                       NLP Local Offline
                     </Text>
                   </View>
-                  <Text className="text-[11px] text-muted">
+                  <Text className="text-xs text-muted">
                     Instantáneo (0ms) sin conexión
                   </Text>
                 </Pressable>
 
                 <Pressable
                   onPress={() => setDraftUseCloud(true)}
-                  className={`flex-1 p-3 rounded-xl border gap-1 ${
+                  className={`flex-1 p-3 min-h-[44px] rounded-xl border gap-1 ${
                     draftUseCloud
                       ? 'bg-accent/20 border-accent'
                       : 'bg-raised border-line'
@@ -273,7 +273,7 @@ export default function ChatScreen() {
                       Gemini 2.0 Flash
                     </Text>
                   </View>
-                  <Text className="text-[11px] text-muted">
+                  <Text className="text-xs text-muted">
                     Extracción JSON en la nube
                   </Text>
                 </Pressable>
@@ -296,9 +296,9 @@ export default function ChatScreen() {
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
-                className="bg-canvas border border-line rounded-xl px-3.5 py-2.5 text-sm font-mono text-ink"
+                className="bg-canvas border border-line rounded-xl px-3.5 py-2.5 min-h-[44px] text-sm font-mono text-ink"
               />
-              <Text className="text-[11px] text-muted leading-relaxed">
+              <Text className="text-xs text-muted leading-relaxed">
                 Tu clave se almacena exclusivamente en tu base de datos local SQLite. Si se deja vacía o no hay red, DayCraft usa automáticamente el Parser NLP Local.
               </Text>
             </View>

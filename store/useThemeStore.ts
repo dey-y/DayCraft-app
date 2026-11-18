@@ -9,6 +9,14 @@ import {
 import { loadPersistedState, savePersistedState } from '@/services/db/sqlite';
 
 const THEME_KEY = 'theme_v1';
+let themeGeneration = 0;
+
+function isValidThemeName(name: unknown): name is ThemeName {
+  return (
+    typeof name === 'string' &&
+    Object.prototype.hasOwnProperty.call(THEMES, name)
+  );
+}
 
 interface ThemeState {
   themeName: ThemeName;
@@ -18,18 +26,23 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  themeName: 'granate',
+  themeName: DEFAULT_THEME,
   setTheme: (name) => {
-    if (!THEMES[name]) return;
+    if (!isValidThemeName(name)) return;
+    themeGeneration += 1;
     set({ themeName: name });
     void savePersistedState(THEME_KEY, name);
   },
   hydrateTheme: async () => {
+    const startGeneration = themeGeneration;
     const saved = await loadPersistedState<ThemeName>(THEME_KEY);
-    if (!saved || saved === 'murasaki') {
-      set({ themeName: 'granate' });
-      void savePersistedState(THEME_KEY, 'granate');
-    } else if (saved && THEMES[saved]) {
+    if (themeGeneration !== startGeneration) {
+      return;
+    }
+    if (!isValidThemeName(saved)) {
+      set({ themeName: DEFAULT_THEME });
+      await savePersistedState(THEME_KEY, DEFAULT_THEME);
+    } else {
       set({ themeName: saved });
     }
   },
@@ -42,6 +55,8 @@ export function useTheme(): {
   isDark: boolean;
 } {
   const themeName = useThemeStore((s) => s.themeName);
-  const theme = THEMES[themeName] ?? THEMES[DEFAULT_THEME];
+  const theme = isValidThemeName(themeName)
+    ? THEMES[themeName]
+    : THEMES[DEFAULT_THEME];
   return { theme, colors: theme.colors, isDark: theme.isDark };
 }

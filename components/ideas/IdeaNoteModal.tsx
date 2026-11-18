@@ -7,15 +7,42 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 import { useDayCraftStore } from '@/store/useDayCraftStore';
 import { NotionIcon } from '@/components/ui/NotionIcon';
 import { useTheme } from '@/store/useThemeStore';
 
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+  const parts = text.split(/(`[^`]+`|\*\*[^*]+\*\*)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
+      return (
+        <Text
+          key={`code-${idx}`}
+          className="font-mono text-xs bg-raised text-accent-soft px-1.5 py-0.5 rounded"
+        >
+          {part.slice(1, -1)}
+        </Text>
+      );
+    }
+    if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
+      return (
+        <Text key={`bold-${idx}`} className="font-bold text-ink">
+          {part.slice(2, -2)}
+        </Text>
+      );
+    }
+    return <React.Fragment key={`txt-${idx}`}>{part}</React.Fragment>;
+  });
+}
+
 /**
  * IdeaNoteModal — Editor y Visor de Documentos Markdown (.md) para el Cajón de Ideas
- * - Permite editar el contenido completo de la nota en formato Markdown (.md) estilo Notion / Obsidian.
- * - Permite mover la nota a otra carpeta de proyecto o eliminarla (con Deshacer en Toast).
- * - Genera automáticamente el archivo `.md` con Frontmatter YAML y permite descargarlo a disco en 1 clic.
+ * - Soporta modo Edición y modo Vista Previa rica (encabezados `#`, checklists `- [ ]`/`- [x]` interactivos, negrita, código y listas) con transición Reanimated v4.
+ * - Exportación multiplataforma a disco `.md` (`Blob` en Web, `expo-file-system` + `expo-sharing` en iOS/Android).
+ * - Truncado limpio de nombres de archivo largos (`numberOfLines={1}`, `ellipsizeMode="tail"`).
  */
 export const IdeaNoteModal: React.FC = () => {
   const { colors } = useTheme();
@@ -28,7 +55,6 @@ export const IdeaNoteModal: React.FC = () => {
   const openSlotPicker = useDayCraftStore((s) => s.openSlotPicker);
   const showToast = useDayCraftStore((s) => s.showToast);
 
-  // Localizar la idea activa y su carpeta de proyecto
   let foundIdea = null as
     | (typeof ideaGroups)[number]['items'][number]
     | null;
@@ -47,6 +73,7 @@ export const IdeaNoteModal: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [markdownBody, setMarkdownBody] = useState('');
+  const [previewMode, setPreviewMode] = useState(false);
 
   useEffect(() => {
     if (!foundIdea) return;
@@ -55,6 +82,7 @@ export const IdeaNoteModal: React.FC = () => {
       foundIdea.markdownContent ||
         `# ${foundIdea.title}\n\n${foundIdea.desc}\n\n## Notas y Desarrollo\n- [ ] Definir siguientes pasos\n`
     );
+    setPreviewMode(false);
   }, [activeIdeaId]);
 
   if (!activeIdeaId || !foundIdea) return null;
@@ -67,13 +95,24 @@ export const IdeaNoteModal: React.FC = () => {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '') || 'nota-daycraft';
 
+  const handleToggleChecklistLine = (lineIndex: number) => {
+    const lines = markdownBody.split('\n');
+    const target = lines[lineIndex];
+    if (target === undefined) return;
+    const match = target.match(/^(\s*[-*]\s+)\[([ xX])\](.*)$/);
+    if (!match) return;
+    const nextState = match[2].toLowerCase() === 'x' ? ' ' : 'x';
+    lines[lineIndex] = `${match[1]}[${nextState}]${match[3]}`;
+    setMarkdownBody(lines.join('\n'));
+  };
+
   const handleSave = () => {
     const lines = markdownBody
       .split('\n')
       .map((l) => l.trim())
       .filter((l) => l.length > 0 && !l.startsWith('#'));
     const summaryDesc =
-      lines[0]?.replace(/^[-*]\s+(\[[ x]\]\s+)?/, '') || foundIdea!.desc;
+      lines[0]?.replace(/^[-*]\s+(\[[ xX]\]\s+)?/, '') || foundIdea!.desc;
 
     updateIdeaMarkdown(foundIdea!.id, {
       title: title.trim() || foundIdea!.title,
@@ -83,7 +122,7 @@ export const IdeaNoteModal: React.FC = () => {
     setActiveIdeaId(null);
   };
 
-  const handleDownloadMdFile = () => {
+  const handleDownloadMdFile = async () => {
     const frontmatter = [
       '---',
       `title: "${title.replace(/"/g, '\\"')}"`,
@@ -95,6 +134,7 @@ export const IdeaNoteModal: React.FC = () => {
     ].join('\n');
 
     const fullMdDocument = `${frontmatter}${markdownBody}`;
+    const filename = `${slugFilename}.md`;
 
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const blob = new Blob([fullMdDocument], {
@@ -103,17 +143,121 @@ export const IdeaNoteModal: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${slugFilename}.md`;
+      a.download = filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    } else {
+      try {
+        const mdFile = new File(Paths.cache, filename);
+        mdFile.write(fullMdDocument);
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(mdFile.uri, {
+            mimeType: 'text/markdown',
+            dialogTitle: `Exportar ${filename}`,
+          });
+        }
+      } catch {
+        // Fallback toast still notifies user gracefully
+      }
     }
 
     showToast({
       title: 'Archivo .md exportado',
-      description: `Descargado como "${slugFilename}.md"`,
+      description: `Exportado como "${filename}"`,
     });
+  };
+
+  const renderMarkdownPreview = () => {
+    const lines = markdownBody.split('\n');
+    return (
+      <Animated.View
+        entering={FadeIn.duration(160)}
+        className="bg-canvas border border-line rounded-2xl p-4 gap-1.5"
+        style={{ minHeight: 220 }}
+      >
+        {lines.map((line, idx) => {
+          const trimmed = line.trim();
+          if (trimmed.length === 0) {
+            return <View key={`sp-${idx}`} className="h-2" />;
+          }
+
+          if (trimmed.startsWith('### ')) {
+            return (
+              <Text key={`h3-${idx}`} className="text-sm font-bold text-accent-soft mt-1.5">
+                {renderInlineMarkdown(trimmed.slice(4))}
+              </Text>
+            );
+          }
+
+          if (trimmed.startsWith('## ')) {
+            return (
+              <Text key={`h2-${idx}`} className="text-base font-bold text-ink mt-2">
+                {renderInlineMarkdown(trimmed.slice(3))}
+              </Text>
+            );
+          }
+
+          if (trimmed.startsWith('# ')) {
+            return (
+              <Text key={`h1-${idx}`} className="text-lg font-bold text-ink">
+                {renderInlineMarkdown(trimmed.slice(2))}
+              </Text>
+            );
+          }
+
+          const checklistMatch = line.match(/^\s*[-*]\s+\[([ xX])\]\s*(.*)$/);
+          if (checklistMatch) {
+            const checked = checklistMatch[1].toLowerCase() === 'x';
+            const content = checklistMatch[2];
+            return (
+              <Pressable
+                key={`chk-${idx}`}
+                onPress={() => handleToggleChecklistLine(idx)}
+                className="flex-row items-center gap-2.5 min-h-[44px] py-1 px-2 rounded-xl bg-card/60 border border-line-subtle active:border-ink"
+              >
+                <View
+                  className={`w-5 h-5 rounded-md border items-center justify-center flex-shrink-0 ${
+                    checked ? 'bg-ok border-ok' : 'bg-canvas border-line'
+                  }`}
+                >
+                  {checked ? (
+                    <NotionIcon name="check" size={12} color={colors.canvas} strokeWidth={2.4} />
+                  ) : null}
+                </View>
+                <Text
+                  className={`text-sm flex-1 leading-snug ${
+                    checked ? 'text-muted line-through' : 'text-ink'
+                  }`}
+                >
+                  {renderInlineMarkdown(content)}
+                </Text>
+              </Pressable>
+            );
+          }
+
+          const bulletMatch = line.match(/^\s*[-*]\s+(.*)$/);
+          if (bulletMatch) {
+            return (
+              <View key={`li-${idx}`} className="flex-row items-start gap-2 pl-2">
+                <Text className="text-sm font-bold text-accent-soft">•</Text>
+                <Text className="text-sm text-ink flex-1 leading-relaxed">
+                  {renderInlineMarkdown(bulletMatch[1])}
+                </Text>
+              </View>
+            );
+          }
+
+          return (
+            <Text key={`p-${idx}`} className="text-sm text-ink leading-relaxed">
+              {renderInlineMarkdown(line)}
+            </Text>
+          );
+        })}
+      </Animated.View>
+    );
   };
 
   return (
@@ -153,25 +297,23 @@ export const IdeaNoteModal: React.FC = () => {
           <View className="flex-row items-center gap-2 flex-shrink-0">
             <Pressable
               onPress={handleDownloadMdFile}
-              className="flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl bg-raised border border-line active:border-ink flex-shrink-0"
+              className="flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-raised border border-line active:border-ink flex-shrink-0"
             >
               <NotionIcon name="folder" size={13} color={colors.ok} />
-              <Text className="text-xs font-mono font-bold text-ok">
-                .md
-              </Text>
+              <Text className="text-xs font-mono font-bold text-ok">.md</Text>
             </Pressable>
 
             <Pressable
               onPress={() => setActiveIdeaId(null)}
               hitSlop={10}
-              className="w-8 h-8 rounded-full bg-raised items-center justify-center flex-shrink-0"
+              className="w-11 h-11 rounded-full bg-raised items-center justify-center flex-shrink-0"
             >
-              <NotionIcon name="close" size={13} color={colors.muted} />
+              <NotionIcon name="close" size={14} color={colors.muted} />
             </Pressable>
           </View>
         </View>
 
-        {/* Cuerpo Editable del Documento Markdown */}
+        {/* Cuerpo Editable / Vista Previa del Documento Markdown */}
         <ScrollView
           className="p-5"
           contentContainerStyle={{ gap: 14 }}
@@ -186,7 +328,7 @@ export const IdeaNoteModal: React.FC = () => {
               onChangeText={setTitle}
               placeholder="Título de la idea..."
               placeholderTextColor={colors.muted}
-              className="text-base font-bold text-ink bg-raised border border-line rounded-xl px-3.5 py-2.5"
+              className="text-base font-bold text-ink bg-raised border border-line rounded-xl px-3.5 py-2.5 min-h-[44px]"
             />
           </View>
 
@@ -202,7 +344,7 @@ export const IdeaNoteModal: React.FC = () => {
                   <Pressable
                     key={grp.id}
                     onPress={() => moveIdeaToGroup(foundIdea!.id, grp.id)}
-                    className={`flex-row items-center gap-1.5 px-3 py-1.5 rounded-xl border ${
+                    className={`flex-row items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl border ${
                       isCurrent
                         ? 'bg-accent/20 border-accent'
                         : 'bg-raised border-line active:border-ink'
@@ -226,26 +368,60 @@ export const IdeaNoteModal: React.FC = () => {
             </View>
           </View>
 
-          <View className="gap-1.5">
-            <View className="flex-row items-center justify-between">
+          <View className="gap-2">
+            <View className="flex-row items-center justify-between gap-2 flex-wrap">
               <Text className="text-xs uppercase tracking-wider font-bold text-muted">
                 Contenido Markdown (.md)
               </Text>
-              <Text className="text-xs font-mono text-muted">
-                Soporta # Títulos, - [ ] Checklists, `código`
-              </Text>
+
+              <View className="flex-row items-center gap-1 bg-raised p-1 rounded-xl border border-line">
+                <Pressable
+                  onPress={() => setPreviewMode(false)}
+                  className={`px-3 py-1.5 min-h-[44px] justify-center rounded-lg ${
+                    !previewMode ? 'bg-card border border-line' : ''
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-semibold ${
+                      !previewMode ? 'text-ink' : 'text-muted'
+                    }`}
+                  >
+                    Editar
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => setPreviewMode(true)}
+                  className={`px-3 py-1.5 min-h-[44px] justify-center rounded-lg ${
+                    previewMode ? 'bg-accent/20 border border-accent' : ''
+                  }`}
+                >
+                  <Text
+                    className={`text-xs font-semibold ${
+                      previewMode ? 'text-accent-soft' : 'text-muted'
+                    }`}
+                  >
+                    Vista Previa
+                  </Text>
+                </Pressable>
+              </View>
             </View>
 
-            <TextInput
-              value={markdownBody}
-              onChangeText={setMarkdownBody}
-              multiline
-              textAlignVertical="top"
-              placeholder="Escribe tus notas en Markdown..."
-              placeholderTextColor={colors.muted}
-              style={{ minHeight: 220 }}
-              className="bg-canvas border border-line rounded-2xl p-4 text-sm font-mono text-ink leading-relaxed"
-            />
+            {previewMode ? (
+              renderMarkdownPreview()
+            ) : (
+              <Animated.View entering={FadeIn.duration(160)}>
+                <TextInput
+                  value={markdownBody}
+                  onChangeText={setMarkdownBody}
+                  multiline
+                  textAlignVertical="top"
+                  placeholder="Escribe tus notas en Markdown..."
+                  placeholderTextColor={colors.muted}
+                  style={{ minHeight: 220 }}
+                  className="bg-canvas border border-line rounded-2xl p-4 text-sm font-mono text-ink leading-relaxed"
+                />
+              </Animated.View>
+            )}
           </View>
         </ScrollView>
 
@@ -262,7 +438,7 @@ export const IdeaNoteModal: React.FC = () => {
                   title: targetTitle,
                 });
               }}
-              className="flex-1 sm:flex-initial flex-row items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+              className="flex-1 sm:flex-initial flex-row items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-raised border border-line active:border-ink"
             >
               <NotionIcon name="clock" size={13} color={colors.accentSoft} />
               <Text className="text-xs font-semibold text-accent-soft">
@@ -272,7 +448,7 @@ export const IdeaNoteModal: React.FC = () => {
 
             <Pressable
               onPress={() => removeIdea(foundIdea!.id)}
-              className="flex-row items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-raised border border-line active:border-ink"
+              className="flex-row items-center justify-center gap-1.5 px-3 py-2 min-h-[44px] rounded-xl bg-raised border border-line active:border-ink"
             >
               <NotionIcon name="trash" size={13} color={colors.now} />
               <Text className="text-xs font-semibold text-now">Eliminar</Text>
@@ -282,20 +458,16 @@ export const IdeaNoteModal: React.FC = () => {
           <View className="flex-row items-center justify-end gap-2">
             <Pressable
               onPress={() => setActiveIdeaId(null)}
-              className="px-4 py-2.5 rounded-xl active:opacity-75"
+              className="px-4 py-2.5 min-h-[44px] justify-center rounded-xl active:opacity-75"
             >
-              <Text className="text-sm font-medium text-muted">
-                Cancelar
-              </Text>
+              <Text className="text-sm font-medium text-muted">Cancelar</Text>
             </Pressable>
 
             <Pressable
               onPress={handleSave}
-              className="px-5 py-2.5 rounded-xl bg-ink active:opacity-85"
+              className="px-5 py-2.5 min-h-[44px] justify-center rounded-xl bg-ink active:opacity-85"
             >
-              <Text className="text-sm font-bold text-canvas">
-                Guardar
-              </Text>
+              <Text className="text-sm font-bold text-canvas">Guardar</Text>
             </Pressable>
           </View>
         </View>
